@@ -23,6 +23,8 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\AttributeController;
+use App\Http\Controllers\Admin\AttributeValueController;
 
 // Vendor Controllers
 use App\Http\Controllers\Vendor\VendorDashboardController;
@@ -33,6 +35,7 @@ use App\Http\Controllers\Vendor\VendorOrderController;
 use App\Http\Controllers\Customer\CustomerDashboardController;
 use App\Http\Controllers\Customer\CustomerOrderController;
 use App\Http\Controllers\Customer\CustomerReviewController;
+use App\Http\Controllers\Customer\AddressController;
 
 /*
 |--------------------------------------------------------------------------
@@ -119,62 +122,91 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Cart Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('cart')->name('cart.')->group(function () {
+        Route::get('/', [CartController::class, 'index'])->name('index');
+        Route::post('/add', [CartController::class, 'add'])->name('add');
+        Route::put('/update/{id}', [CartController::class, 'update'])->name('update');
+        Route::delete('/remove/{id}', [CartController::class, 'remove'])->name('remove');
+        Route::delete('/clear', [CartController::class, 'clear'])->name('clear');
+        Route::get('/count', [CartController::class, 'getCartCount'])->name('count');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Wishlist Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('wishlist')->name('wishlist.')->group(function () {
+        Route::get('/', [WishlistController::class, 'index'])->name('index');
+        Route::post('/add/{productId}', [WishlistController::class, 'add'])->name('add');
+        Route::delete('/remove/{id}', [WishlistController::class, 'remove'])->name('remove');
+        Route::delete('/clear', [WishlistController::class, 'clear'])->name('clear');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Checkout Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('checkout')->name('checkout.')->group(function () {
+        Route::get('/', [CheckoutController::class, 'index'])->name('index');
+        Route::post('/process', [CheckoutController::class, 'process'])->name('process');
+        Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
+        Route::get('/cancel', [CheckoutController::class, 'cancel'])->name('cancel');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
     | Customer Routes
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('customer')->name('customer.')->middleware(['role:customer'])->group(function () {
+    Route::prefix('customer')->name('customer.')->group(function () {
         
         // Dashboard
         Route::get('/dashboard', [CustomerDashboardController::class, 'index'])->name('dashboard');
-        
-        // Cart Routes
-        Route::prefix('cart')->name('cart.')->group(function () {
-            Route::get('/', [CartController::class, 'index'])->name('index');
-            Route::post('/add', [CartController::class, 'add'])->name('add');
-            Route::put('/update/{id}', [CartController::class, 'update'])->name('update');
-            Route::delete('/remove/{id}', [CartController::class, 'remove'])->name('remove');
-            Route::delete('/clear', [CartController::class, 'clear'])->name('clear');
-            Route::get('/count', [CartController::class, 'getCartCount'])->name('count');
-        });
-        
-        // Wishlist Routes
-        Route::prefix('wishlist')->name('wishlist.')->group(function () {
-            Route::get('/', [WishlistController::class, 'index'])->name('index');
-            Route::post('/add/{productId}', [WishlistController::class, 'add'])->name('add');
-            Route::delete('/remove/{id}', [WishlistController::class, 'remove'])->name('remove');
-            Route::delete('/clear', [WishlistController::class, 'clear'])->name('clear');
-        });
-        
-        // Checkout Routes
-        Route::prefix('checkout')->name('checkout.')->group(function () {
-            Route::get('/', [CheckoutController::class, 'index'])->name('index');
-            Route::post('/process', [CheckoutController::class, 'process'])->name('process');
-            Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
-            Route::get('/cancel', [CheckoutController::class, 'cancel'])->name('cancel');
-        });
         
         // Orders
         Route::get('/orders', [CustomerOrderController::class, 'index'])->name('orders');
         Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('orders.show');
         Route::post('/orders/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('orders.cancel');
+        Route::get('/orders/{order}/invoice', [CustomerOrderController::class, 'invoice'])->name('orders.invoice');
+        Route::get('/orders/stats', [CustomerOrderController::class, 'getStats'])->name('orders.stats');
+        Route::get('/orders/statuses', [CustomerOrderController::class, 'getStatuses'])->name('orders.statuses');
+        
+        // Profile
+        Route::get('/profile', [CustomerDashboardController::class, 'profile'])->name('profile');
+        Route::put('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
         
         // Reviews
+        Route::get('/reviews', [CustomerReviewController::class, 'index'])->name('reviews');
         Route::post('/reviews', [CustomerReviewController::class, 'store'])->name('reviews.store');
         Route::put('/reviews/{review}', [CustomerReviewController::class, 'update'])->name('reviews.update');
         Route::delete('/reviews/{review}', [CustomerReviewController::class, 'destroy'])->name('reviews.destroy');
         
-        // Address Book
-        Route::resource('addresses', App\Http\Controllers\Customer\AddressController::class)->except(['show']);
+        // Addresses
+        Route::get('/addresses', [AddressController::class, 'index'])->name('addresses');
+        Route::get('/addresses/create', [AddressController::class, 'create'])->name('addresses.create');
+        Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
+        Route::get('/addresses/{address}/edit', [AddressController::class, 'edit'])->name('addresses.edit');
+        Route::put('/addresses/{address}', [AddressController::class, 'update'])->name('addresses.update');
+        Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
+        Route::post('/addresses/{address}/default', [AddressController::class, 'setDefault'])->name('addresses.default');
     });
 
     /*
     |--------------------------------------------------------------------------
-    | Vendor Routes (For Seller/Vendor Role)
+    | Vendor Routes
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('vendor')->name('vendor.')->middleware(['role:vendor'])->group(function () {
+    Route::prefix('vendor')->name('vendor.')->group(function () {
         
         // Dashboard
         Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
@@ -193,7 +225,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/orders/{order}', [VendorOrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{order}/status', [VendorOrderController::class, 'updateStatus'])->name('orders.update-status');
         
-        // Sales Report
+        // Reports
         Route::get('/sales-report', [VendorDashboardController::class, 'salesReport'])->name('sales-report');
         Route::get('/sales-report/export', [VendorDashboardController::class, 'exportReport'])->name('sales-report.export');
         
@@ -204,11 +236,11 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Admin Routes (Backend Management)
+    | Admin Routes
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('admin')->name('admin.')->middleware(['role:admin', 'auth'])->group(function () {
+    Route::prefix('admin')->name('admin.')->group(function () {
 
         /*
         |----------------------------------------------------------------------
@@ -255,8 +287,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/products/download-sample', [ProductController::class, 'downloadSample'])->name('products.download-sample');
         
         // Product Attributes
-        Route::resource('attributes', App\Http\Controllers\Admin\AttributeController::class);
-        Route::resource('attribute-values', App\Http\Controllers\Admin\AttributeValueController::class);
+        Route::resource('attributes', AttributeController::class);
+        Route::resource('attribute-values', AttributeValueController::class);
         
         /*
         |----------------------------------------------------------------------
@@ -398,7 +430,7 @@ Route::middleware(['auth'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Authentication Routes (Laravel Breeze/Jetstream)
+| Authentication Routes
 |--------------------------------------------------------------------------
 */
 
@@ -411,17 +443,14 @@ require __DIR__ . '/auth.php';
 */
 
 Route::prefix('webhook')->name('webhook.')->group(function () {
-    Route::post('/stripe', [App\Http\Controllers\Webhook\StripeWebhookController::class, 'handle'])
-        ->name('stripe');
-    Route::post('/paypal', [App\Http\Controllers\Webhook\PaypalWebhookController::class, 'handle'])
-        ->name('paypal');
-    Route::post('/sslcommerz', [App\Http\Controllers\Webhook\SslCommerzWebhookController::class, 'handle'])
-        ->name('sslcommerz');
+    Route::post('/stripe', [App\Http\Controllers\Webhook\StripeWebhookController::class, 'handle'])->name('stripe');
+    Route::post('/paypal', [App\Http\Controllers\Webhook\PaypalWebhookController::class, 'handle'])->name('paypal');
+    Route::post('/sslcommerz', [App\Http\Controllers\Webhook\SslCommerzWebhookController::class, 'handle'])->name('sslcommerz');
 });
 
 /*
 |--------------------------------------------------------------------------
-| AJAX Routes (For API-like functionality)
+| AJAX Routes
 |--------------------------------------------------------------------------
 */
 

@@ -1,9 +1,17 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
-public function run()
+class RoleSeeder extends Seeder
 {
-    Role::create(['name'=>'Super Admin']);
-    Role::create(['name'=>'Admin']);
-    Role::create(['name'=>'Vendor']);
-    Role::create(['name'=>'Customer']);
+    public function run(): void
+    {
+        Role::firstOrCreate(['name' => 'Super Admin']);
+        Role::firstOrCreate(['name' => 'Admin']);
+        Role::firstOrCreate(['name' => 'Vendor']);
+        Role::firstOrCreate(['name' => 'Customer']);
+    }
 }

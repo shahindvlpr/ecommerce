@@ -121,17 +121,17 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-Route::prefix('cart')->name('cart.')->group(function () {
-    Route::get('/', [CartController::class, 'index'])->name('index');
-    Route::post('/add', [CartController::class, 'add'])->name('add');
-    Route::put('/update/{id}', [CartController::class, 'update'])->name('update');
-    Route::delete('/remove/{id}', [CartController::class, 'remove'])->name('remove');
-    Route::delete('/clear', [CartController::class, 'clear'])->name('clear');
-    Route::get('/count', [CartController::class, 'getCartCount'])->name('count');
-    Route::get('/total', [CartController::class, 'getCartTotal'])->name('total');
-    Route::get('/expiry', [CartController::class, 'getCartExpiry'])->name('expiry');           // ← নতুন
-    Route::post('/extend-expiry', [CartController::class, 'extendExpiry'])->name('extend-expiry'); // ← নতুন
-});
+    Route::prefix('cart')->name('cart.')->group(function () {
+        Route::get('/', [CartController::class, 'index'])->name('index');
+        Route::post('/add', [CartController::class, 'add'])->name('add');
+        Route::put('/update/{id}', [CartController::class, 'update'])->name('update');
+        Route::delete('/remove/{id}', [CartController::class, 'remove'])->name('remove');
+        Route::delete('/clear', [CartController::class, 'clear'])->name('clear');
+        Route::get('/count', [CartController::class, 'getCartCount'])->name('count');
+        Route::get('/total', [CartController::class, 'getCartTotal'])->name('total');
+        Route::get('/expiry', [CartController::class, 'getCartExpiry'])->name('expiry');
+        Route::post('/extend-expiry', [CartController::class, 'extendExpiry'])->name('extend-expiry');
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -154,13 +154,12 @@ Route::prefix('cart')->name('cart.')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-Route::prefix('checkout')->name('checkout.')->middleware(['auth'])->group(function () {
-    Route::get('/', [CheckoutController::class, 'index'])->name('index');  // GET
-    Route::post('/process', [CheckoutController::class, 'process'])->name('process');  // POST
-    Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
-    Route::get('/cancel', [CheckoutController::class, 'cancel'])->name('cancel');
-});
-
+    Route::prefix('checkout')->name('checkout.')->middleware(['auth'])->group(function () {
+        Route::get('/', [CheckoutController::class, 'index'])->name('index');
+        Route::post('/process', [CheckoutController::class, 'process'])->name('process');
+        Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
+        Route::get('/cancel', [CheckoutController::class, 'cancel'])->name('cancel');
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -168,7 +167,7 @@ Route::prefix('checkout')->name('checkout.')->middleware(['auth'])->group(functi
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('customer')->name('customer.')->group(function () {
+    Route::prefix('customer')->name('customer.')->middleware(['customer.access'])->group(function () {
         
         // Dashboard
         Route::get('/dashboard', [CustomerDashboardController::class, 'index'])->name('dashboard');
@@ -185,14 +184,14 @@ Route::prefix('checkout')->name('checkout.')->middleware(['auth'])->group(functi
         Route::get('/profile', [CustomerDashboardController::class, 'profile'])->name('profile');
         Route::put('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
         
-        // Wishlist (Customer Panel থেকে Access)
+        // Wishlist
         Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
-    Route::post('/wishlist/add/{productId}', [WishlistController::class, 'add'])->name('wishlist.add');
-    Route::delete('/wishlist/remove/{id}', [WishlistController::class, 'remove'])->name('wishlist.remove');
-    Route::delete('/wishlist/clear', [WishlistController::class, 'clear'])->name('wishlist.clear');
-    Route::post('/wishlist/toggle/{productId}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
-    Route::get('/wishlist/count', [WishlistController::class, 'getCount'])->name('wishlist.count');
-    Route::get('/wishlist/check/{productId}', [WishlistController::class, 'check'])->name('wishlist.check');
+        Route::post('/wishlist/add/{productId}', [WishlistController::class, 'add'])->name('wishlist.add');
+        Route::delete('/wishlist/remove/{id}', [WishlistController::class, 'remove'])->name('wishlist.remove');
+        Route::delete('/wishlist/clear', [WishlistController::class, 'clear'])->name('wishlist.clear');
+        Route::post('/wishlist/toggle/{productId}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+        Route::get('/wishlist/count', [WishlistController::class, 'getCount'])->name('wishlist.count');
+        Route::get('/wishlist/check/{productId}', [WishlistController::class, 'check'])->name('wishlist.check');
         
         // Reviews
         Route::get('/reviews', [CustomerReviewController::class, 'index'])->name('reviews');
@@ -216,7 +215,7 @@ Route::prefix('checkout')->name('checkout.')->middleware(['auth'])->group(functi
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('vendor')->name('vendor.')->group(function () {
+    Route::prefix('vendor')->name('vendor.')->middleware(['vendor.access'])->group(function () {
         
         // Dashboard
         Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
@@ -246,11 +245,14 @@ Route::prefix('checkout')->name('checkout.')->middleware(['auth'])->group(functi
 
     /*
     |--------------------------------------------------------------------------
-    | Admin Routes (Role: Admin)
+    | Admin Routes (Role: Admin) - With Role Based Access Control
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['admin.access'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
 
         /*
         |----------------------------------------------------------------------

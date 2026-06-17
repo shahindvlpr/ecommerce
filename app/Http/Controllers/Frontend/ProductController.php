@@ -10,23 +10,17 @@ use App\Models\Brand;
 
 class ProductController extends Controller
 {
-    /**
-     * Display the specified product.
-     */
     public function show($slug)
     {
-        // Find product by slug with relationships
         $product = Product::where('slug', $slug)
             ->where('status', true)
-            ->with(['category', 'brand', 'images', 'variations', 'reviews' => function($query) {
-                $query->where('is_approved', true);
-            }])
+            ->with(['category', 'brand', 'images', 'variations'])
             ->firstOrFail();
 
         // Increment view count
         $product->incrementViews();
 
-        // Get related products (same category)
+        // Get related products
         $relatedProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('status', true)
@@ -35,13 +29,7 @@ class ProductController extends Controller
             ->get();
 
         // Get product rating distribution
-        $ratingDistribution = [
-            1 => 0,
-            2 => 0,
-            3 => 0,
-            4 => 0,
-            5 => 0,
-        ];
+        $ratingDistribution = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
         
         if ($product->reviews) {
             foreach ($product->reviews as $review) {
@@ -51,7 +39,6 @@ class ProductController extends Controller
             }
         }
 
-        // Calculate review percentages
         $totalReviews = $product->reviews_count ?? 0;
         $reviewPercentages = [];
         if ($totalReviews > 0) {
@@ -60,7 +47,7 @@ class ProductController extends Controller
             }
         }
 
-        // Check if product is in wishlist (if user is logged in)
+        // Check if product is in wishlist
         $inWishlist = false;
         if (auth()->check()) {
             $inWishlist = \App\Models\Wishlist::where('user_id', auth()->id())
@@ -78,9 +65,6 @@ class ProductController extends Controller
         ));
     }
 
-    /**
-     * Search products.
-     */
     public function search(Request $request)
     {
         $query = $request->get('q');
@@ -98,9 +82,6 @@ class ProductController extends Controller
         return view('frontend.shop.index', compact('products'));
     }
 
-    /**
-     * AJAX search for products.
-     */
     public function ajaxSearch(Request $request)
     {
         $query = $request->get('q');

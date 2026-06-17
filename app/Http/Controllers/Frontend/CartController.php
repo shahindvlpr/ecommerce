@@ -310,26 +310,27 @@ class CartController extends Controller
     /**
      * Get cart count (only active items).
      */
-    public function getCartCount()
-    {
-        try {
-            if (!Auth::check()) {
-                return response()->json(['count' => 0]);
-            }
-
-            // Remove expired items first
-            $this->removeExpiredItems();
-
-            $count = Cart::where('user_id', Auth::id())
-                ->active()
-                ->sum('quantity');
-
-            return response()->json(['count' => $count]);
-
-        } catch (\Exception $e) {
+public function getCartCount()
+{
+    try {
+        if (!Auth::check()) {
             return response()->json(['count' => 0]);
         }
+
+        // Remove expired items first (if you have expiration)
+        // $this->removeExpiredItems();
+
+        $count = Cart::where('user_id', Auth::id())
+            ->active() // যদি active scope থাকে
+            ->sum('quantity');
+
+        return response()->json(['count' => $count]);
+
+    } catch (\Exception $e) {
+        \Log::error('Cart count error: ' . $e->getMessage());
+        return response()->json(['count' => 0]);
     }
+}
 
     /**
      * Get cart total (only active items).

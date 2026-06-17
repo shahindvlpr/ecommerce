@@ -129,6 +129,8 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::delete('/clear', [CartController::class, 'clear'])->name('clear');
     Route::get('/count', [CartController::class, 'getCartCount'])->name('count');
     Route::get('/total', [CartController::class, 'getCartTotal'])->name('total');
+    Route::get('/expiry', [CartController::class, 'getCartExpiry'])->name('expiry');           // ← নতুন
+    Route::post('/extend-expiry', [CartController::class, 'extendExpiry'])->name('extend-expiry'); // ← নতুন
 });
 
     /*

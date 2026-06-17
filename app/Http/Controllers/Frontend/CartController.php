@@ -7,9 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Cart;
 use App\Models\Product;
+use Carbon\Carbon;
 
 class CartController extends Controller
 {
+    // Cart Expiration Time (in minutes)
+    const CART_EXPIRATION_MINUTES = 60; // 60 minutes = 1 hour
+    // Or use: const CART_EXPIRATION_HOURS = 24; // 24 hours
+    
     /**
      * Display the shopping cart.
      */
@@ -19,7 +24,11 @@ class CartController extends Controller
             return redirect()->route('login');
         }
 
+        // Remove expired items before showing cart
+        $this->removeExpiredItems();
+
         $cart = Cart::where('user_id', Auth::id())
+            ->active() // Only get active (non-expired) items
             ->with('product')
             ->get();
 
@@ -36,30 +45,26 @@ class CartController extends Controller
     }
 
     /**
-     * Add a product to cart.
+     * Add a product to cart with expiration time.
      */
     public function add(Request $request)
     {
         try {
-            // Check if user is logged in
             if (!Auth::check()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Please login first',
-                    'redirect' => route('login')
+                    'message' => 'Please login first'
                 ], 401);
             }
 
-            // Validate request
-            $validated = $request->validate([
+            $request->validate([
                 'product_id' => 'required|exists:products,id',
                 'quantity' => 'nullable|integer|min:1|max:999'
             ]);
 
-            $productId = $validated['product_id'];
-            $quantity = $validated['quantity'] ?? 1;
+            $productId = $request->product_id;
+            $quantity = $request->quantity ?? 1;
 
-            // Check if product exists and is active
             $product = Product::where('id', $productId)
                 ->where('status', true)
                 ->first();
@@ -71,36 +76,37 @@ class CartController extends Controller
                 ], 404);
             }
 
-            // Check stock
             if ($product->stock < $quantity) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Not enough stock available. Only ' . $product->stock . ' left.'
+                    'message' => 'Not enough stock available'
                 ], 400);
             }
 
-            // Get price (sale price or regular price)
             $price = $product->sale_price ?? $product->price;
+            
+            // Set expiration time
+            $expiresAt = now()->addMinutes(self::CART_EXPIRATION_MINUTES);
+            // Or for hours: $expiresAt = now()->addHours(self::CART_EXPIRATION_HOURS);
 
-            // Check if product already in cart
             $cartItem = Cart::where('user_id', Auth::id())
                 ->where('product_id', $productId)
+                ->active()
                 ->first();
 
             if ($cartItem) {
-                // Update quantity
                 $newQuantity = $cartItem->quantity + $quantity;
                 
-                // Check stock
                 if ($product->stock < $newQuantity) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Not enough stock available. Only ' . $product->stock . ' left.'
+                        'message' => 'Not enough stock available'
                     ], 400);
                 }
                 
                 $cartItem->quantity = $newQuantity;
                 $cartItem->price = $price;
+                $cartItem->expires_at = $expiresAt; // Reset expiration
                 $cartItem->save();
 
                 return response()->json([
@@ -110,12 +116,12 @@ class CartController extends Controller
                 ]);
             }
 
-            // Create new cart item
             Cart::create([
                 'user_id' => Auth::id(),
                 'product_id' => $productId,
                 'quantity' => $quantity,
                 'price' => $price,
+                'expires_at' => $expiresAt,
             ]);
 
             return response()->json([
@@ -124,21 +130,39 @@ class CartController extends Controller
                 'cart_count' => $this->getCartCount()
             ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error: ' . implode(', ', $e->errors()['product_id'] ?? ['Invalid product'])
-            ], 422);
         } catch (\Exception $e) {
-            // Log the error for debugging
             \Log::error('Cart Add Error: ' . $e->getMessage());
-            \Log::error($e->getTraceAsString());
             
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong! Please try again.',
-                'debug' => config('app.debug') ? $e->getMessage() : null
+                'message' => 'Something went wrong! Please try again.'
             ], 500);
+        }
+    }
+
+    /**
+     * Remove expired items from cart.
+     */
+    public function removeExpiredItems()
+    {
+        if (Auth::check()) {
+            $expiredItems = Cart::where('user_id', Auth::id())
+                ->expired()
+                ->get();
+
+            foreach ($expiredItems as $item) {
+                // Restore stock if needed
+                $product = Product::find($item->product_id);
+                if ($product) {
+                    $product->stock += $item->quantity;
+                    $product->save();
+                }
+                $item->delete();
+            }
+
+            if ($expiredItems->count() > 0) {
+                \Log::info('Removed ' . $expiredItems->count() . ' expired cart items for user ' . Auth::id());
+            }
         }
     }
 
@@ -157,6 +181,7 @@ class CartController extends Controller
 
             $cartItem = Cart::where('user_id', Auth::id())
                 ->where('id', $id)
+                ->active()
                 ->with('product')
                 ->first();
 
@@ -169,7 +194,6 @@ class CartController extends Controller
 
             $quantity = $request->quantity ?? 1;
             
-            // Check stock
             if ($cartItem->product->stock < $quantity) {
                 return response()->json([
                     'success' => false,
@@ -178,6 +202,8 @@ class CartController extends Controller
             }
 
             $cartItem->quantity = $quantity;
+            // Reset expiration on update
+            $cartItem->expires_at = now()->addMinutes(self::CART_EXPIRATION_MINUTES);
             $cartItem->save();
 
             return response()->json([
@@ -218,6 +244,13 @@ class CartController extends Controller
                 ], 404);
             }
 
+            // Restore stock
+            $product = Product::find($cartItem->product_id);
+            if ($product) {
+                $product->stock += $cartItem->quantity;
+                $product->save();
+            }
+
             $cartItem->delete();
 
             return response()->json([
@@ -247,6 +280,17 @@ class CartController extends Controller
                 ], 401);
             }
 
+            $cartItems = Cart::where('user_id', Auth::id())->get();
+            
+            // Restore stock for all items
+            foreach ($cartItems as $item) {
+                $product = Product::find($item->product_id);
+                if ($product) {
+                    $product->stock += $item->quantity;
+                    $product->save();
+                }
+            }
+
             Cart::where('user_id', Auth::id())->delete();
 
             return response()->json([
@@ -264,7 +308,7 @@ class CartController extends Controller
     }
 
     /**
-     * Get cart count.
+     * Get cart count (only active items).
      */
     public function getCartCount()
     {
@@ -273,7 +317,12 @@ class CartController extends Controller
                 return response()->json(['count' => 0]);
             }
 
-            $count = Cart::where('user_id', Auth::id())->sum('quantity');
+            // Remove expired items first
+            $this->removeExpiredItems();
+
+            $count = Cart::where('user_id', Auth::id())
+                ->active()
+                ->sum('quantity');
 
             return response()->json(['count' => $count]);
 
@@ -283,7 +332,7 @@ class CartController extends Controller
     }
 
     /**
-     * Get cart total.
+     * Get cart total (only active items).
      */
     public function getCartTotal()
     {
@@ -292,7 +341,10 @@ class CartController extends Controller
                 return response()->json(['total' => 0]);
             }
 
-            $cart = Cart::where('user_id', Auth::id())->get();
+            $cart = Cart::where('user_id', Auth::id())
+                ->active()
+                ->get();
+                
             $total = 0;
             foreach ($cart as $item) {
                 $total += $item->price * $item->quantity;
@@ -302,6 +354,73 @@ class CartController extends Controller
 
         } catch (\Exception $e) {
             return response()->json(['total' => 0]);
+        }
+    }
+
+    /**
+     * Get remaining time for cart items.
+     */
+    public function getCartExpiry()
+    {
+        try {
+            if (!Auth::check()) {
+                return response()->json(['expiry' => null]);
+            }
+
+            $cart = Cart::where('user_id', Auth::id())
+                ->active()
+                ->first();
+
+            if (!$cart || !$cart->expires_at) {
+                return response()->json(['expiry' => null]);
+            }
+
+            $remaining = now()->diffInMinutes($cart->expires_at);
+
+            return response()->json([
+                'expiry' => $remaining,
+                'expires_at' => $cart->expires_at,
+                'formatted' => $cart->remaining_time
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['expiry' => null]);
+        }
+    }
+
+    /**
+     * Extend cart expiration time.
+     */
+    public function extendExpiry()
+    {
+        try {
+            if (!Auth::check()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please login first'
+                ], 401);
+            }
+
+            $cartItems = Cart::where('user_id', Auth::id())
+                ->active()
+                ->get();
+
+            foreach ($cartItems as $item) {
+                $item->expires_at = now()->addMinutes(self::CART_EXPIRATION_MINUTES);
+                $item->save();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cart expiration extended',
+                'cart_count' => $this->getCartCount()
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong'
+            ], 500);
         }
     }
 }

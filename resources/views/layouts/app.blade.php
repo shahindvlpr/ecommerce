@@ -81,45 +81,71 @@
         .text-purple-600 {
             color: #8b5cf6;
         }
+
         /* Notification Animations */
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(100px) scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
-}
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
 
-@keyframes slideOutRight {
-    from {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(100px) scale(0.9);
-    }
-}
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100px) scale(0.9);
+            }
+        }
 
-/* Cart Badge */
-#cartCount {
-    transition: all 0.3s ease;
-    font-size: 0.65rem;
-    padding: 0.2rem 0.5rem;
-}
+        /* Cart Badge */
+        #cartCount {
+            transition: all 0.3s ease;
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+        }
 
-/* Loading Spinner */
-.fa-spinner {
-    animation: spin 1s linear infinite;
-}
+        /* Loading Spinner */
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
 
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 0.5rem;
+            min-width: 200px;
+        }
+        .dropdown-item {
+            border-radius: 0.5rem;
+            padding: 0.6rem 1rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .dropdown-item:hover {
+            background: #f1f5f9;
+            transform: translateX(5px);
+        }
+        .dropdown-item.text-danger:hover {
+            background: #fef2f2;
+        }
+        .dropdown-divider {
+            margin: 0.3rem 0;
+        }
     </style>
     
     @stack('styles')
@@ -146,9 +172,20 @@
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{{ route('contact') }}">Contact</a>
                     </li>
+                    
+                    <!-- Cart Icon - Visible for all authenticated users -->
+                    @auth
+                        <li class="nav-item position-relative">
+                            <a class="nav-link text-white" href="{{ route('cart.index') }}">
+                                <i class="fas fa-shopping-cart fa-lg"></i>
+                                <span id="cartCount" class="badge bg-danger rounded-pill" style="position: absolute; top: 0px; right: -8px; font-size: 0.6rem; padding: 0.2rem 0.5rem; display: none;">0</span>
+                            </a>
+                        </li>
+                    @endauth
+
                     @auth
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user-circle me-1"></i>
                                 {{ Auth::user()->name ?? 'Dashboard' }}
                             </a>
@@ -163,11 +200,21 @@
                                         <i class="fas fa-user me-2"></i> Profile
                                     </a>
                                 </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('customer.orders') }}">
+                                        <i class="fas fa-shopping-bag me-2"></i> My Orders
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('customer.wishlist') }}">
+                                        <i class="fas fa-heart me-2"></i> Wishlist
+                                    </a>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <button type="submit" class="dropdown-item text-danger">
+                                        <button type="submit" class="dropdown-item text-danger" style="background: none; border: none; width: 100%; text-align: left;">
                                             <i class="fas fa-sign-out-alt me-2"></i> Logout
                                         </button>
                                     </form>
@@ -237,7 +284,108 @@
     
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Cart Count Update Script -->
+    <script>
+        // Update cart count on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartCount();
+        });
+
+        function updateCartCount() {
+            fetch('{{ route("cart.count") }}')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const badge = document.getElementById('cartCount');
+                    if (badge) {
+                        const count = data.count || 0;
+                        badge.textContent = count;
+                        badge.style.display = count > 0 ? 'inline-block' : 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating cart count:', error);
+                });
+        }
+
+        // Toast Notification function (global)
+        function showNotification(message, type = 'success') {
+            // Remove existing notification
+            const existing = document.querySelector('.custom-notification');
+            if (existing) existing.remove();
+            
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444',
+                warning: '#f59e0b',
+                info: '#3b82f6'
+            };
+            
+            const icons = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                warning: 'exclamation-triangle',
+                info: 'info-circle'
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = 'custom-notification';
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                background: ${colors[type] || colors.success};
+                color: white;
+                padding: 14px 24px;
+                border-radius: 12px;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+                z-index: 9999;
+                font-weight: 500;
+                font-size: 0.95rem;
+                animation: slideInRight 0.4s ease;
+                max-width: 400px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                border: 1px solid rgba(255,255,255,0.15);
+                backdrop-filter: blur(10px);
+            `;
+            
+            notification.innerHTML = `
+                <i class="fas fa-${icons[type] || icons.success}" style="font-size: 1.2rem;"></i>
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" style="
+                    background: transparent;
+                    border: none;
+                    color: white;
+                    opacity: 0.7;
+                    cursor: pointer;
+                    margin-left: auto;
+                    font-size: 1rem;
+                    padding: 4px;
+                ">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.animation = 'slideOutRight 0.3s ease';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 4000);
+        }
+
+        console.log('%c✨ EktaMart App Loaded Successfully ✨', 'color: #8b5cf6; font-size: 14px; font-weight: bold;');
+    </script>
     
     @stack('scripts')
 </body>

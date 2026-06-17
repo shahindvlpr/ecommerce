@@ -3,35 +3,40 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Cart;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Review;
+use App\Models\Wishlist;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'is_admin',
-        'vendor_status',
-        'avatar',
-        'phone',
-        'address',
-        'city',
-        'state',
-        'postal_code',
-        'country',
-        'status',
-        'last_login_at',
-        'last_login_ip',
-    ];
+    'name',
+    'email',
+    'password',
+    'role',
+    'is_admin',
+    'vendor_status',
+    'avatar',
+    'phone',
+    'address',
+    'city',
+    'state',
+    'postal_code',
+    'country',
+    'status',
+    'last_login_at',
+    'last_login_ip',
+];
 
     protected $hidden = [
         'password',

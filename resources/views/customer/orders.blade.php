@@ -18,6 +18,138 @@
         padding: 1.5rem 0;
     }
 
+    /* Sidebar Styles */
+    .profile-sidebar {
+        background: white;
+        border-radius: var(--radius);
+        padding: 1.2rem;
+        box-shadow: var(--shadow-sm);
+        position: sticky;
+        top: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    .profile-sidebar:hover {
+        box-shadow: var(--shadow-hover);
+    }
+    .profile-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.6rem;
+        font-size: 1.8rem;
+        color: white;
+        font-weight: 700;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.25);
+        transition: all 0.3s ease;
+    }
+    .profile-avatar:hover {
+        transform: scale(1.05);
+    }
+    .profile-name {
+        text-align: center;
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.1rem;
+        color: #1a1a2e;
+    }
+    .profile-email {
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.7rem;
+        margin-bottom: 0.6rem;
+        word-break: break-all;
+    }
+    .profile-badge {
+        display: inline-block;
+        background: var(--primary-gradient);
+        color: white;
+        padding: 0.15rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 auto 0.8rem;
+        display: table;
+    }
+    .sidebar-nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .sidebar-nav li {
+        margin-bottom: 0.15rem;
+    }
+    .sidebar-nav a {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.6rem;
+        color: #4b5563;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        font-size: 0.8rem;
+        position: relative;
+    }
+    .sidebar-nav a::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 3px;
+        height: 100%;
+        background: var(--primary-gradient);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+        border-radius: 0 3px 3px 0;
+    }
+    .sidebar-nav a:hover::before,
+    .sidebar-nav a.active::before {
+        transform: scaleY(1);
+    }
+    .sidebar-nav a i {
+        width: 18px;
+        text-align: center;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+    .sidebar-nav a:hover {
+        background: #f3f4f6;
+        color: #667eea;
+        transform: translateX(3px);
+    }
+    .sidebar-nav a.active {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+    }
+    .sidebar-nav a.active::before {
+        background: white;
+    }
+    .sidebar-nav a.logout {
+        color: #ef4444;
+    }
+    .sidebar-nav a.logout:hover {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    .sidebar-nav .badge {
+        font-size: 0.6rem;
+        padding: 0.15rem 0.5rem;
+        animation: badgePulse 2s ease-in-out infinite;
+    }
+    @keyframes badgePulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    /* Page Header */
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -350,6 +482,10 @@
     }
 
     @media (max-width: 768px) {
+        .profile-sidebar {
+            position: static;
+            margin-bottom: 1rem;
+        }
         .order-header { flex-direction: column; align-items: flex-start; }
         .order-body { flex-direction: column; align-items: flex-start; }
         .order-action { width: 100%; }
@@ -367,110 +503,174 @@
 
 <div class="page-wrapper">
     <div class="container">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div>
-                <h2>
-                    <i class="fas fa-shopping-bag"></i> My Orders
-                    <span class="order-count">
-                        <i class="fas fa-receipt me-1"></i>
-                        {{ isset($orders) ? $orders->total() : 0 }} Orders
-                    </span>
-                </h2>
-            </div>
-            <div class="filter-section" id="filterSection">
-                <button class="btn-filter active" data-filter="all">All</button>
-                <button class="btn-filter" data-filter="pending">Pending</button>
-                <button class="btn-filter" data-filter="processing">Processing</button>
-                <button class="btn-filter" data-filter="shipped">Shipped</button>
-                <button class="btn-filter" data-filter="delivered">Delivered</button>
-                <button class="btn-filter" data-filter="cancelled">Cancelled</button>
-            </div>
-        </div>
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="profile-sidebar">
+                    <div class="profile-avatar">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                    </div>
+                    <div class="profile-name">{{ Auth::user()->name }}</div>
+                    <div class="profile-email">{{ Auth::user()->email }}</div>
+                    <div class="profile-badge">✦ Customer</div>
 
-        <!-- Orders List -->
-        @if(isset($orders) && $orders->count() > 0)
-            @foreach($orders as $order)
-            <div class="order-card" data-status="{{ $order->status }}" data-id="{{ $order->id }}">
-                <div class="order-header">
-                    <div class="order-id">
-                        <span>#{{ $order->order_number ?? $order->id }}</span>
-                        <span class="badge-copy" onclick="copyToClipboard('{{ $order->order_number ?? $order->id }}')" title="Copy Order ID">
-                            <i class="fas fa-copy"></i>
-                        </span>
-                    </div>
-                    <div class="d-flex align-items-center gap-3 flex-wrap">
-                        <span class="order-date">
-                            <i class="far fa-calendar-alt"></i>
-                            {{ $order->created_at->format('M d, Y') }}
-                            <span class="text-muted" style="font-size: 0.65rem;">{{ $order->created_at->format('h:i A') }}</span>
-                        </span>
-                        <span class="order-status {{ $order->status }}">{{ $order->status }}</span>
-                    </div>
-                </div>
-
-                <!-- Products Preview -->
-                <div class="order-products-preview">
-                    @php
-                        $items = $order->items->take(4);
-                        $remaining = $order->items->count() - 4;
-                    @endphp
-                    @foreach($items as $item)
-                    <div class="product-thumb" title="{{ $item->product->name ?? 'Product' }}">
-                        @if($item->product && $item->product->thumbnail)
-                            <img src="{{ asset('storage/' . $item->product->thumbnail) }}" alt="{{ $item->product->name }}">
-                        @else
-                            <i class="fas fa-image"></i>
-                        @endif
-                    </div>
-                    @endforeach
-                    @if($remaining > 0)
-                        <span class="more-items">+{{ $remaining }} more</span>
-                    @endif
-                </div>
-
-                <div class="order-body">
-                    <div class="order-items">
-                        <strong>{{ $order->items->count() }}</strong> items
-                        <span class="item-dot"></span>
-                        <span>Payment: <span class="text-capitalize">{{ $order->payment_status }}</span></span>
-                    </div>
-                    <div class="order-total">${{ number_format($order->total, 2) }}</div>
-                    <div class="order-action">
-                        @if(in_array($order->status, ['pending', 'processing']))
-                            <form method="POST" action="{{ route('customer.orders.cancel', ['order' => $order->id]) }}" style="display: inline;">
+                    <ul class="sidebar-nav">
+                        <li>
+                            <a href="{{ route('customer.dashboard') }}">
+                                <i class="fas fa-th-large"></i> Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('customer.orders') }}" class="active">
+                                <i class="fas fa-shopping-bag"></i> My Orders
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('customer.wishlist') }}">
+                                <i class="fas fa-heart"></i> Wishlist
+                                @php
+                                    $wishlistCount = \App\Models\Wishlist::where('user_id', Auth::id())->count();
+                                @endphp
+                                @if($wishlistCount > 0)
+                                    <span class="badge bg-danger rounded-pill ms-auto">{{ $wishlistCount }}</span>
+                                @endif
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('customer.profile') }}">
+                                <i class="fas fa-user-cog"></i> Profile Settings
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('customer.addresses') }}">
+                                <i class="fas fa-map-marker-alt"></i> Addresses
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('customer.reviews') }}">
+                                <i class="fas fa-star"></i> My Reviews
+                            </a>
+                        </li>
+                        <li style="margin-top: 0.3rem; padding-top: 0.3rem; border-top: 1px solid #f3f4f6;">
+                            <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" class="btn-cancel" onclick="return confirm('Are you sure you want to cancel this order?')">
-                                    <i class="fas fa-times me-1"></i> Cancel
+                                <button type="submit" class="sidebar-nav a logout" style="background: none; border: none; width: 100%; text-align: left; padding: 0.5rem 0.75rem; border-radius: 0.6rem; transition: all 0.3s ease; font-weight: 500; font-size: 0.8rem; display: flex; align-items: center; gap: 0.6rem; cursor: pointer;">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
                                 </button>
                             </form>
-                        @endif
-                        <a href="{{ route('customer.orders.show', ['order' => $order->id]) }}" class="btn-view">
-                            <i class="fas fa-eye me-1"></i> View Details
-                            <i class="fas fa-arrow-right ms-1" style="font-size: 0.6rem;"></i>
-                        </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h2>
+                            <i class="fas fa-shopping-bag"></i> My Orders
+                            <span class="order-count">
+                                <i class="fas fa-receipt me-1"></i>
+                                {{ isset($orders) ? $orders->total() : 0 }} Orders
+                            </span>
+                        </h2>
+                    </div>
+                    <div class="filter-section" id="filterSection">
+                        <button class="btn-filter active" data-filter="all">All</button>
+                        <button class="btn-filter" data-filter="pending">Pending</button>
+                        <button class="btn-filter" data-filter="processing">Processing</button>
+                        <button class="btn-filter" data-filter="shipped">Shipped</button>
+                        <button class="btn-filter" data-filter="delivered">Delivered</button>
+                        <button class="btn-filter" data-filter="cancelled">Cancelled</button>
                     </div>
                 </div>
-            </div>
-            @endforeach
 
-            <!-- Pagination -->
-            <div class="pagination-custom">
-                {{ $orders->links() }}
+                <!-- Orders List -->
+                @if(isset($orders) && $orders->count() > 0)
+                    @foreach($orders as $order)
+                    <div class="order-card" data-status="{{ $order->status }}" data-id="{{ $order->id }}">
+                        <div class="order-header">
+                            <div class="order-id">
+                                <span>#{{ $order->order_number ?? $order->id }}</span>
+                                <span class="badge-copy" onclick="copyToClipboard('{{ $order->order_number ?? $order->id }}')" title="Copy Order ID">
+                                    <i class="fas fa-copy"></i>
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                <span class="order-date">
+                                    <i class="far fa-calendar-alt"></i>
+                                    {{ $order->created_at->format('M d, Y') }}
+                                    <span class="text-muted" style="font-size: 0.65rem;">{{ $order->created_at->format('h:i A') }}</span>
+                                </span>
+                                <span class="order-status {{ $order->status }}">{{ $order->status }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Products Preview -->
+                        <div class="order-products-preview">
+                            @php
+                                $items = $order->items->take(4);
+                                $remaining = $order->items->count() - 4;
+                            @endphp
+                            @foreach($items as $item)
+                            <div class="product-thumb" title="{{ $item->product->name ?? 'Product' }}">
+                                @if($item->product && $item->product->thumbnail)
+                                    <img src="{{ asset('storage/' . $item->product->thumbnail) }}" alt="{{ $item->product->name }}">
+                                @else
+                                    <i class="fas fa-image"></i>
+                                @endif
+                            </div>
+                            @endforeach
+                            @if($remaining > 0)
+                                <span class="more-items">+{{ $remaining }} more</span>
+                            @endif
+                        </div>
+
+                        <div class="order-body">
+                            <div class="order-items">
+                                <strong>{{ $order->items->count() }}</strong> items
+                                <span class="item-dot"></span>
+                                <span>Payment: <span class="text-capitalize">{{ $order->payment_status }}</span></span>
+                            </div>
+                            <div class="order-total">${{ number_format($order->total, 2) }}</div>
+                            <div class="order-action">
+                                @if(in_array($order->status, ['pending', 'processing']))
+                                    <form method="POST" action="{{ route('customer.orders.cancel', ['order' => $order->id]) }}" style="display: inline;">
+                                        @csrf
+                                        <button type="submit" class="btn-cancel" onclick="return confirm('Are you sure you want to cancel this order?')">
+                                            <i class="fas fa-times me-1"></i> Cancel
+                                        </button>
+                                    </form>
+                                @endif
+                                <a href="{{ route('customer.orders.show', ['order' => $order->id]) }}" class="btn-view">
+                                    <i class="fas fa-eye me-1"></i> View Details
+                                    <i class="fas fa-arrow-right ms-1" style="font-size: 0.6rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+
+                    <!-- Pagination -->
+                    <div class="pagination-custom">
+                        {{ $orders->links() }}
+                    </div>
+                @else
+                    <!-- Empty State -->
+                    <div class="empty-state">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h5>No Orders Yet</h5>
+                        <p>You haven't placed any orders. Start exploring our collection!</p>
+                        <a href="{{ route('shop.index') }}" class="btn" style="background: var(--primary-gradient); color: white; border: none; border-radius: 0.75rem; padding: 0.6rem 1.8rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                            <i class="fas fa-shopping-cart me-2"></i> Start Shopping
+                        </a>
+                    </div>
+                @endif
             </div>
-        @else
-            <!-- Empty State -->
-            <div class="empty-state">
-                <div class="icon-wrapper">
-                    <i class="fas fa-shopping-bag"></i>
-                </div>
-                <h5>No Orders Yet</h5>
-                <p>You haven't placed any orders. Start exploring our collection!</p>
-                <a href="{{ route('shop.index') }}" class="btn" style="background: var(--primary-gradient); color: white; border: none; border-radius: 0.75rem; padding: 0.6rem 1.8rem; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                    <i class="fas fa-shopping-cart me-2"></i> Start Shopping
-                </a>
-            </div>
-        @endif
+        </div>
     </div>
 </div>
 

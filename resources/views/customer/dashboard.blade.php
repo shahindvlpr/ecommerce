@@ -507,15 +507,15 @@
                         <li><a href="{{ route('customer.dashboard') }}" class="active"><i class="fas fa-th-large"></i> Dashboard</a></li>
                         <li><a href="{{ route('customer.orders') }}"><i class="fas fa-shopping-bag"></i> My Orders</a></li>
                         <li>
-                            <a href="{{ route('wishlist.index') }}">
+                            <a href="{{ route('customer.wishlist') }}">
                                 <i class="fas fa-heart"></i> Wishlist
                                 @if(($wishlistCount ?? 0) > 0)
                                     <span class="badge bg-danger rounded-pill ms-auto">{{ $wishlistCount }}</span>
                                 @endif
                             </a>
                         </li>
-                        <li><a href="{{ route('profile.edit') }}"><i class="fas fa-user-cog"></i> Profile</a></li>
-                        <li><a href="{{ route('profile.addresses') }}"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
+                        <li><a href="{{ route('customer.profile') }}"><i class="fas fa-user-cog"></i> Profile</a></li>
+                        <li><a href="{{ route('customer.addresses') }}"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
                         <li><a href="{{ route('customer.reviews') }}"><i class="fas fa-star"></i> Reviews</a></li>
                         <li style="margin-top: 0.3rem; padding-top: 0.3rem; border-top: 1px solid #f3f4f6;">
                             <form method="POST" action="{{ route('logout') }}">

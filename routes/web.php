@@ -112,32 +112,28 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
-        Route::get('/orders', [ProfileController::class, 'orders'])->name('orders');
-        Route::get('/addresses', [ProfileController::class, 'addresses'])->name('addresses');
-        Route::post('/addresses', [ProfileController::class, 'storeAddress'])->name('addresses.store');
-        Route::put('/addresses/{address}', [ProfileController::class, 'updateAddress'])->name('addresses.update');
-        Route::delete('/addresses/{address}', [ProfileController::class, 'destroyAddress'])->name('addresses.destroy');
         Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
     });
 
     /*
     |--------------------------------------------------------------------------
-    | Cart Routes
+    | Cart Routes (For All Authenticated Users)
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('cart')->name('cart.')->group(function () {
-        Route::get('/', [CartController::class, 'index'])->name('index');
-        Route::post('/add', [CartController::class, 'add'])->name('add');
-        Route::put('/update/{id}', [CartController::class, 'update'])->name('update');
-        Route::delete('/remove/{id}', [CartController::class, 'remove'])->name('remove');
-        Route::delete('/clear', [CartController::class, 'clear'])->name('clear');
-        Route::get('/count', [CartController::class, 'getCartCount'])->name('count');
-    });
+Route::prefix('cart')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::post('/add', [CartController::class, 'add'])->name('add');
+    Route::put('/update/{id}', [CartController::class, 'update'])->name('update');
+    Route::delete('/remove/{id}', [CartController::class, 'remove'])->name('remove');
+    Route::delete('/clear', [CartController::class, 'clear'])->name('clear');
+    Route::get('/count', [CartController::class, 'getCartCount'])->name('count');
+    Route::get('/total', [CartController::class, 'getCartTotal'])->name('total');
+});
 
     /*
     |--------------------------------------------------------------------------
-    | Wishlist Routes
+    | Wishlist Routes (For All Authenticated Users)
     |--------------------------------------------------------------------------
     */
 
@@ -146,11 +142,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/add/{productId}', [WishlistController::class, 'add'])->name('add');
         Route::delete('/remove/{id}', [WishlistController::class, 'remove'])->name('remove');
         Route::delete('/clear', [WishlistController::class, 'clear'])->name('clear');
+        Route::get('/count', [WishlistController::class, 'getCount'])->name('count');
+        Route::get('/check/{productId}', [WishlistController::class, 'check'])->name('check');
     });
 
     /*
     |--------------------------------------------------------------------------
-    | Checkout Routes
+    | Checkout Routes (For All Authenticated Users)
     |--------------------------------------------------------------------------
     */
 
@@ -163,7 +161,7 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Customer Routes
+    | Customer Routes (Role: Customer)
     |--------------------------------------------------------------------------
     */
 
@@ -184,6 +182,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/profile', [CustomerDashboardController::class, 'profile'])->name('profile');
         Route::put('/profile', [CustomerDashboardController::class, 'updateProfile'])->name('profile.update');
         
+        // Wishlist (Customer Panel থেকে Access)
+        Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
+    Route::post('/wishlist/add/{productId}', [WishlistController::class, 'add'])->name('wishlist.add');
+    Route::delete('/wishlist/remove/{id}', [WishlistController::class, 'remove'])->name('wishlist.remove');
+    Route::delete('/wishlist/clear', [WishlistController::class, 'clear'])->name('wishlist.clear');
+    Route::post('/wishlist/toggle/{productId}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+    Route::get('/wishlist/count', [WishlistController::class, 'getCount'])->name('wishlist.count');
+    Route::get('/wishlist/check/{productId}', [WishlistController::class, 'check'])->name('wishlist.check');
+        
         // Reviews
         Route::get('/reviews', [CustomerReviewController::class, 'index'])->name('reviews');
         Route::post('/reviews', [CustomerReviewController::class, 'store'])->name('reviews.store');
@@ -202,7 +209,7 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Vendor Routes
+    | Vendor Routes (Role: Vendor)
     |--------------------------------------------------------------------------
     */
 
@@ -236,7 +243,7 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Admin Routes
+    | Admin Routes (Role: Admin)
     |--------------------------------------------------------------------------
     */
 
@@ -450,7 +457,7 @@ Route::prefix('webhook')->name('webhook.')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| AJAX Routes
+| AJAX Routes (For API-like functionality)
 |--------------------------------------------------------------------------
 */
 
@@ -464,12 +471,16 @@ Route::prefix('ajax')->name('ajax.')->middleware(['auth'])->group(function () {
     Route::get('/cart/total', [CartController::class, 'getCartTotal'])->name('cart.total');
     
     // Wishlist
-    Route::get('/wishlist/count', [WishlistController::class, 'getWishlistCount'])->name('wishlist.count');
+    Route::get('/wishlist/count', [WishlistController::class, 'getCount'])->name('wishlist.count');
+    Route::get('/wishlist/check/{productId}', [WishlistController::class, 'check'])->name('wishlist.check');
     
     // Locations
     Route::get('/divisions', [CheckoutController::class, 'getDivisions'])->name('divisions');
     Route::get('/districts/{divisionId}', [CheckoutController::class, 'getDistricts'])->name('districts');
     Route::get('/upazilas/{districtId}', [CheckoutController::class, 'getUpazilas'])->name('upazilas');
+    
+    // Checkout
+    Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
 });
 
 /*

@@ -26,7 +26,7 @@ class WishlistController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('customer.wishlist', compact('wishlist'));
+        return view('frontend.wishlist', compact('wishlist'));
     }
 
     /**
@@ -96,9 +96,9 @@ class WishlistController extends Controller
     }
 
     /**
-     * Toggle wishlist status (Add/Remove).
+     * Toggle wishlist status.
      */
-    public function toggle(Request $request, $productId)
+    public function toggle($productId)
     {
         $user = Auth::user();
         
@@ -114,19 +114,13 @@ class WishlistController extends Controller
 
         if ($wishlist) {
             $wishlist->delete();
-            return response()->json([
-                'message' => 'Product removed from wishlist',
-                'status' => 'removed'
-            ], 200);
+            return response()->json(['message' => 'Product removed from wishlist', 'status' => 'removed'], 200);
         } else {
             Wishlist::create([
                 'user_id' => $user->id,
                 'product_id' => $productId,
             ]);
-            return response()->json([
-                'message' => 'Product added to wishlist',
-                'status' => 'added'
-            ], 200);
+            return response()->json(['message' => 'Product added to wishlist', 'status' => 'added'], 200);
         }
     }
 

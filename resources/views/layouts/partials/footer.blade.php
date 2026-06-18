@@ -1,317 +1,294 @@
 {{-- resources/views/layouts/partials/footer.blade.php --}}
 <footer class="footer-premium">
-    <div class="container-fluid">
-        <div class="container">
-            <div class="row g-4">
-                <!-- Brand Column -->
-                <div class="col-md-4">
-                    <h5><i class="fas fa-crown me-2" style="color: #fbbf24;"></i>Ekta<span>Mart</span></h5>
-                    <p class="text-muted small">Premium Ecommerce Platform</p>
-                    <div class="social-links mt-3">
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
+    <div class="container">
+        
+        {{-- TOP SECTION --}}
+        <div class="ft-top">
+            {{-- Brand --}}
+            <div class="ft-col-brand">
+                <div class="ft-brand">
+                    <i class="fas fa-crown me-2" style="color:#EF9F27"></i>Ekta<span>Mart</span>
                 </div>
-                
-                <!-- Quick Links -->
-                <div class="col-md-4">
-                    <h6><i class="fas fa-link me-2" style="color: #8b5cf6;"></i>Quick Links</h6>
-                    <ul>
-                        <li><a href="{{ route('shop.index') }}">Shop</a></li>
-                        <li><a href="{{ route('about') }}">About Us</a></li>
-                        <li><a href="{{ route('contact') }}">Contact</a></li>
-                        <li><a href="{{ route('faq') }}">FAQ</a></li>
-                        <li><a href="{{ route('terms') }}">Terms &amp; Conditions</a></li>
-                        <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
-                    </ul>
+                <p class="ft-tagline">
+                    Bangladesh's trusted multi-vendor marketplace. Quality products, fast delivery, secure payments.
+                </p>
+                <div class="ft-socials">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
                 </div>
-                
-                <!-- Contact Info -->
-                <div class="col-md-4">
-                    <h6><i class="fas fa-address-card me-2" style="color: #8b5cf6;"></i>Contact Info</h6>
-                    <p class="text-muted small">
-                        <i class="fas fa-phone me-2" style="color: #8b5cf6;"></i> +880 1234 567890<br>
-                        <i class="fas fa-envelope me-2" style="color: #8b5cf6;"></i> support@ektamart.com<br>
-                        <i class="fas fa-map-marker-alt me-2" style="color: #8b5cf6;"></i> Dhaka, Bangladesh
-                    </p>
-                    <div class="mt-3">
-                        <span class="badge-success">
-                            <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
-                            Online
-                        </span>
-                    </div>
+                <div class="ft-online mt-3">
+                    <span class="ft-online-dot"></span> All systems operational
                 </div>
             </div>
-            
-            <hr>
-            
-            <!-- Bottom Bar -->
-            <div class="row">
-                <div class="col-12 text-center">
-                    <p class="bottom-text mb-1">
-                        &copy; {{ date('Y') }} <strong>EktaMart</strong> — All rights reserved.
-                        <span class="d-none d-md-inline">|</span>
-                        <span class="d-block d-md-inline mt-1 mt-md-0">Made with <span class="heart">❤️</span> in Bangladesh</span>
-                    </p>
-                    <p class="security-badge mt-2 mb-0">
-                        <i class="fas fa-shield-alt"></i> Secure Shopping
-                        <span class="mx-2">•</span>
-                        <i class="fas fa-lock"></i> SSL Encrypted
-                        <span class="mx-2">•</span>
-                        <i class="fas fa-credit-card"></i> Multiple Payment Options
-                    </p>
+
+            {{-- Quick Links --}}
+            <div>
+                <div class="ft-col-title">Quick links</div>
+                <a href="{{ route('shop.index') }}" class="ft-link">Shop</a>
+                <a href="{{ route('about') }}" class="ft-link">About us</a>
+                <a href="{{ route('contact') }}" class="ft-link">Contact</a>
+                <a href="{{ route('faq') }}" class="ft-link">FAQ</a>
+                <a href="{{ route('terms') }}" class="ft-link">Terms & conditions</a>
+                <a href="{{ route('privacy') }}" class="ft-link">Privacy policy</a>
+            </div>
+
+            {{-- Contact --}}
+            <div>
+                <div class="ft-col-title">Contact us</div>
+                <div class="ft-contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>+880 1234 567890</span>
+                </div>
+                <div class="ft-contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>support@ektamart.com</span>
+                </div>
+                <div class="ft-contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Dhaka, Bangladesh</span>
+                </div>
+            </div>
+
+            {{-- Newsletter --}}
+            <div>
+                <div class="ft-col-title">Newsletter</div>
+                <p style="font-size:13px;color:#9896b0;margin-bottom:12px;line-height:1.6">
+                    Subscribe to get exclusive deals and latest updates.
+                </p>
+                <div class="ft-newsletter-row">
+                    <input type="email" class="ft-newsletter-input" placeholder="Your email address">
+                    <button class="ft-newsletter-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
         </div>
+
+        {{-- STATS ROW --}}
+        <div class="ft-stats">
+            <div class="ft-stat">
+                <div class="ft-stat-num">50K+</div>
+                <div class="ft-stat-label">Happy customers</div>
+            </div>
+            <div class="ft-stat">
+                <div class="ft-stat-num">1,200+</div>
+                <div class="ft-stat-label">Trusted vendors</div>
+            </div>
+            <div class="ft-stat">
+                <div class="ft-stat-num">25K+</div>
+                <div class="ft-stat-label">Products listed</div>
+            </div>
+            <div class="ft-stat">
+                <div class="ft-stat-num">99.9%</div>
+                <div class="ft-stat-label">Uptime</div>
+            </div>
+        </div>
+
+        {{-- BOTTOM BAR --}}
+        <div class="ft-bottom">
+            <div class="ft-copy">
+                &copy; {{ date('Y') }} <strong>EktaMart</strong> — Made with <span class="ft-heart">❤</span> in Bangladesh
+            </div>
+            <div class="ft-badges">
+                <div class="ft-badge"><i class="fas fa-shield-alt"></i> SSL secured</div>
+                <div class="ft-badge"><i class="fas fa-lock"></i> Safe checkout</div>
+                <div class="ft-badge"><i class="fas fa-credit-card"></i> Multiple payments</div>
+            </div>
+        </div>
+
     </div>
 </footer>
 
 <style>
-    /* ============================================================
-       UNIVERSAL FOOTER STYLES
-    ============================================================ */
-    .footer-premium {
-        background: linear-gradient(135deg, #0f0c29 0%, #1a1a3e 50%, #24243e 100%);
-        color: #ffffff;
-        padding: 3rem 0 1.5rem 0;
-        margin-top: auto;
-        position: relative;
-        overflow: hidden;
-        border-top: 2px solid rgba(139, 92, 246, 0.15);
-        width: 100%;
-    }
-    
-    /* Animated Border */
-    .footer-premium::before {
-        content: '';
-        position: absolute;
-        top: -2px;
-        left: -100%;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, transparent, #8b5cf6, #6366f1, #a855f7, #8b5cf6, transparent);
-        animation: borderSlide 6s linear infinite;
-    }
-    
-    @keyframes borderSlide {
-        0% { left: -100%; }
-        100% { left: 100%; }
-    }
-    
-    /* Animated Glow */
-    .footer-premium::after {
-        content: '';
-        position: absolute;
-        bottom: -30%;
-        right: -10%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
-        border-radius: 50%;
-        pointer-events: none;
-        animation: glowPulse 8s ease-in-out infinite;
-    }
-    
-    @keyframes glowPulse {
-        0%, 100% { transform: scale(1); opacity: 0.5; }
-        50% { transform: scale(1.3); opacity: 1; }
-    }
-    
-    /* Brand */
-    .footer-premium h5 {
-        font-weight: 800;
-        font-size: 1.3rem;
-        color: #ffffff;
-        margin-bottom: 0.5rem;
-        position: relative;
-        z-index: 1;
-    }
-    .footer-premium h5 span {
-        color: #8b5cf6;
-    }
-    .footer-premium h6 {
-        font-weight: 700;
-        font-size: 0.9rem;
-        color: #e2e8f0;
-        margin-bottom: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        position: relative;
-        z-index: 1;
-    }
-    
-    /* Links */
-    .footer-premium a {
-        color: #c4b5fd;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        font-size: 0.85rem;
-        position: relative;
-        z-index: 1;
-        display: inline-block;
-    }
-    .footer-premium a:hover {
-        color: #8b5cf6;
-        transform: translateX(5px);
-    }
-    
-    .footer-premium .text-muted {
-        color: #a78bfa !important;
-        opacity: 0.8;
-    }
-    
-    /* Social Links */
-    .footer-premium .social-links {
-        position: relative;
-        z-index: 1;
-    }
-    .footer-premium .social-links a {
-        display: inline-block;
-        width: 40px;
-        height: 40px;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 0.5rem;
-        text-align: center;
-        line-height: 40px;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(139, 92, 246, 0.15);
-        color: #c4b5fd;
-        font-size: 1rem;
-    }
-    .footer-premium .social-links a:hover {
-        background: linear-gradient(135deg, #8b5cf6, #6366f1);
-        transform: translateY(-5px) scale(1.05);
-        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
-        color: white;
-        border-color: transparent;
-    }
-    
-    /* Divider */
-    .footer-premium hr {
-        border-color: rgba(139, 92, 246, 0.15);
-        opacity: 0.5;
-        margin: 1.5rem 0;
-        position: relative;
-        z-index: 1;
-    }
-    
-    /* Lists */
-    .footer-premium ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        position: relative;
-        z-index: 1;
-    }
-    .footer-premium ul li {
-        margin-bottom: 0.5rem;
-    }
-    .footer-premium ul li a {
-        display: inline-block;
-    }
-    
-    /* Badge */
-    .footer-premium .badge-success {
-        background: rgba(16, 185, 129, 0.15);
-        color: #34d399;
-        border: 1px solid rgba(16, 185, 129, 0.2);
-        padding: 0.3rem 1.2rem;
-        border-radius: 2rem;
-        font-weight: 500;
-        font-size: 0.8rem;
-        position: relative;
-        z-index: 1;
-    }
-    .footer-premium .badge-success i {
-        color: #34d399;
-        font-size: 0.5rem;
-    }
-    
-    /* Bottom Text */
-    .footer-premium .bottom-text {
-        color: #a78bfa;
-        opacity: 0.7;
-        font-size: 0.85rem;
-        position: relative;
-        z-index: 1;
-    }
-    .footer-premium .bottom-text strong {
-        color: #c4b5fd;
-    }
-    .footer-premium .bottom-text .heart {
-        color: #ef4444;
-        display: inline-block;
-        animation: heartBeat 1.5s ease-in-out infinite;
-    }
-    
-    @keyframes heartBeat {
-        0%, 100% { transform: scale(1); }
-        14% { transform: scale(1.3); }
-        28% { transform: scale(1); }
-        42% { transform: scale(1.3); }
-        70% { transform: scale(1); }
-    }
-    
-    /* Security Badge */
-    .footer-premium .security-badge {
-        color: #94a3b8;
-        font-size: 0.7rem;
-        opacity: 0.6;
-        position: relative;
-        z-index: 1;
-    }
-    .footer-premium .security-badge i {
-        color: #8b5cf6;
-    }
-    
-    /* ============================================================
-       RESPONSIVE
-    ============================================================ */
-    @media (max-width: 768px) {
-        .footer-premium {
-            padding: 2rem 0 1rem 0;
-        }
-        .footer-premium .social-links a {
-            width: 36px;
-            height: 36px;
-            line-height: 36px;
-        }
-        .footer-premium .bottom-text {
-            font-size: 0.75rem;
-        }
-        .footer-premium h5 {
-            font-size: 1.1rem;
-        }
-        .footer-premium h6 {
-            font-size: 0.8rem;
-        }
-    }
-    
-    @media (max-width: 576px) {
-        .footer-premium {
-            padding: 1.5rem 0 0.8rem 0;
-        }
-        .footer-premium .social-links a {
-            width: 32px;
-            height: 32px;
-            line-height: 32px;
-            font-size: 0.8rem;
-        }
-        .footer-premium ul li a {
-            font-size: 0.75rem;
-        }
-        .footer-premium .bottom-text {
-            font-size: 0.7rem;
-        }
-        .footer-premium .security-badge {
-            font-size: 0.6rem;
-        }
-        .footer-premium .badge-success {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.8rem;
-        }
-    }
+.footer-premium {
+    background: #1a1730;
+    color: #e2e0f0;
+    padding: 2.5rem 0 0;
+    margin-top: auto;
+    border-top: 0.5px solid rgba(255,255,255,0.06);
+}
+.ft-top {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 0.5px solid rgba(255,255,255,0.08);
+}
+.ft-brand {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+.ft-brand span { color: #AFA9EC; }
+.ft-tagline {
+    font-size: 13px;
+    color: #9896b0;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+.ft-socials { display: flex; gap: 8px; }
+.ft-socials a {
+    width: 34px;
+    height: 34px;
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #AFA9EC;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.ft-socials a:hover {
+    background: #534AB7;
+    border-color: #534AB7;
+    color: #EEEDFE;
+    transform: translateY(-3px);
+}
+.ft-online {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(29,158,117,0.12);
+    border: 0.5px solid rgba(29,158,117,0.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: #5DCAA5;
+}
+.ft-online-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #1D9E75;
+    animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: .4; }
+}
+.ft-col-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #AFA9EC;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    margin-bottom: .9rem;
+}
+.ft-link {
+    display: block;
+    font-size: 13px;
+    color: #9896b0;
+    text-decoration: none;
+    padding: 4px 0;
+    transition: color 0.2s, padding-left 0.2s;
+}
+.ft-link:hover {
+    color: #CECBF6;
+    padding-left: 4px;
+}
+.ft-contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.ft-contact-item i {
+    font-size: 13px;
+    color: #7F77DD;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+.ft-contact-item span {
+    font-size: 13px;
+    color: #9896b0;
+    line-height: 1.5;
+}
+.ft-newsletter-row {
+    display: flex;
+    gap: 6px;
+}
+.ft-newsletter-input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #e2e0f0;
+    outline: none;
+}
+.ft-newsletter-input::placeholder { color: #6b698a; }
+.ft-newsletter-input:focus { border-color: #534AB7; }
+.ft-newsletter-btn {
+    background: #534AB7;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: #EEEDFE;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.2s;
+}
+.ft-newsletter-btn:hover { background: #3C3489; }
+.ft-stats {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 1rem;
+    padding: 1.5rem 0;
+    border-bottom: 0.5px solid rgba(255,255,255,0.08);
+}
+.ft-stat { text-align: center; }
+.ft-stat-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: #CECBF6;
+}
+.ft-stat-label {
+    font-size: 12px;
+    color: #6b698a;
+    margin-top: 3px;
+}
+.ft-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.ft-copy {
+    font-size: 12px;
+    color: #6b698a;
+}
+.ft-copy strong { color: #9896b0; }
+.ft-heart { color: #E24B4A; }
+.ft-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.ft-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: #9896b0;
+}
+.ft-badge i { color: #7F77DD; font-size: 12px; }
+
+@media (max-width: 992px) {
+    .ft-top { grid-template-columns: 1fr 1fr; }
+    .ft-stats { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 576px) {
+    .ft-top { grid-template-columns: 1fr; }
+    .ft-stats { grid-template-columns: repeat(2,1fr); }
+    .ft-bottom { flex-direction: column; text-align: center; }
+}
 </style>

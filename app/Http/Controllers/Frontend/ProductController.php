@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
@@ -14,7 +15,7 @@ class ProductController extends Controller
     {
         $product = Product::where('slug', $slug)
             ->where('status', true)
-            ->with(['category', 'brand', 'images', 'variations'])
+            ->with(['category', 'brand', 'productImages', 'variations'])
             ->firstOrFail();
 
         // Increment view count

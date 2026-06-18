@@ -3,412 +3,234 @@
 @section('title', 'Shop - EktaMart')
 
 @section('content')
+<style>
+.shop-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+.product-card{background:#fff;border:0.5px solid #e5e7eb;border-radius:12px;overflow:hidden;transition:all .25s;height:100%}
+.product-card:hover{border-color:#b0a8f0;box-shadow:0 4px 20px rgba(83,74,183,.08)}
+.product-image{position:relative;overflow:hidden;height:200px;background:#f8f9fa}
+.product-image img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.product-card:hover .product-image img{transform:scale(1.04)}
+.badge-sale{position:absolute;top:8px;left:8px;background:#dc2626;color:#fff;font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600}
+.badge-new{position:absolute;top:8px;left:8px;background:#059669;color:#fff;font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600}
+.wishlist-overlay{position:absolute;bottom:8px;right:8px;width:32px;height:32px;background:#fff;border:0.5px solid #e5e7eb;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .2s}
+.product-card:hover .wishlist-overlay{opacity:1}
+.card-body{padding:12px}
+.card-category{font-size:11px;color:#6b7280;margin-bottom:3px}
+.card-title{font-size:13px;font-weight:600;color:#111827;line-height:1.4;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.4rem}
+.stars{color:#f59e0b;font-size:11px;margin-bottom:8px}
+.stars .empty{color:#d1d5db}
+.price-main{font-size:16px;font-weight:700;color:#4f46e5}
+.price-old{font-size:12px;color:#9ca3af;text-decoration:line-through;margin-left:4px}
+.btn-cart-sm{background:linear-gradient(135deg,#667eea,#764ba2);border:none;border-radius:8px;color:#fff;padding:7px 10px;cursor:pointer;font-size:12px}
+.btn-view-sm{border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#374151;padding:7px 12px;cursor:pointer;font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.btn-view-sm:hover{background:#f9fafb}
+.sidebar-card{background:#fff;border:0.5px solid #e5e7eb;border-radius:12px;padding:1.25rem}
+.sidebar-label{font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.75rem}
+.cat-link{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:8px;font-size:13px;color:#374151;text-decoration:none;margin-bottom:2px}
+.cat-link:hover,.cat-link.active{background:#eef2ff;color:#4f46e5}
+.stock-low{font-size:11px;color:#d97706;background:#fef3c7;padding:2px 7px;border-radius:20px;display:inline-block;margin-bottom:6px}
+</style>
+
 <div class="container py-4">
-    <div class="row">
-        <!-- Sidebar Filters -->
+    <div class="row g-4">
+
+        {{-- SIDEBAR --}}
         <div class="col-lg-3">
-            <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h5 class="fw-bold mb-3">Categories</h5>
-                    <ul class="list-unstyled">
-                        @foreach($categories as $category)
-                        <li class="mb-2">
-                            <a href="{{ route('shop.category', $category->slug) }}" 
-                               class="text-decoration-none text-dark">
-                                {{ $category->name }}
-                                <span class="badge bg-light text-muted">{{ $category->products_count ?? 0 }}</span>
-                            </a>
-                        </li>
-                        @endforeach
-                    </ul>
-                    
-                    <hr>
-                    
-                    <h5 class="fw-bold mb-3">Price Range</h5>
-                    <div class="mb-3">
-                        <input type="range" class="form-range" min="0" max="1000" step="10">
-                    </div>
-                    
-                    <button class="btn btn-primary-premium w-100">Apply Filters</button>
+            <div class="sidebar-card mb-3">
+                <div class="input-group input-group-sm mb-3">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" placeholder="Search products...">
                 </div>
+
+                <div class="sidebar-label">Categories</div>
+                <a href="{{ route('shop.index') }}" class="cat-link active">
+                    All Products <span class="badge bg-light text-muted">{{ $products->total() }}</span>
+                </a>
+                @foreach($categories as $category)
+                <a href="{{ route('shop.category', $category->slug) }}" class="cat-link">
+                    {{ $category->name }}
+                    <span class="badge bg-light text-muted">{{ $category->products_count ?? 0 }}</span>
+                </a>
+                @endforeach
+            </div>
+
+            <div class="sidebar-card mb-3">
+                <div class="sidebar-label">Price Range</div>
+                <div class="d-flex justify-content-between small text-muted mb-2">
+                    <span>$0</span><span id="priceVal">$1000</span>
+                </div>
+                <input type="range" class="form-range" min="0" max="10000" value="1000" 
+                       oninput="document.getElementById('priceVal').textContent='$'+this.value">
+                <button class="btn btn-sm w-100 mt-2" 
+                        style="background:#534AB7;color:#fff;border-radius:8px">Apply Filter</button>
+            </div>
+
+            <div class="sidebar-card">
+                <div class="sidebar-label">Brands</div>
+                @foreach($brands ?? [] as $brand)
+                <label class="d-flex align-items-center gap-2 mb-2" style="font-size:13px;cursor:pointer">
+                    <input type="checkbox" style="accent-color:#534AB7"> {{ $brand->name }}
+                </label>
+                @endforeach
             </div>
         </div>
-        
-        <!-- Products Grid -->
+
+        {{-- PRODUCTS --}}
         <div class="col-lg-9">
-            <div class="row g-4">
+            <div class="shop-header">
+                <div>
+                    <h5 class="fw-bold mb-0">All Products</h5>
+                    <small class="text-muted">{{ $products->total() }} products found</small>
+                </div>
+                <select class="form-select form-select-sm" style="width:auto">
+                    <option>Sort: Featured</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                    <option>Newest First</option>
+                    <option>Best Rating</option>
+                </select>
+            </div>
+
+            <div class="row g-3">
                 @forelse($products as $product)
+                @php
+                    $productImages = $product->images ?? [];
+                    $imgUrl = !empty($productImages)
+                        ? asset('storage/products/' . $productImages[0])
+                        : 'https://placehold.co/300x300/667eea/FFFFFF?text=' . urlencode($product->name);
+                @endphp
                 <div class="col-md-4 col-sm-6">
-                    <div class="card product-card shadow-sm border-0 rounded-4">
+                    <div class="product-card">
                         <div class="product-image">
-                            <img src="{{ $product->image_url }}" 
-                                 alt="{{ $product->name }}" 
-                                 class="card-img-top">
+                            <img src="{{ $imgUrl }}"
+                                 alt="{{ $product->name }}"
+                                 loading="lazy"
+                                 onerror="this.src='https://placehold.co/300x300/667eea/FFFFFF?text={{ urlencode($product->name) }}'">
+
                             @if($product->is_on_sale)
-                                <span class="sale-badge">-{{ $product->discount_percentage }}%</span>
+                                <span class="badge-sale">-{{ $product->discount_percentage }}%</span>
+                            @elseif($product->is_new ?? false)
+                                <span class="badge-new">New</span>
                             @endif
+
+                            <button class="wishlist-overlay" onclick="addToWishlist({{ $product->id }})"
+                                    aria-label="Add to wishlist">
+                                <i class="fas fa-heart" style="font-size:13px;color:#6b7280"></i>
+                            </button>
                         </div>
+
                         <div class="card-body">
-                            <h6 class="product-title">{{ $product->name }}</h6>
-                            <p class="product-category text-muted small">
-                                {{ $product->category->name ?? 'Uncategorized' }}
-                            </p>
-                            <div class="product-price">
+                            <div class="card-category">{{ $product->category->name ?? 'Uncategorized' }}</div>
+                            <div class="card-title">{{ $product->name }}</div>
+
+                            <div class="stars mb-2">
+                                @php $r = round($product->rating ?? 0); @endphp
+                                @for($i=1;$i<=5;$i++)
+                                    <i class="fas fa-star {{ $i<=$r ? '' : 'empty' }}"></i>
+                                @endfor
+                                <span class="text-muted ms-1" style="font-size:11px">({{ $product->reviews_count ?? 0 }})</span>
+                            </div>
+
+                            @if($product->stock > 0 && $product->stock <= 5)
+                                <div class="stock-low">Only {{ $product->stock }} left!</div>
+                            @endif
+
+                            <div class="d-flex align-items-baseline mb-2">
+                                <span class="price-main">
+                                    ${{ number_format($product->sale_price ?? $product->price, 2) }}
+                                </span>
                                 @if($product->is_on_sale)
-                                    <span class="text-muted text-decoration-line-through me-2">
-                                        ${{ number_format($product->price, 2) }}
-                                    </span>
-                                    <span class="fw-bold text-primary">
-                                        ${{ number_format($product->sale_price, 2) }}
-                                    </span>
-                                @else
-                                    <span class="fw-bold text-primary">
-                                        ${{ number_format($product->price, 2) }}
-                                    </span>
+                                    <span class="price-old">${{ number_format($product->price, 2) }}</span>
                                 @endif
                             </div>
-                            <div class="d-flex gap-2 mt-2">
-                                <a href="{{ route('product.show', $product->slug) }}" 
-                                   class="btn btn-outline-primary btn-sm flex-grow-1">
+
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('product.show', $product->slug) }}" class="btn-view-sm flex-grow-1">
                                     <i class="fas fa-eye"></i> View
                                 </a>
-                                <!-- Add to Cart Button -->
-<button onclick="addToCart({{ $product->id }})" 
-        class="btn btn-primary-premium btn-sm add-to-cart-btn"
-        data-product-id="{{ $product->id }}">
-    <i class="fas fa-shopping-cart"></i>
-</button>
-
-<!-- Wishlist Button -->
-<button onclick="addToWishlist({{ $product->id }})" 
-        class="btn btn-outline-danger btn-sm wishlist-btn"
-        data-product-id="{{ $product->id }}">
-    <i class="fas fa-heart"></i>
-</button>
+                                <button onclick="addToCart({{ $product->id }})" class="btn-cart-sm"
+                                        data-product-id="{{ $product->id }}">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
                 @empty
                 <div class="col-12 text-center py-5">
-                    <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
-                    <h4>No Products Found</h4>
+                    <i class="fas fa-box-open fa-4x text-muted mb-3 d-block"></i>
+                    <h5>No Products Found</h5>
+                    <p class="text-muted">Try adjusting your filters</p>
                 </div>
                 @endforelse
             </div>
-            
-            <div class="mt-4">
+
+            <div class="mt-4 d-flex justify-content-center">
                 {{ $products->links() }}
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .product-card {
-        transition: all 0.3s ease;
-    }
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
-    }
-    .product-image {
-        position: relative;
-        overflow: hidden;
-        height: 200px;
-        border-radius: 1rem 1rem 0 0;
-    }
-    .product-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: all 0.3s ease;
-    }
-    .product-card:hover .product-image img {
-        transform: scale(1.05);
-    }
-    .sale-badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: #ef4444;
-        color: white;
-        padding: 0.2rem 0.6rem;
-        border-radius: 2rem;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-    .btn-primary-premium {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        border-radius: 0.5rem;
-        color: white;
-        transition: all 0.3s ease;
-    }
-    .btn-primary-premium:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        color: white;
-    }
-</style>
+{{-- TOAST --}}
+<div id="toast" style="display:none;position:fixed;bottom:24px;right:24px;background:#534AB7;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;align-items:center;gap:10px">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMsg"></span>
+</div>
 
 <script>
-// ============================================
-// 1. ADD TO CART FUNCTION
-// ============================================
 function addToCart(productId) {
-    // Get the button that was clicked
-    const button = event ? event.target.closest('button') : document.querySelector(`button[onclick*="addToCart(${productId})"]`);
-    
-    if (!button) {
-        console.error('Button not found');
-        return;
-    }
-    
-    const originalText = button.innerHTML;
-    
-    // Show loading state
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    button.disabled = true;
-    
-    fetch('{{ route("cart.add") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            product_id: productId,
-            quantity: 1
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Product added to cart successfully! 🛒', 'success');
-            updateCartCount();
-        } else {
-            showNotification(data.message || 'Failed to add to cart', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Something went wrong! Please try again.', 'error');
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-
-// ============================================
-// 2. ADD TO WISHLIST FUNCTION
-// ============================================
-function addToWishlist(productId) {
-    // Get the button that was clicked
-    const button = event ? event.target.closest('button') : document.querySelector(`button[onclick*="addToWishlist(${productId})"]`);
-    
-    if (button) {
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        button.disabled = true;
-    }
-    
-    fetch('/customer/wishlist/add/' + productId, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        showNotification(data.message || 'Product added to wishlist! ❤️', 'success');
-        if (button) {
-            button.innerHTML = '<i class="fas fa-heart" style="color: #ef4444;"></i>';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Failed to add to wishlist', 'error');
-        if (button) {
-            button.innerHTML = '<i class="fas fa-heart"></i>';
-        }
-    })
-    .finally(() => {
-        if (button) {
-            button.disabled = false;
-        }
-    });
-}
-
-// ============================================
-// 3. UPDATE CART COUNT FUNCTION
-// ============================================
-function updateCartCount() {
-    fetch('{{ route("cart.count") }}')
-        .then(response => response.json())
-        .then(data => {
-            const badge = document.getElementById('cartCount');
-            if (badge) {
-                const count = data.count || 0;
-                badge.textContent = count;
-                if (count > 0) {
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            }
-        })
-        .catch(error => console.error('Error updating cart count:', error));
-}
-
-// ============================================
-// 4. NOTIFICATION FUNCTION
-// ============================================
-function showNotification(message, type = 'success') {
-    // Remove existing notification
-    const existing = document.querySelector('.custom-notification');
-    if (existing) existing.remove();
-    
-    const notification = document.createElement('div');
-    notification.className = 'custom-notification';
-    
-    const colors = {
-        success: '#10b981',
-        error: '#ef4444',
-        warning: '#f59e0b',
-        info: '#3b82f6'
-    };
-    
-    const icons = {
-        success: 'check-circle',
-        error: 'exclamation-circle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-    };
-    
-    const bgColor = colors[type] || colors.success;
-    const icon = icons[type] || icons.success;
-    
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        background: ${bgColor};
-        color: white;
-        padding: 14px 24px;
-        border-radius: 12px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-        z-index: 9999;
-        font-weight: 500;
-        font-size: 0.95rem;
-        animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        max-width: 400px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border: 1px solid rgba(255,255,255,0.15);
-        backdrop-filter: blur(10px);
-    `;
-    
-    notification.innerHTML = `
-        <i class="fas fa-${icon}" style="font-size: 1.2rem;"></i>
-        <span>${message}</span>
-        <button onclick="this.parentElement.remove()" style="
-            background: transparent;
-            border: none;
-            color: white;
-            opacity: 0.7;
-            cursor: pointer;
-            margin-left: auto;
-            font-size: 1rem;
-        ">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 4 seconds
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }
-    }, 4000);
-}
-
-// ============================================
-// 5. TOGGLE WISHLIST (for product detail page)
-// ============================================
-function toggleWishlist(productId) {
-    const btn = document.getElementById('wishlistBtn');
-    if (!btn) return;
-    
-    const originalHtml = btn.innerHTML;
+    const btn = event.target.closest('button');
+    const original = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.disabled = true;
-    
-    fetch('/customer/wishlist/toggle/' + productId, {
+
+    fetch('{{ route("cart.add") }}', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
+        headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
+        body: JSON.stringify({product_id: productId, quantity: 1})
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
-        if (data.status === 'added') {
-            btn.className = 'btn btn-danger btn-lg';
-            btn.innerHTML = '<i class="fas fa-heart"></i>';
-            showNotification('Added to wishlist! ❤️', 'success');
-        } else if (data.status === 'removed') {
-            btn.className = 'btn btn-outline-danger btn-lg';
-            btn.innerHTML = '<i class="fas fa-heart"></i>';
-            showNotification('Removed from wishlist!', 'info');
+        if (data.success) {
+            showToast(data.message || 'Added to cart!');
+            updateCartCount();
+        } else {
+            showToast(data.message || 'Failed!');
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Something went wrong!', 'error');
-        btn.innerHTML = originalHtml;
-    })
-    .finally(() => {
-        btn.disabled = false;
-    });
+    .catch(() => showToast('Something went wrong!'))
+    .finally(() => { btn.innerHTML = original; btn.disabled = false; });
 }
 
-// ============================================
-// 6. INITIALIZE ON PAGE LOAD
-// ============================================
-document.addEventListener('DOMContentLoaded', function() {
-    // Update cart count on page load
-    updateCartCount();
-    
-    // Add click event listeners to all add-to-cart buttons (if using class)
-    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const productId = this.dataset.productId;
-            if (productId) {
-                addToCart(productId);
-            }
-        });
-    });
-    
-    // Add click event listeners to all wishlist buttons (if using class)
-    document.querySelectorAll('.wishlist-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const productId = this.dataset.productId;
-            if (productId) {
-                addToWishlist(productId);
-            }
-        });
-    });
-});
+function addToWishlist(productId) {
+    fetch('/customer/wishlist/add/' + productId, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'}
+    })
+    .then(r => r.json())
+    .then(data => showToast(data.message || 'Added to wishlist!'))
+    .catch(() => showToast('Failed!'));
+}
 
-console.log('%c🛒 EktaMart Cart System Loaded', 'color: #667eea; font-size: 14px; font-weight: bold;');
+function updateCartCount() {
+    fetch('{{ route("cart.count") }}')
+        .then(r => r.json())
+        .then(data => {
+            const badge = document.getElementById('cartCount');
+            if (badge) { badge.textContent = data.count || 0; badge.style.display = data.count > 0 ? 'inline-block' : 'none'; }
+        });
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.style.display = 'flex';
+    setTimeout(() => t.style.display = 'none', 2500);
+}
+
+document.addEventListener('DOMContentLoaded', updateCartCount);
 </script>
 @endsection

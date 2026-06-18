@@ -34,6 +34,7 @@
         transition: all 0.3s ease;
         border-radius: 0.75rem;
         object-fit: cover;
+        cursor: pointer;
     }
     .thumbnail-img:hover {
         border-color: #667eea;
@@ -71,6 +72,7 @@
         transition: all 0.3s ease;
         color: #4b5563;
         font-weight: 600;
+        cursor: pointer;
     }
     .quantity-selector button:hover {
         background: #f3f4f6;
@@ -83,11 +85,17 @@
         color: white;
         transition: all 0.3s ease;
         font-weight: 600;
+        cursor: pointer;
     }
     .btn-primary-premium:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         color: white;
+    }
+    .btn-primary-premium:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
     }
     .product-card {
         transition: all 0.3s ease;
@@ -102,6 +110,7 @@
         border-radius: 1rem 1rem 0 0;
         height: 200px;
         background: #f8f9fa;
+        position: relative;
     }
     .product-image img {
         width: 100%;
@@ -163,6 +172,14 @@
         background: #fef3c7;
         color: #d97706;
     }
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
     @media (max-width: 768px) {
         .product-gallery {
             position: static;
@@ -200,30 +217,74 @@
             <div class="product-gallery">
                 <!-- Main Image -->
                 <div class="main-image">
-                    <img src="{{ $product->image_url }}" 
+                    @php
+                        // ✅ IMAGE MAP for fallback
+                        $imageMap = [
+                            'iphone' => 'iphone.jpg',
+                            'samsung' => 'samsung.jpg',
+                            'nike' => 'nike.jpg',
+                            'adidas' => 'adidas.jpg',
+                            'coffee' => 'coffee.jpg',
+                            'lamp' => 'lamp.jpg',
+                            'book' => 'book.jpg',
+                        ];
+                        
+                        // Get main image using the model's accessor
+                        $mainImageUrl = $product->thumbnail_url;
+                        
+                        // If thumbnail_url returns placeholder, try to find from image map
+                        if (str_contains($mainImageUrl, 'placehold.co')) {
+                            $productName = strtolower($product->name);
+                            foreach ($imageMap as $key => $file) {
+                                if (str_contains($productName, $key)) {
+                                    $mainImageUrl = asset('storage/products/' . $file);
+                                    break;
+                                }
+                            }
+                        }
+                    @endphp
+                    <img src="{{ $mainImageUrl }}" 
                          alt="{{ $product->name }}" 
                          id="mainProductImage"
-                         loading="lazy">
+                         loading="lazy"
+                         onerror="this.src='https://placehold.co/500x500/667eea/FFFFFF?text={{ urlencode($product->name) }}'">
                 </div>
                 
-<!-- Thumbnails -->
-@php
-    $galleryImages = $product->gallery_images ?? [];
-    $hasGallery = !empty($galleryImages) && is_array($galleryImages) && count($galleryImages) > 1;
-@endphp
-@if($hasGallery)
-<div class="thumbnails mt-3 d-flex gap-2 overflow-auto pb-2">
-    @foreach($galleryImages as $index => $image)
-        @if(!empty($image))
-        <img src="{{ $image }}" 
-             alt="Thumbnail {{ $index + 1 }}" 
-             class="thumbnail-img {{ $index == 0 ? 'active' : '' }}" 
-             style="width: 70px; height: 70px; flex-shrink: 0;"
-             onclick="changeMainImage('{{ $image }}', this)">
-        @endif
-    @endforeach
-</div>
-@endif
+                <!-- Thumbnails -->
+                @php
+                    // Get gallery images using the model's accessor
+                    $galleryImageUrls = $product->gallery_images_url;
+                    
+                    // If gallery is empty or only has placeholder, try to find from image map
+                    if (empty($galleryImageUrls) || (count($galleryImageUrls) == 1 && str_contains($galleryImageUrls[0], 'placehold.co'))) {
+                        $galleryImageUrls = [];
+                        $productName = strtolower($product->name);
+                        foreach ($imageMap as $key => $file) {
+                            if (str_contains($productName, $key)) {
+                                $galleryImageUrls[] = asset('storage/products/' . $file);
+                                break;
+                            }
+                        }
+                        if (empty($galleryImageUrls)) {
+                            $galleryImageUrls[] = 'https://placehold.co/70x70/764ba2/FFFFFF?text=' . urlencode(substr($product->name, 0, 3));
+                        }
+                    }
+                @endphp
+
+                @if(count($galleryImageUrls) > 1)
+                <div class="thumbnails mt-3 d-flex gap-2 overflow-auto pb-2">
+                    @foreach($galleryImageUrls as $index => $imgUrl)
+                        @if(!empty($imgUrl))
+                        <img src="{{ $imgUrl }}" 
+                             alt="Thumbnail {{ $index + 1 }}" 
+                             class="thumbnail-img {{ $index == 0 ? 'active' : '' }}" 
+                             style="width: 70px; height: 70px; flex-shrink: 0; object-fit: cover; cursor: pointer;"
+                             onclick="changeMainImage('{{ $imgUrl }}', this)"
+                             onerror="this.src='https://placehold.co/70x70/764ba2/FFFFFF?text={{ $index+1 }}'">
+                        @endif
+                    @endforeach
+                </div>
+                @endif
             </div>
         </div>
 
@@ -238,8 +299,9 @@
             <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
                 <div class="d-flex align-items-center gap-2">
                     <div class="rating-stars">
+                        @php $rating = round($product->rating ?? 0); @endphp
                         @for($i = 1; $i <= 5; $i++)
-                            <i class="fas fa-star {{ $i <= round($product->rating) ? '' : 'empty' }}"></i>
+                            <i class="fas fa-star {{ $i <= $rating ? '' : 'empty' }}"></i>
                         @endfor
                     </div>
                     <span class="text-muted small">({{ $totalReviews ?? 0 }} reviews)</span>
@@ -261,7 +323,7 @@
                     {{ $stockText }}
                 </span>
                 
-                @if($product->is_new)
+                @if($product->is_new ?? false)
                     <span class="badge bg-primary rounded-pill px-3 py-2">New</span>
                 @endif
                 @if($product->featured)
@@ -271,7 +333,7 @@
 
             <!-- Price -->
             <div class="mb-3">
-                @if($product->is_on_sale)
+                @if($product->sale_price && $product->sale_price < $product->price)
                     <div class="d-flex align-items-center gap-3">
                         <span class="text-muted text-decoration-line-through fs-4">
                             ${{ number_format($product->price, 2) }}
@@ -279,9 +341,17 @@
                         <span class="fs-2 fw-bold text-primary">
                             ${{ number_format($product->sale_price, 2) }}
                         </span>
+                        @php
+                            $discount = 0;
+                            if ($product->price > 0) {
+                                $discount = round((($product->price - $product->sale_price) / $product->price) * 100, 2);
+                            }
+                        @endphp
+                        @if($discount > 0)
                         <span class="badge bg-danger rounded-pill px-3 py-2">
-                            Save {{ $product->discount_percentage }}%
+                            Save {{ $discount }}%
                         </span>
+                        @endif
                     </div>
                 @else
                     <span class="fs-2 fw-bold text-primary">
@@ -324,28 +394,28 @@
             @endif
 
             <!-- Quantity & Add to Cart -->
-            @if($product->is_in_stock)
+            @if($product->stock > 0)
             <div class="d-flex flex-wrap gap-3 align-items-center mb-4 p-3 bg-light rounded-3">
                 <div class="d-flex align-items-center gap-3">
                     <span class="fw-bold">Qty:</span>
                     <div class="quantity-selector d-flex align-items-center">
-                        <button onclick="decreaseQty()" aria-label="Decrease quantity">
+                        <button type="button" onclick="decreaseQty()" aria-label="Decrease quantity">
                             <i class="fas fa-minus"></i>
                         </button>
                         <input type="number" id="quantity" value="1" min="1" max="{{ $product->stock }}" 
                                aria-label="Quantity">
-                        <button onclick="increaseQty()" aria-label="Increase quantity">
+                        <button type="button" onclick="increaseQty()" aria-label="Increase quantity">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
                 </div>
                 
-                <button onclick="addToCart()" class="btn btn-primary-premium px-5 py-3 flex-grow-1">
+                <button onclick="addToCart(event)" class="btn btn-primary-premium px-5 py-3 flex-grow-1" id="addToCartBtn">
                     <i class="fas fa-shopping-cart me-2"></i> Add to Cart
                 </button>
                 
-                <button onclick="toggleWishlist()" 
-                        class="btn {{ $inWishlist ? 'btn-danger' : 'btn-outline-danger' }} btn-lg" 
+                <button onclick="toggleWishlist(event)" 
+                        class="btn {{ ($inWishlist ?? false) ? 'btn-danger' : 'btn-outline-danger' }} btn-lg" 
                         id="wishlistBtn"
                         style="border-radius: 0.75rem; width: 55px; height: 55px;">
                     <i class="fas fa-heart"></i>
@@ -399,11 +469,12 @@
             <div class="col-md-4">
                 <div class="card shadow-sm border-0 rounded-4 text-center p-4">
                     <h2 class="fw-bold text-primary" style="font-size: 3rem;">
-                        {{ number_format($product->rating, 1) }}
+                        {{ number_format($product->rating ?? 0, 1) }}
                     </h2>
                     <div class="rating-stars mb-2" style="font-size: 1.2rem;">
+                        @php $rating = round($product->rating ?? 0); @endphp
                         @for($i = 1; $i <= 5; $i++)
-                            <i class="fas fa-star {{ $i <= round($product->rating) ? '' : 'empty' }}"></i>
+                            <i class="fas fa-star {{ $i <= $rating ? '' : 'empty' }}"></i>
                         @endfor
                     </div>
                     <p class="text-muted">{{ $totalReviews }} reviews</p>
@@ -452,28 +523,64 @@
             <div class="col-md-3 col-sm-6">
                 <div class="card product-card shadow-sm border-0 rounded-4 h-100">
                     <div class="product-image">
-                        <img src="{{ $related->image_url }}" alt="{{ $related->name }}" loading="lazy">
-                        @if($related->is_on_sale)
+                        @php
+                            // Use the model's accessor
+                            $relatedImageUrl = $related->thumbnail_url;
+                            
+                            // If placeholder, try to find from image map
+                            if (str_contains($relatedImageUrl, 'placehold.co')) {
+                                $imageMap = [
+                                    'iphone' => 'iphone.jpg',
+                                    'samsung' => 'samsung.jpg',
+                                    'nike' => 'nike.jpg',
+                                    'adidas' => 'adidas.jpg',
+                                    'coffee' => 'coffee.jpg',
+                                    'lamp' => 'lamp.jpg',
+                                    'book' => 'book.jpg',
+                                ];
+                                $productName = strtolower($related->name);
+                                foreach ($imageMap as $key => $file) {
+                                    if (str_contains($productName, $key)) {
+                                        $relatedImageUrl = asset('storage/products/' . $file);
+                                        break;
+                                    }
+                                }
+                            }
+                        @endphp
+                        <img src="{{ $relatedImageUrl }}" 
+                             alt="{{ $related->name }}" 
+                             loading="lazy"
+                             onerror="this.src='https://placehold.co/300x200/667eea/FFFFFF?text={{ urlencode($related->name) }}'">
+                        @if($related->sale_price && $related->sale_price < $related->price)
+                            @php
+                                $discount = 0;
+                                if ($related->price > 0) {
+                                    $discount = round((($related->price - $related->sale_price) / $related->price) * 100);
+                                }
+                            @endphp
+                            @if($discount > 0)
                             <span class="badge bg-danger position-absolute top-0 end-0 m-2 rounded-pill px-3 py-2">
-                                -{{ $related->discount_percentage }}%
+                                -{{ $discount }}%
                             </span>
+                            @endif
                         @endif
                     </div>
                     <div class="card-body d-flex flex-column">
                         <h6 class="product-title">{{ $related->name }}</h6>
                         <div class="rating-stars small mb-1">
+                            @php $relatedRating = round($related->rating ?? 0); @endphp
                             @for($i = 1; $i <= 5; $i++)
-                                <i class="fas fa-star {{ $i <= round($related->rating) ? '' : 'empty' }}" style="font-size: 0.7rem;"></i>
+                                <i class="fas fa-star {{ $i <= $relatedRating ? '' : 'empty' }}" style="font-size: 0.7rem;"></i>
                             @endfor
                         </div>
                         <div class="mt-auto">
                             <p class="fw-bold text-primary mb-2">
-                                @if($related->is_on_sale)
+                                @if($related->sale_price && $related->sale_price < $related->price)
                                     <span class="text-muted text-decoration-line-through me-1 small">
                                         ${{ number_format($related->price, 2) }}
                                     </span>
                                 @endif
-                                ${{ number_format($related->is_on_sale ? $related->sale_price : $related->price, 2) }}
+                                ${{ number_format($related->sale_price && $related->sale_price < $related->price ? $related->sale_price : $related->price, 2) }}
                             </p>
                             <a href="{{ route('product.show', $related->slug) }}" 
                                class="btn btn-outline-primary btn-sm w-100 rounded-pill">
@@ -495,31 +602,35 @@
     // ============================================
     let qty = 1;
     const maxStock = {{ $product->stock ?? 0 }};
+    const quantityInput = document.getElementById('quantity');
 
     function increaseQty() {
-        const input = document.getElementById('quantity');
-        if (input) {
-            qty = parseInt(input.value) + 1;
-            if (qty > maxStock) qty = maxStock;
-            input.value = qty;
+        if (quantityInput) {
+            let val = parseInt(quantityInput.value) || 1;
+            if (val < maxStock) {
+                val++;
+                quantityInput.value = val;
+            }
         }
     }
 
     function decreaseQty() {
-        const input = document.getElementById('quantity');
-        if (input && parseInt(input.value) > 1) {
-            qty = parseInt(input.value) - 1;
-            input.value = qty;
+        if (quantityInput) {
+            let val = parseInt(quantityInput.value) || 1;
+            if (val > 1) {
+                val--;
+                quantityInput.value = val;
+            }
         }
     }
 
     // ============================================
     // 2. ADD TO CART
     // ============================================
-    function addToCart() {
+    function addToCart(event) {
         const productId = {{ $product->id }};
         const quantity = document.getElementById('quantity')?.value || 1;
-        const btn = event?.target?.closest('button');
+        const btn = document.getElementById('addToCartBtn');
         
         if (btn) {
             const originalText = btn.innerHTML;
@@ -559,51 +670,77 @@
         });
     }
 
-    // ============================================
-    // 3. TOGGLE WISHLIST
-    // ============================================
-    function toggleWishlist() {
-        const productId = {{ $product->id }};
-        const btn = document.getElementById('wishlistBtn');
-        
-        if (btn) {
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            btn.disabled = true;
+// ============================================
+// 3. TOGGLE WISHLIST - FIXED
+// ============================================
+function toggleWishlist(event) {
+    const productId = {{ $product->id }};
+    const btn = document.getElementById('wishlistBtn');
+    const isInWishlist = btn.classList.contains('btn-danger');
+    
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+    }
+    
+    // Determine URL and method based on current state
+    const url = isInWishlist 
+        ? '{{ route("wishlist.remove", ["id" => $product->id]) }}'
+        : '{{ route("wishlist.add", ["productId" => $product->id]) }}';
+    const method = isInWishlist ? 'DELETE' : 'POST';
+    
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
         }
-        
-        fetch('{{ route("customer.wishlist.toggle", ["productId" => $product->id]) }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'added') {
-                btn.className = 'btn btn-danger btn-lg';
-                btn.innerHTML = '<i class="fas fa-heart"></i>';
-                showNotification('❤️ Added to wishlist!', 'success');
-            } else if (data.status === 'removed') {
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'added' || data.success) {
+            btn.className = 'btn btn-danger btn-lg';
+            btn.innerHTML = '<i class="fas fa-heart"></i>';
+            showNotification('❤️ Added to wishlist!', 'success');
+        } else if (data.status === 'removed' || data.success === false) {
+            btn.className = 'btn btn-outline-danger btn-lg';
+            btn.innerHTML = '<i class="fas fa-heart"></i>';
+            showNotification('💔 Removed from wishlist!', 'info');
+        } else {
+            // Fallback: toggle based on current state
+            if (isInWishlist) {
                 btn.className = 'btn btn-outline-danger btn-lg';
                 btn.innerHTML = '<i class="fas fa-heart"></i>';
-                showNotification('💔 Removed from wishlist!', 'info');
+            } else {
+                btn.className = 'btn btn-danger btn-lg';
+                btn.innerHTML = '<i class="fas fa-heart"></i>';
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('❌ Something went wrong!', 'error');
-        })
-        .finally(() => {
-            if (btn) btn.disabled = false;
-        });
-    }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('❌ Something went wrong!', 'error');
+        // Revert button state on error
+        if (isInWishlist) {
+            btn.className = 'btn btn-danger btn-lg';
+        } else {
+            btn.className = 'btn btn-outline-danger btn-lg';
+        }
+        btn.innerHTML = '<i class="fas fa-heart"></i>';
+    })
+    .finally(() => {
+        if (btn) btn.disabled = false;
+    });
+}
 
     // ============================================
     // 4. CHANGE MAIN IMAGE
     // ============================================
     function changeMainImage(src, element) {
-        document.getElementById('mainProductImage').src = src;
+        const mainImg = document.getElementById('mainProductImage');
+        if (mainImg) {
+            mainImg.src = src;
+        }
         
         // Remove active class from all thumbnails
         document.querySelectorAll('.thumbnail-img').forEach(el => {
@@ -625,8 +762,9 @@
             .then(data => {
                 const badge = document.getElementById('cartCount');
                 if (badge) {
-                    badge.textContent = data.count || 0;
-                    badge.style.display = data.count > 0 ? 'inline-block' : 'none';
+                    const count = data.count || 0;
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'inline-block' : 'none';
                 }
             })
             .catch(error => console.error('Error updating cart count:', error));
@@ -710,6 +848,15 @@
         const firstThumb = document.querySelector('.thumbnail-img');
         if (firstThumb) {
             firstThumb.classList.add('active');
+        }
+        
+        // Prevent negative values
+        if (quantityInput) {
+            quantityInput.addEventListener('change', function() {
+                let val = parseInt(this.value) || 1;
+                if (val < 1) this.value = 1;
+                if (val > maxStock) this.value = maxStock;
+            });
         }
     });
 

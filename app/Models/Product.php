@@ -46,16 +46,16 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'sale_price' => 'decimal:2',
-        'cost_price' => 'decimal:2',
-        'featured' => 'boolean',
-        'trending' => 'boolean',
-        'status' => 'boolean',
-        'rating' => 'decimal:2',
-        'images' => 'array',
-        'attributes' => 'array',
-        'meta_data' => 'array',
+        'price'         => 'decimal:2',
+        'sale_price'    => 'decimal:2',
+        'cost_price'    => 'decimal:2',
+        'featured'      => 'boolean',
+        'trending'      => 'boolean',
+        'status'        => 'boolean',
+        'rating'        => 'decimal:2',
+        'images'        => 'array',   // JSON column → auto array
+        'attributes'    => 'array',
+        'meta_data'     => 'array',
     ];
 
     // ==================== RELATIONSHIPS ====================
@@ -75,7 +75,10 @@ class Product extends Model
         return $this->belongsTo(User::class, 'vendor_id');
     }
 
-    public function images(): HasMany
+    /**
+     * FIXED: Renamed to productImages() to avoid conflict with 'images' JSON column
+     */
+    public function productImages(): HasMany
     {
         return $this->hasMany(ProductImage::class);
     }
@@ -107,6 +110,125 @@ class Product extends Model
 
     // ==================== ACCESSORS ====================
 
+    /**
+     * Get the primary display image URL
+     * Priority: thumbnail → images JSON array → ProductImage relation → placeholder
+     */
+    public function getThumbnailUrlAttribute(): string
+    {
+        // 1. Check thumbnail column
+        if (!empty($this->thumbnail)) {
+            return $this->buildStorageUrl($this->thumbnail);
+        }
+
+        // 2. Check images JSON column
+        $imagesArray = $this->images; // already cast to array
+        if (!empty($imagesArray) && is_array($imagesArray)) {
+            return $this->buildStorageUrl($imagesArray[0]);
+        }
+
+        // 3. Check ProductImage relation
+        $firstImage = $this->productImages()->first();
+        if ($firstImage && !empty($firstImage->image)) {
+            return $this->buildStorageUrl($firstImage->image);
+        }
+
+        // 4. Placeholder
+        return $this->getPlaceholderImage();
+    }
+
+    /**
+     * Get all gallery image URLs
+     */
+    public function getGalleryImagesUrlAttribute(): array
+    {
+        $urls = [];
+
+        // 1. Thumbnail
+        if (!empty($this->thumbnail)) {
+            $urls[] = $this->buildStorageUrl($this->thumbnail);
+        }
+
+        // 2. Images JSON column
+        $imagesArray = $this->images;
+        if (!empty($imagesArray) && is_array($imagesArray)) {
+            foreach ($imagesArray as $img) {
+                if (!empty($img)) {
+                    $url = $this->buildStorageUrl($img);
+                    if (!in_array($url, $urls)) {
+                        $urls[] = $url;
+                    }
+                }
+            }
+        }
+
+        // 3. ProductImage relation
+        foreach ($this->productImages as $image) {
+            if (!empty($image->image)) {
+                $url = $this->buildStorageUrl($image->image);
+                if (!in_array($url, $urls)) {
+                    $urls[] = $url;
+                }
+            }
+        }
+
+        // 4. Fallback
+        if (empty($urls)) {
+            $urls[] = $this->getPlaceholderImage();
+        }
+
+        return $urls;
+    }
+
+    /**
+     * Build full URL from a storage path
+     */
+    private function buildStorageUrl(string $path): string
+    {
+        // Already a full URL
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        // Already has storage/ prefix
+        if (str_starts_with($path, 'storage/')) {
+            return asset($path);
+        }
+
+        return asset('storage/' . $path);
+    }
+
+    /**
+     * Generate a placeholder image based on category
+     */
+    private function getPlaceholderImage(): string
+    {
+        $categoryName = $this->category?->name ?? 'Product';
+        $productName  = urlencode(substr($this->name, 0, 20));
+
+        $colors = [
+            'Electronics'  => '667eea',
+            'Fashion'      => 'f093fb',
+            'Clothing'     => 'f093fb',
+            'Home'         => '4facfe',
+            'Books'        => 'f6d365',
+            'Beauty'       => 'f5576c',
+            'Sports'       => '43e97b',
+            'Toys'         => 'fa709a',
+            'Food'         => 'f6d365',
+        ];
+
+        $color = '8b5cf6';
+        foreach ($colors as $key => $hex) {
+            if (stripos($categoryName, $key) !== false) {
+                $color = $hex;
+                break;
+            }
+        }
+
+        return "https://placehold.co/300x300/{$color}/FFFFFF?text={$productName}";
+    }
+
     public function getDiscountedPriceAttribute(): float
     {
         return $this->sale_price ?? $this->price;
@@ -130,181 +252,24 @@ class Product extends Model
         return $this->stock > 0;
     }
 
-    /**
-     * Get the first image URL safely
-     */
-    public function getFirstImageAttribute(): string
-    {
-        // 1. Check thumbnail
-        if ($this->thumbnail && !empty($this->thumbnail)) {
-            return $this->thumbnail;
-        }
-
-        // 2. Check images field (JSON array)
-        if ($this->images) {
-            // If it's already an array
-            if (is_array($this->images) && !empty($this->images)) {
-                return $this->images[0];
-            }
-            // If it's a string (JSON), decode it
-            if (is_string($this->images)) {
-                $decoded = json_decode($this->images, true);
-                if (is_array($decoded) && !empty($decoded)) {
-                    return $decoded[0];
-                }
-            }
-        }
-
-        // 3. Check images relation
-        $firstImage = $this->images()->first();
-        if ($firstImage && $firstImage->image) {
-            return $firstImage->image;
-        }
-
-        // 4. Default fallback
-        return 'default-product.jpg';
-    }
-
-    /**
-     * Get image URL with full path
-     */
-    public function getImageUrlAttribute(): string
-    {
-        $image = $this->first_image;
-        
-        // Check if it's a full URL
-        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
-            return $image;
-        }
-        
-        // Check if it's a placeholder
-        if ($image === 'default-product.jpg' || str_contains($image, 'via.placeholder.com')) {
-            return $image;
-        }
-
-        // Return storage path
-        return asset('storage/' . $image);
-    }
-
-    private function getPlaceholderImage(): string
-    {
-        $categoryName = $this->category ? $this->category->name : 'Product';
-        $productName = urlencode(substr($this->name, 0, 25));
-        
-        $colors = [
-            'Electronics' => '667eea',
-            'Fashion' => 'f093fb',
-            'Clothing' => 'f093fb',
-            'Home & Living' => '4facfe',
-            'Home' => '4facfe',
-            'Books' => 'f6d365',
-            'Beauty' => 'f5576c',
-            'Sports' => '4facfe',
-            'Toys' => 'f093fb',
-            'Food' => 'f6d365',
-        ];
-        
-        $color = '8b5cf6';
-        foreach ($colors as $key => $hex) {
-            if (stripos($categoryName, $key) !== false) {
-                $color = $hex;
-                break;
-            }
-        }
-        
-        return "https://via.placeholder.com/300x300/{$color}/FFFFFF?text={$productName}";
-    }
-
-    /**
-     * Get gallery images safely
-     */
-    public function getGalleryImagesAttribute(): array
-    {
-        $images = [];
-        
-        // 1. Add thumbnail
-        if ($this->thumbnail && !empty($this->thumbnail)) {
-            $images[] = $this->thumbnail;
-        }
-        
-        // 2. Get images from JSON field
-        if ($this->images) {
-            // If it's a string (JSON)
-            if (is_string($this->images)) {
-                $decoded = json_decode($this->images, true);
-                if (is_array($decoded)) {
-                    foreach ($decoded as $img) {
-                        if (!empty($img) && !in_array($img, $images)) {
-                            $images[] = $img;
-                        }
-                    }
-                }
-            }
-            // If it's an array
-            elseif (is_array($this->images)) {
-                foreach ($this->images as $img) {
-                    if (!empty($img) && !in_array($img, $images)) {
-                        $images[] = $img;
-                    }
-                }
-            }
-        }
-        
-        // 3. Get images from relation
-        if ($this->images()->exists()) {
-            foreach ($this->images as $image) {
-                if ($image && $image->image && !empty($image->image) && !in_array($image->image, $images)) {
-                    $images[] = $image->image;
-                }
-            }
-        }
-        
-        // 4. If no images, add placeholder
-        if (empty($images)) {
-            $images[] = $this->getPlaceholderImage();
-        }
-        
-        return $images;
-    }
-
-    /**
-     * Get formatted gallery images with full URLs
-     */
-    public function getGalleryImagesUrlAttribute(): array
-    {
-        $urls = [];
-        foreach ($this->gallery_images as $image) {
-            if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
-                $urls[] = $image;
-            } elseif ($image === 'default-product.jpg' || str_contains($image, 'via.placeholder.com')) {
-                $urls[] = $image;
-            } else {
-                $urls[] = asset('storage/' . $image);
-            }
-        }
-        return $urls;
-    }
-
     public function getFormattedPriceAttribute(): string
     {
         return number_format($this->price, 2);
     }
 
-    public function getFormattedSalePriceAttribute(): string
+    public function getFormattedSalePriceAttribute(): ?string
     {
         return $this->sale_price ? number_format($this->sale_price, 2) : null;
     }
 
     public function getStarsAttribute(): string
     {
-        $html = '';
+        $html   = '';
         $rating = round($this->rating ?? 0);
         for ($i = 1; $i <= 5; $i++) {
-            if ($i <= $rating) {
-                $html .= '<i class="fas fa-star text-warning"></i>';
-            } else {
-                $html .= '<i class="fas fa-star text-muted"></i>';
-            }
+            $html .= $i <= $rating
+                ? '<i class="fas fa-star text-warning"></i>'
+                : '<i class="far fa-star text-muted"></i>';
         }
         return $html;
     }
@@ -312,6 +277,27 @@ class Product extends Model
     public function getUrlAttribute(): string
     {
         return route('product.show', $this->slug);
+    }
+
+    public function getIsNewAttribute(): bool
+    {
+        return $this->created_at && $this->created_at->diffInDays(now()) <= 7;
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        if (!$this->status)      return 'Inactive';
+        if ($this->stock <= 0)   return 'Out of Stock';
+        if ($this->stock <= 10)  return 'Low Stock';
+        return 'Active';
+    }
+
+    public function getStatusBadgeAttribute(): string
+    {
+        if (!$this->status)      return 'danger';
+        if ($this->stock <= 0)   return 'danger';
+        if ($this->stock <= 10)  return 'warning';
+        return 'success';
     }
 
     // ==================== SCOPES ====================
@@ -348,10 +334,12 @@ class Product extends Model
 
     public function scopeSearch($query, $search)
     {
-        return $query->where('name', 'like', "%{$search}%")
-            ->orWhere('short_description', 'like', "%{$search}%")
-            ->orWhere('description', 'like', "%{$search}%")
-            ->orWhere('sku', 'like', "%{$search}%");
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('short_description', 'like', "%{$search}%")
+              ->orWhere('description', 'like', "%{$search}%")
+              ->orWhere('sku', 'like', "%{$search}%");
+        });
     }
 
     public function scopePriceRange($query, $min, $max)
@@ -371,82 +359,44 @@ class Product extends Model
 
     // ==================== HELPER METHODS ====================
 
-    public function updateRating()
+    public function updateRating(): void
     {
-        $avgRating = $this->reviews()->where('is_approved', true)->avg('rating');
-        $this->rating = $avgRating ?? 0;
+        $this->rating        = $this->reviews()->where('is_approved', true)->avg('rating') ?? 0;
         $this->reviews_count = $this->reviews()->where('is_approved', true)->count();
         $this->save();
     }
 
-    public function decreaseStock($quantity)
+    public function decreaseStock(int $quantity): bool
     {
         if ($this->stock >= $quantity) {
-            $this->stock -= $quantity;
-            $this->save();
+            $this->decrement('stock', $quantity);
             return true;
         }
         return false;
     }
 
-    public function increaseStock($quantity)
+    public function increaseStock(int $quantity): void
     {
-        $this->stock += $quantity;
-        $this->save();
-        return true;
+        $this->increment('stock', $quantity);
     }
 
-    public function hasStock($quantity = 1)
+    public function hasStock(int $quantity = 1): bool
     {
         return $this->stock >= $quantity;
     }
 
-    public function getRelatedProducts($limit = 4)
+    public function getRelatedProducts(int $limit = 4)
     {
         return Product::where('category_id', $this->category_id)
             ->where('id', '!=', $this->id)
-            ->where('status', true)
+            ->active()
             ->inStock()
             ->limit($limit)
             ->get();
     }
 
-    public function incrementViews()
+    public function incrementViews(): void
     {
-        $this->views = ($this->views ?? 0) + 1;
-        $this->save();
-    }
-
-    public function getIsNewAttribute(): bool
-    {
-        return $this->created_at && $this->created_at->diffInDays(now()) <= 7;
-    }
-
-    public function getStatusLabelAttribute(): string
-    {
-        if (!$this->status) {
-            return 'Inactive';
-        }
-        if ($this->stock <= 0) {
-            return 'Out of Stock';
-        }
-        if ($this->stock <= 10) {
-            return 'Low Stock';
-        }
-        return 'Active';
-    }
-
-    public function getStatusBadgeAttribute(): string
-    {
-        if (!$this->status) {
-            return 'danger';
-        }
-        if ($this->stock <= 0) {
-            return 'danger';
-        }
-        if ($this->stock <= 10) {
-            return 'warning';
-        }
-        return 'success';
+        $this->increment('views');
     }
 }

@@ -37,6 +37,11 @@ use App\Http\Controllers\Customer\CustomerOrderController;
 use App\Http\Controllers\Customer\CustomerReviewController;
 use App\Http\Controllers\Customer\AddressController;
 
+// Webhook Controllers
+use App\Http\Controllers\Webhook\StripeWebhookController;
+use App\Http\Controllers\Webhook\PaypalWebhookController;
+use App\Http\Controllers\Webhook\SslCommerzWebhookController;
+
 /*
 |--------------------------------------------------------------------------
 | Public Routes (No Authentication Required)
@@ -146,6 +151,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/clear', [WishlistController::class, 'clear'])->name('clear');
         Route::get('/count', [WishlistController::class, 'getCount'])->name('count');
         Route::get('/check/{productId}', [WishlistController::class, 'check'])->name('check');
+        Route::post('/toggle/{productId}', [WishlistController::class, 'toggle'])->name('toggle');
     });
 
     /*
@@ -215,7 +221,7 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('vendor')->name('vendor.')->middleware(['vendor.access'])->group(function () {
+    Route::prefix('vendor')->name('vendor.')->middleware(['auth', 'vendor.access'])->group(function () {
         
         // Dashboard
         Route::get('/dashboard', [VendorDashboardController::class, 'index'])->name('dashboard');
@@ -249,7 +255,7 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware(['admin.access'])
+    Route::middleware(['auth', 'admin.access'])
         ->prefix('admin')
         ->name('admin.')
         ->group(function () {
@@ -455,9 +461,9 @@ require __DIR__ . '/auth.php';
 */
 
 Route::prefix('webhook')->name('webhook.')->group(function () {
-    Route::post('/stripe', [App\Http\Controllers\Webhook\StripeWebhookController::class, 'handle'])->name('stripe');
-    Route::post('/paypal', [App\Http\Controllers\Webhook\PaypalWebhookController::class, 'handle'])->name('paypal');
-    Route::post('/sslcommerz', [App\Http\Controllers\Webhook\SslCommerzWebhookController::class, 'handle'])->name('sslcommerz');
+    Route::post('/stripe', [StripeWebhookController::class, 'handle'])->name('stripe');
+    Route::post('/paypal', [PaypalWebhookController::class, 'handle'])->name('paypal');
+    Route::post('/sslcommerz', [SslCommerzWebhookController::class, 'handle'])->name('sslcommerz');
 });
 
 /*

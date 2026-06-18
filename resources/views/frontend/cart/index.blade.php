@@ -48,82 +48,6 @@
     }
 
     /* ============================================
-       CART EXPIRY TIMER
-    ============================================ */
-    .cart-timer {
-        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        border-radius: 1rem;
-        padding: 0.75rem 1.25rem;
-        margin-bottom: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        animation: slideDown 0.4s ease;
-    }
-    
-    @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .cart-timer .timer-text {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        color: #1e40af;
-        font-weight: 500;
-        font-size: 0.9rem;
-    }
-    
-    .cart-timer .timer-text i {
-        font-size: 1.1rem;
-    }
-    
-    .cart-timer .timer-countdown {
-        font-weight: 700;
-        font-size: 1.1rem;
-        color: #1e40af;
-        background: rgba(255,255,255,0.5);
-        padding: 0.2rem 0.8rem;
-        border-radius: 2rem;
-        min-width: 80px;
-        text-align: center;
-        font-variant-numeric: tabular-nums;
-    }
-    
-    .cart-timer .timer-countdown.warning {
-        color: #dc2626;
-        background: rgba(239, 68, 68, 0.1);
-        animation: pulse 1s infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.6; }
-    }
-    
-    .cart-timer .btn-extend {
-        background: rgba(59, 130, 246, 0.15);
-        color: #1e40af;
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        border-radius: 0.5rem;
-        padding: 0.3rem 1rem;
-        font-size: 0.8rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        text-decoration: none;
-    }
-    
-    .cart-timer .btn-extend:hover {
-        background: rgba(59, 130, 246, 0.25);
-        transform: translateY(-2px);
-    }
-
-    /* ============================================
        CART ITEMS
     ============================================ */
     .cart-item {
@@ -427,13 +351,6 @@
             position: static;
             margin-top: 1rem;
         }
-        .cart-timer {
-            flex-direction: column;
-            text-align: center;
-        }
-        .cart-timer .timer-text {
-            justify-content: center;
-        }
     }
 
     @media (max-width: 576px) {
@@ -471,7 +388,7 @@
                 <i class="fas fa-shopping-cart"></i> Shopping Cart
                 <span class="item-count">
                     <i class="fas fa-box me-1"></i>
-                    {{ isset($cart) ? $cart->count() : 0 }} Items
+                    {{ isset($cartItems) ? $cartItems->count() : 0 }} Items
                 </span>
             </h2>
             <a href="{{ route('shop.index') }}" class="btn-continue-shopping">
@@ -479,32 +396,21 @@
             </a>
         </div>
 
-        @if(isset($cart) && $cart->count() > 0)
-            <!-- ============================================
-                 CART EXPIRY TIMER
-            ============================================ -->
-            @if(isset($expiryMinutes))
-            <div class="cart-timer" id="cartTimer">
-                <div class="timer-text">
-                    <i class="fas fa-clock"></i>
-                    <span>Items will be reserved for</span>
-                    <span class="timer-countdown" id="timerDisplay">
-                        <span id="timerMinutes">{{ $expiryMinutes }}</span>:<span id="timerSeconds">00</span>
-                    </span>
-                </div>
-                <a href="{{ route('cart.extend-expiry') }}" class="btn-extend" id="extendBtn">
-                    <i class="fas fa-sync-alt me-1"></i> Extend Time
-                </a>
-            </div>
-            @endif
-
+        @if(isset($cartItems) && $cartItems->count() > 0)
             <div class="row g-4">
                 <!-- Cart Items -->
                 <div class="col-lg-8">
-                    @php $subtotal = 0; $itemCount = 0; @endphp
-                    @foreach($cart as $item)
+                    @php 
+                        $subtotal = 0; 
+                        $itemCount = 0; 
+                        $shipping = 10; 
+                        $tax = 0;
+                    @endphp
+                    
+                    @foreach($cartItems as $item)
                         @php 
-                            $subtotal += $item->price * $item->quantity; 
+                            $itemTotal = $item->price * $item->quantity;
+                            $subtotal += $itemTotal; 
                             $itemCount++;
                         @endphp
                         <div class="cart-item" id="cart-item-{{ $item->id }}">
@@ -512,9 +418,16 @@
                             
                             <div class="product-image">
                                 @if($item->product && $item->product->thumbnail)
-                                    <img src="{{ asset('storage/' . $item->product->thumbnail) }}" alt="{{ $item->product->name }}">
+                                    <img src="{{ asset('storage/products/' . $item->product->thumbnail) }}" 
+                                         alt="{{ $item->product->name }}"
+                                         onerror="this.src='https://via.placeholder.com/80x80/8b5cf6/FFFFFF?text=Product'">
+                                @elseif($item->product && $item->product->images && count($item->product->images) > 0)
+                                    <img src="{{ asset('storage/products/' . $item->product->images[0]) }}" 
+                                         alt="{{ $item->product->name }}"
+                                         onerror="this.src='https://via.placeholder.com/80x80/8b5cf6/FFFFFF?text=Product'">
                                 @else
-                                    <img src="{{ $item->product->image_url ?? 'https://via.placeholder.com/80x80/8b5cf6/FFFFFF?text=Product' }}" alt="{{ $item->product->name ?? 'Product' }}">
+                                    <img src="https://via.placeholder.com/80x80/8b5cf6/FFFFFF?text=Product" 
+                                         alt="{{ $item->product->name ?? 'Product' }}">
                                 @endif
                             </div>
                             
@@ -522,12 +435,12 @@
                                 <div class="product-name">{{ $item->product->name ?? 'Product' }}</div>
                                 <div class="product-price">${{ number_format($item->price, 2) }}</div>
                                 <div class="product-meta">
-                                    @if($item->product->category)
+                                    @if($item->product && $item->product->category)
                                         {{ $item->product->category->name }}
                                     @endif
                                     <span class="mx-1">•</span>
-                                    <span class="badge-stock {{ $item->product && $item->product->is_in_stock ? 'in-stock' : 'out-stock' }}">
-                                        {{ $item->product && $item->product->is_in_stock ? '✓ In Stock' : 'Out of Stock' }}
+                                    <span class="badge-stock {{ ($item->product && $item->product->stock > 0) ? 'in-stock' : 'out-stock' }}">
+                                        {{ ($item->product && $item->product->stock > 0) ? '✓ In Stock' : 'Out of Stock' }}
                                     </span>
                                 </div>
                             </div>
@@ -541,13 +454,13 @@
                                     </button>
                                     <span class="qty" id="qty-{{ $item->id }}">{{ $item->quantity }}</span>
                                     <button onclick="updateCart({{ $item->id }}, 1)" 
-                                            {{ $item->product && $item->quantity >= $item->product->stock ? 'disabled' : '' }}
+                                            {{ ($item->product && $item->quantity >= $item->product->stock) ? 'disabled' : '' }}
                                             title="Increase quantity">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
                                 <div class="item-total">
-                                    ${{ number_format($item->price * $item->quantity, 2) }}
+                                    ${{ number_format($itemTotal, 2) }}
                                 </div>
                                 <button onclick="removeFromCart({{ $item->id }})" class="remove-btn" title="Remove item">
                                     <i class="fas fa-trash"></i>
@@ -559,16 +472,19 @@
 
                 <!-- Cart Summary -->
                 <div class="col-lg-4">
+                    @php
+                        $freeShippingThreshold = 100;
+                        $shippingProgress = min(($subtotal / $freeShippingThreshold) * 100, 100);
+                        $remainingForFree = max($freeShippingThreshold - $subtotal, 0);
+                        $shipping = ($subtotal >= $freeShippingThreshold) ? 0 : 10;
+                        $tax = $subtotal * 0.05;
+                        $total = $subtotal + $shipping + $tax;
+                    @endphp
+                    
                     <div class="cart-summary">
                         <h5>Order Summary</h5>
                         
                         <!-- Shipping Progress Bar -->
-                        @php
-                            $freeShippingThreshold = 100;
-                            $shippingProgress = min(($subtotal / $freeShippingThreshold) * 100, 100);
-                            $remainingForFree = max($freeShippingThreshold - $subtotal, 0);
-                        @endphp
-                        
                         @if($remainingForFree > 0)
                         <div class="shipping-progress">
                             <div class="progress-label">
@@ -600,20 +516,20 @@
                         <div class="summary-row">
                             <span>Shipping</span>
                             <span>
-                                @if($subtotal >= 100)
+                                @if($subtotal >= $freeShippingThreshold)
                                     <span class="free-shipping"><i class="fas fa-check-circle me-1"></i> Free</span>
                                 @else
-                                    ${{ number_format($shipping ?? 10, 2) }}
+                                    ${{ number_format($shipping, 2) }}
                                 @endif
                             </span>
                         </div>
                         <div class="summary-row">
                             <span>Tax (5%)</span>
-                            <span>${{ number_format($tax ?? 0, 2) }}</span>
+                            <span>${{ number_format($tax, 2) }}</span>
                         </div>
                         <div class="summary-row total">
                             <span>Total</span>
-                            <span class="amount">${{ number_format($total ?? 0, 2) }}</span>
+                            <span class="amount">${{ number_format($total, 2) }}</span>
                         </div>
 
                         <!-- Checkout Button -->
@@ -649,127 +565,7 @@
 
 <script>
     // ============================================================
-    // 1. CART TIMER
-    // ============================================================
-    (function() {
-        const timerDisplay = document.getElementById('timerDisplay');
-        const minutesSpan = document.getElementById('timerMinutes');
-        const secondsSpan = document.getElementById('timerSeconds');
-        const timerContainer = document.getElementById('cartTimer');
-        
-        if (timerDisplay && minutesSpan && secondsSpan) {
-            let minutes = parseInt(minutesSpan.textContent) || 60;
-            let seconds = 0;
-            let timerInterval;
-            
-            function updateTimerDisplay() {
-                const minStr = String(minutes).padStart(2, '0');
-                const secStr = String(seconds).padStart(2, '0');
-                minutesSpan.textContent = minStr;
-                secondsSpan.textContent = secStr;
-                
-                // Warning state when less than 5 minutes
-                if (minutes < 5 && minutes >= 0) {
-                    timerDisplay.classList.add('warning');
-                } else {
-                    timerDisplay.classList.remove('warning');
-                }
-                
-                // Auto refresh when timer expires
-                if (minutes === 0 && seconds === 0) {
-                    clearInterval(timerInterval);
-                    timerDisplay.textContent = '⏰ Expired! Refreshing...';
-                    timerDisplay.style.color = '#dc2626';
-                    setTimeout(() => {
-                        location.reload();
-                    }, 2000);
-                }
-            }
-            
-            function startTimer() {
-                timerInterval = setInterval(() => {
-                    if (seconds === 0) {
-                        if (minutes === 0) {
-                            clearInterval(timerInterval);
-                            return;
-                        }
-                        minutes--;
-                        seconds = 59;
-                    } else {
-                        seconds--;
-                    }
-                    updateTimerDisplay();
-                }, 1000);
-            }
-            
-            // Reset timer on user activity
-            function resetTimer() {
-                // Only reset if timer is still running
-                if (timerInterval) {
-                    clearInterval(timerInterval);
-                    // Get fresh expiry time from server
-                    fetch('{{ route("cart.expiry") }}')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.expiry !== null && data.expiry > 0) {
-                                minutes = Math.floor(data.expiry / 60);
-                                seconds = data.expiry % 60;
-                                updateTimerDisplay();
-                                startTimer();
-                            }
-                        })
-                        .catch(() => {
-                            // Fallback: reset to 60 minutes
-                            minutes = 60;
-                            seconds = 0;
-                            updateTimerDisplay();
-                            startTimer();
-                        });
-                }
-            }
-            
-            // Start timer on page load
-            startTimer();
-            
-            // Reset timer on any click (user activity)
-            document.addEventListener('click', function() {
-                resetTimer();
-            });
-            
-            // Reset timer on page visibility change (user returns to tab)
-            document.addEventListener('visibilitychange', function() {
-                if (!document.hidden) {
-                    resetTimer();
-                }
-            });
-            
-            // Extend button handler
-            document.getElementById('extendBtn')?.addEventListener('click', function(e) {
-                e.preventDefault();
-                fetch('{{ route("cart.extend-expiry") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        minutes = 60;
-                        seconds = 0;
-                        updateTimerDisplay();
-                        startTimer();
-                        showNotification('Cart time extended by 60 minutes!', 'success');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            });
-        }
-    })();
-
-    // ============================================================
-    // 2. UPDATE CART
+    // 1. UPDATE CART
     // ============================================================
     function updateCart(itemId, change) {
         const qtyElement = document.getElementById('qty-' + itemId);
@@ -781,7 +577,7 @@
         const btn = document.querySelector(`#cart-item-${itemId} .quantity-control button:${change > 0 ? 'last-child' : 'first-child'}`);
         if (btn) btn.disabled = true;
         
-        fetch('/cart/update/' + itemId, {
+        fetch('{{ route("cart.update", ["id" => "ITEM_ID"]) }}'.replace('ITEM_ID', itemId), {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -808,12 +604,12 @@
     }
 
     // ============================================================
-    // 3. REMOVE FROM CART
+    // 2. REMOVE FROM CART
     // ============================================================
     function removeFromCart(itemId) {
         if (!confirm('Are you sure you want to remove this item from cart?')) return;
         
-        fetch('/cart/remove/' + itemId, {
+        fetch('{{ route("cart.remove", ["id" => "ITEM_ID"]) }}'.replace('ITEM_ID', itemId), {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -842,6 +638,74 @@
     }
 
     // ============================================================
+    // 3. NOTIFICATION
+    // ============================================================
+    function showNotification(message, type = 'success') {
+        const existing = document.querySelector('.custom-notification');
+        if (existing) existing.remove();
+        
+        const colors = {
+            success: '#10b981',
+            error: '#ef4444',
+            warning: '#f59e0b',
+            info: '#3b82f6'
+        };
+        
+        const icons = {
+            success: 'check-circle',
+            error: 'exclamation-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        };
+        
+        const notification = document.createElement('div');
+        notification.className = 'custom-notification';
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: ${colors[type] || colors.success};
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            z-index: 9999;
+            font-weight: 500;
+            font-size: 0.95rem;
+            animation: slideInRight 0.4s ease;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+        `;
+        notification.innerHTML = `
+            <i class="fas fa-${icons[type] || icons.success}" style="font-size: 1.2rem;"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()" style="
+                background: transparent;
+                border: none;
+                color: white;
+                opacity: 0.7;
+                cursor: pointer;
+                margin-left: auto;
+                font-size: 1rem;
+                padding: 4px;
+            ">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 4000);
+    }
+
+    // ============================================================
     // 4. UPDATE CART COUNT (Global)
     // ============================================================
     function updateCartCount() {
@@ -861,9 +725,6 @@
         updateCartCount();
     });
 
-    // ============================================================
-    // 5. CONSOLE GREETING
-    // ============================================================
     console.log('%c🛒 EktaMart Cart Page Loaded', 'color: #667eea; font-size: 14px; font-weight: bold;');
 </script>
 @endsection

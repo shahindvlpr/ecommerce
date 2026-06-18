@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Banner;
 use Illuminate\Http\Request;
 
 class BannerController extends Controller
@@ -34,7 +35,7 @@ class BannerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Banner $banner)
     {
         //
     }
@@ -42,7 +43,7 @@ class BannerController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Banner $banner)
     {
         //
     }
@@ -50,7 +51,7 @@ class BannerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Banner $banner)
     {
         //
     }
@@ -58,7 +59,7 @@ class BannerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Banner $banner)
     {
         //
     }

@@ -92,6 +92,14 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
         }
 
+        // Check stock availability
+        foreach ($cart as $item) {
+            if ($item->product && $item->product->stock < $item->quantity) {
+                return redirect()->route('cart.index')
+                    ->with('error', 'Sorry, ' . $item->product->name . ' is out of stock!');
+            }
+        }
+
         // Calculate totals
         $subtotal = 0;
         foreach ($cart as $item) {
@@ -177,27 +185,76 @@ class CheckoutController extends Controller
             // Clear cart
             Cart::where('user_id', $user->id)->delete();
 
-            // Redirect based on payment method
+            // ============================================================
+            // ✅ PAYMENT METHOD BASED REDIRECT
+            // ============================================================
             if ($request->payment_method == 'cod') {
+                // Cash on Delivery - সরাসরি Success
                 return redirect()->route('checkout.success', $order->id)
                     ->with('success', 'Order placed successfully! You will pay on delivery.');
+                    
             } elseif ($request->payment_method == 'bkash') {
-                return redirect()->route('checkout.success', $order->id)
-                    ->with('success', 'Order placed successfully! Please complete bKash payment.');
+                // bKash Payment Gateway
+                try {
+                    if (class_exists(\App\Services\BkashService::class)) {
+                        $bkash = new \App\Services\BkashService();
+                        $payment = $bkash->createPayment($order, $order->total);
+                        
+                        if ($payment && isset($payment['paymentID'])) {
+                            session([
+                                'bkash_payment_id' => $payment['paymentID'],
+                                'bkash_order_id' => $order->id,
+                            ]);
+                            
+                            return redirect($payment['bkashURL']);
+                        }
+                    }
+                    
+                    return redirect()->route('checkout.cancel')
+                        ->with('error', 'bKash payment initialization failed! Please try again.');
+                    
+                } catch (\Exception $e) {
+                    return redirect()->route('checkout.cancel')
+                        ->with('error', 'bKash payment failed: ' . $e->getMessage());
+                }
+                
             } elseif ($request->payment_method == 'nagad') {
-                return redirect()->route('checkout.success', $order->id)
-                    ->with('success', 'Order placed successfully! Please complete Nagad payment.');
+                // Nagad Payment Gateway
+                try {
+                    if (class_exists(\App\Services\NagadService::class)) {
+                        $nagad = new \App\Services\NagadService();
+                        $payment = $nagad->createPayment($order, $order->total);
+                        
+                        if ($payment && isset($payment['paymentReferenceId'])) {
+                            session([
+                                'nagad_payment_ref' => $payment['paymentReferenceId'],
+                                'nagad_order_id' => $order->id,
+                            ]);
+                            
+                            return redirect($payment['paymentUrl']);
+                        }
+                    }
+                    
+                    return redirect()->route('checkout.cancel')
+                        ->with('error', 'Nagad payment initialization failed! Please try again.');
+                    
+                } catch (\Exception $e) {
+                    return redirect()->route('checkout.cancel')
+                        ->with('error', 'Nagad payment failed: ' . $e->getMessage());
+                }
+                
             } elseif ($request->payment_method == 'sslcommerz') {
-                return redirect()->route('checkout.success', $order->id)
-                    ->with('success', 'Order placed successfully! Please complete SSLCommerz payment.');
+                // ✅ SSLCommerz Payment Gateway - Updated
+                return redirect()->route('sslcommerz.pay', ['order' => $order->id]);
             }
 
+            // Fallback
             return redirect()->route('checkout.success', $order->id)
                 ->with('success', 'Order placed successfully!');
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Something went wrong! Please try again. ' . $e->getMessage())
+                ->with('error', 'Something went wrong! Please try again.')
                 ->withInput();
         }
     }
@@ -264,7 +321,7 @@ class CheckoutController extends Controller
     {
         $districts = [
             'Dhaka' => ['Dhaka', 'Gazipur', 'Narayanganj', 'Tangail', 'Kishoreganj', 'Manikganj', 'Munshiganj', 'Narsingdi', 'Rajbari', 'Shariatpur', 'Faridpur', 'Madaripur', 'Gopalganj'],
-            'Chittagong' => ['Chittagong', 'Cox\'s Bazar', 'Rangamati', 'Bandarban', 'Khagrachari', 'Comilla', 'Feni', 'Noakhali', 'Lakshmipur', 'Chandpur', 'Brahmanbaria'],
+            'Chittagong' => ['Chittagong', "Cox's Bazar", 'Rangamati', 'Bandarban', 'Khagrachari', 'Comilla', 'Feni', 'Noakhali', 'Lakshmipur', 'Chandpur', 'Brahmanbaria'],
             'Rajshahi' => ['Rajshahi', 'Bogura', 'Pabna', 'Sirajganj', 'Natore', 'Chapainawabganj', 'Naogaon', 'Joypurhat'],
             'Khulna' => ['Khulna', 'Jessore', 'Jhenaidah', 'Magura', 'Narail', 'Bagerhat', 'Satkhira', 'Kushtia', 'Chuadanga', 'Meherpur'],
             'Barisal' => ['Barisal', 'Patuakhali', 'Bhola', 'Jhalokati', 'Pirojpur', 'Barguna'],

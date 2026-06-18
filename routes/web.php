@@ -494,6 +494,45 @@ Route::prefix('ajax')->name('ajax.')->middleware(['auth'])->group(function () {
     Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
 });
 
+
+// ============================================
+// PAYMENT CALLBACK ROUTES
+// ============================================
+
+// bKash Callback
+Route::get('/payment/bkash/callback', [App\Http\Controllers\Payment\BkashController::class, 'callback'])
+    ->name('bkash.callback');
+
+// Nagad Callback
+Route::get('/payment/nagad/callback', [App\Http\Controllers\Payment\NagadController::class, 'callback'])
+    ->name('nagad.callback');
+
+/*
+|--------------------------------------------------------------------------
+| SSLCommerz Payment Routes
+|--------------------------------------------------------------------------
+*/
+
+/*
+|--------------------------------------------------------------------------
+| SSLCommerz Payment Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('payment/sslcommerz')->name('sslcommerz.')->group(function () {
+    Route::get('/pay/{order}', [App\Http\Controllers\Payment\SslCommerzController::class, 'pay'])
+        ->name('pay');
+    Route::post('/success', [App\Http\Controllers\Payment\SslCommerzController::class, 'success'])
+        ->name('success');
+    Route::post('/fail', [App\Http\Controllers\Payment\SslCommerzController::class, 'fail'])
+        ->name('fail');
+    Route::post('/cancel', [App\Http\Controllers\Payment\SslCommerzController::class, 'cancel'])
+        ->name('cancel');
+    Route::post('/ipn', [App\Http\Controllers\Payment\SslCommerzController::class, 'ipn'])
+        ->name('ipn');
+});
+
+
 /*
 |--------------------------------------------------------------------------
 | Sitemap & Robots

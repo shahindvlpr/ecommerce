@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    'bkash' => [
+    'app_key' => env('BKASH_APP_KEY'),
+    'app_secret' => env('BKASH_APP_SECRET'),
+    'base_url' => env('BKASH_BASE_URL', 'https://tokenized.sandbox.bka.sh/v1.2.0-beta'),
+],
+
+'sslcommerz' => [
+    'store_id' => env('SSLCOMMERZ_STORE_ID'),
+    'store_password' => env('SSLCOMMERZ_STORE_PASSWORD'),
+    'mode' => env('SSLCOMMERZ_MODE', 'sandbox'),
+    'base_url' => env('SSLCOMMERZ_BASE_URL', 'https://sandbox.sslcommerz.com'),
+],
+
 ];

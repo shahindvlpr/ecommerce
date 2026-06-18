@@ -230,6 +230,13 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: white;
+            width: 100%;
         }
         
         .social-premium:hover {
@@ -237,6 +244,7 @@
             border-color: #8b5cf6;
             transform: translateY(-4px);
             box-shadow: 0 8px 20px -8px rgba(139, 92, 246, 0.4);
+            color: white;
         }
         
         /* Real-time Validation Styles */
@@ -366,6 +374,12 @@
             .glass-premium {
                 margin: 0 0.5rem;
                 padding: 1.5rem;
+            }
+            .social-premium span {
+                display: none;
+            }
+            .social-premium {
+                padding: 0.6rem;
             }
         }
     </style>
@@ -501,20 +515,27 @@
                     </div>
                 </div>
 
-                <!-- Social Login Options with Hover Effects -->
+                <!-- ============================================
+                     SOCIAL LOGIN OPTIONS (FULLY INTEGRATED)
+                ============================================ -->
                 <div class="grid grid-cols-3 gap-3">
-                    <button class="social-premium flex items-center justify-center gap-2 text-white transition-all" data-social="google">
+                    <!-- Google Login -->
+                    <a href="{{ route('auth.google') }}" class="social-premium flex items-center justify-center gap-2 text-white transition-all" data-social="google">
                         <i class="fab fa-google text-rose-400 text-lg"></i>
                         <span class="text-sm font-medium hidden sm:inline">Google</span>
-                    </button>
-                    <button class="social-premium flex items-center justify-center gap-2 text-white transition-all" data-social="facebook">
+                    </a>
+
+                    <!-- Facebook Login -->
+                    <a href="{{ route('auth.facebook') }}" class="social-premium flex items-center justify-center gap-2 text-white transition-all" data-social="facebook">
                         <i class="fab fa-facebook text-blue-400 text-lg"></i>
                         <span class="text-sm font-medium hidden sm:inline">Facebook</span>
-                    </button>
-                    <button class="social-premium flex items-center justify-center gap-2 text-white transition-all" data-social="apple">
-                        <i class="fab fa-apple text-gray-200 text-lg"></i>
-                        <span class="text-sm font-medium hidden sm:inline">Apple</span>
-                    </button>
+                    </a>
+
+                    <!-- GitHub Login (Optional - Extra) -->
+                    <a href="{{ route('auth.github') }}" class="social-premium flex items-center justify-center gap-2 text-white transition-all" data-social="github">
+                        <i class="fab fa-github text-gray-300 text-lg"></i>
+                        <span class="text-sm font-medium hidden sm:inline">GitHub</span>
+                    </a>
                 </div>
 
                 <!-- Sign Up Link -->
@@ -776,14 +797,14 @@
             }, 5000);
         }
         
-        // ==================== SOCIAL BUTTON ANIMATIONS ====================
+        // ==================== SOCIAL BUTTON LOGGING ====================
         const socialBtns = document.querySelectorAll('.social-premium');
         socialBtns.forEach(btn => {
             btn.addEventListener('click', function(e) {
                 const social = this.getAttribute('data-social');
                 this.style.transform = 'scale(0.95)';
                 setTimeout(() => { this.style.transform = ''; }, 150);
-                console.log(`%c🔗 Social login with ${social} would integrate here`, 'color: #a855f7');
+                console.log(`%c🔗 Redirecting to ${social} login...`, 'color: #a855f7');
             });
         });
         
@@ -818,6 +839,7 @@
         // ==================== CONSOLE GREETING ====================
         console.log("%c✨ EktaMart Premium Login | Ultra Dynamic & Secure ✨", "color: #a855f7; font-size: 16px; font-weight: bold;");
         console.log("%c⚡ Features: Real-time validation • Password strength • 3D tilt • Particle system • Loading states", "color: #6366f1; font-size: 12px;");
+        console.log("%c🔗 Social Login: Google • Facebook • GitHub", "color: #8b5cf6; font-size: 12px;");
     </script>
 </body>
 </html>

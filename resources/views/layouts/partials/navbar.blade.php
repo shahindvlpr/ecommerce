@@ -44,6 +44,27 @@
                     <span id="navCartCount" class="lc-cart-badge">0</span>
                 </a>
 
+                {{-- ✅ CHAT BUTTON (New) --}}
+                <a href="{{ route('customer.chat.index') }}" class="lc-cart-btn" aria-label="Live Chat" title="Live Chat">
+                    <i class="fas fa-comment-dots" style="color: #a78bfa;"></i>
+                    @php
+                        $unreadChatCount = 0;
+                        if (auth()->check()) {
+                            $unreadChatCount = \App\Models\ChatMessage::where('user_id', auth()->id())
+                                ->where('sender_type', 'admin')
+                                ->where('is_read', false)
+                                ->count();
+                        }
+                    @endphp
+                    @if($unreadChatCount > 0)
+                        <span id="unreadChatBadge" class="lc-cart-badge" style="background: linear-gradient(135deg, #ef4444, #f97316); animation: lc-badge-bounce 0.5s ease;">
+                            {{ $unreadChatCount }}
+                        </span>
+                    @else
+                        <span id="unreadChatBadge" class="lc-cart-badge" style="display: none; background: linear-gradient(135deg, #ef4444, #f97316);">0</span>
+                    @endif
+                </a>
+
                 {{-- ─────────────────────────────────────────────
                      PREMIUM USER DROPDOWN
                 ───────────────────────────────────────────── --}}
@@ -149,29 +170,29 @@
                                 </a>
                             @endif
 
-@php
-    $user = Auth::user();
-    $profileRoute = route('profile.edit'); // default
-    
-    if ($user->role === 'admin') {
-        $profileRoute = route('admin.profile');
-    } elseif ($user->role === 'vendor') {
-        $profileRoute = route('vendor.profile');
-    } elseif ($user->role === 'customer') {
-        $profileRoute = route('customer.profile');
-    }
-@endphp
+                            @php
+                                $user = Auth::user();
+                                $profileRoute = route('profile.edit'); // default
+                                
+                                if ($user->role === 'admin') {
+                                    $profileRoute = route('admin.profile');
+                                } elseif ($user->role === 'vendor') {
+                                    $profileRoute = route('vendor.profile');
+                                } elseif ($user->role === 'customer') {
+                                    $profileRoute = route('customer.profile');
+                                }
+                            @endphp
 
-<a href="{{ $profileRoute }}" class="lc-dp__item" role="menuitem">
-    <span class="lc-dp__item-icon" style="--icon-color: 59,130,246;">
-        <i class="fas fa-user-circle"></i>
-    </span>
-    <span class="lc-dp__item-content">
-        <span class="lc-dp__item-label">My Profile</span>
-        <span class="lc-dp__item-desc">Edit personal info</span>
-    </span>
-    <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
-</a>
+                            <a href="{{ $profileRoute }}" class="lc-dp__item" role="menuitem">
+                                <span class="lc-dp__item-icon" style="--icon-color: 59,130,246;">
+                                    <i class="fas fa-user-circle"></i>
+                                </span>
+                                <span class="lc-dp__item-content">
+                                    <span class="lc-dp__item-label">My Profile</span>
+                                    <span class="lc-dp__item-desc">Edit personal info</span>
+                                </span>
+                                <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
+                            </a>
 
                             @if(!auth()->user()->is_admin && auth()->user()->role !== 'admin')
                                 <a href="{{ route('customer.orders') }}" class="lc-dp__item" role="menuitem">
@@ -192,6 +213,18 @@
                                     <span class="lc-dp__item-content">
                                         <span class="lc-dp__item-label">Wishlist</span>
                                         <span class="lc-dp__item-desc">Saved products</span>
+                                    </span>
+                                    <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
+                                </a>
+
+                                {{-- ✅ CHAT IN DROPDOWN (New) --}}
+                                <a href="{{ route('customer.chat.index') }}" class="lc-dp__item" role="menuitem">
+                                    <span class="lc-dp__item-icon" style="--icon-color: 168,85,247;">
+                                        <i class="fas fa-comment-dots"></i>
+                                    </span>
+                                    <span class="lc-dp__item-content">
+                                        <span class="lc-dp__item-label">Live Chat</span>
+                                        <span class="lc-dp__item-desc">Get support</span>
                                     </span>
                                     <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
                                 </a>
@@ -243,6 +276,25 @@
                     <i class="fas fa-shopping-bag"></i>
                     <span id="mobileCartCount" class="lc-cart-badge">0</span>
                 </a>
+
+                {{-- ✅ Mobile Chat Button (New) --}}
+                <a href="{{ route('customer.chat.index') }}" class="lc-cart-btn lc-cart-btn--mob" style="position: relative;">
+                    <i class="fas fa-comment-dots" style="color: #a78bfa;"></i>
+                    @php
+                        $mobileUnreadCount = 0;
+                        if (auth()->check()) {
+                            $mobileUnreadCount = \App\Models\ChatMessage::where('user_id', auth()->id())
+                                ->where('sender_type', 'admin')
+                                ->where('is_read', false)
+                                ->count();
+                        }
+                    @endphp
+                    @if($mobileUnreadCount > 0)
+                        <span class="lc-cart-badge" style="background: linear-gradient(135deg, #ef4444, #f97316); font-size: 0.55rem;">
+                            {{ $mobileUnreadCount }}
+                        </span>
+                    @endif
+                </a>
             @endauth
             <button class="lc-hamburger" id="mobileMenuToggle" aria-label="Toggle menu" aria-expanded="false">
                 <span></span><span></span><span></span>
@@ -283,6 +335,15 @@
                 @if(!auth()->user()->is_admin && auth()->user()->role !== 'admin')
                     <a href="{{ route('customer.orders') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(16,185,129,.15)"><i class="fas fa-shopping-bag" style="color:#34d399"></i></div><span>My Orders</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
                     <a href="{{ route('customer.wishlist') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(244,63,94,.15)"><i class="fas fa-heart" style="color:#fb7185"></i></div><span>Wishlist</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
+                    
+                    {{-- ✅ Mobile Chat Link (New) --}}
+                    <a href="{{ route('customer.chat.index') }}" class="lc-mob-link">
+                        <div class="lc-mob-link__icon" style="background:rgba(168,85,247,.15)">
+                            <i class="fas fa-comment-dots" style="color:#a78bfa"></i>
+                        </div>
+                        <span>Live Chat</span>
+                        <i class="fas fa-chevron-right lc-mob-link__chevron"></i>
+                    </a>
                 @endif
                 <div class="lc-mob-divider"></div>
                 <form method="POST" action="{{ route('logout') }}">
@@ -444,7 +505,7 @@
 .lc-nav__actions {
     display: none;
     align-items: center;
-    gap: .75rem;
+    gap: .5rem;
     flex-shrink: 0;
 }
 @media (min-width: 768px) { .lc-nav__actions { display: flex; } }
@@ -1160,6 +1221,24 @@
             }).catch(() => {});
     }
 
+    /* ── Chat unread count ── */
+    function updateUnreadChatBadge() {
+        fetch('{{ route("customer.chat.unread") }}')
+            .then(r => r.json())
+            .then(({ count = 0 }) => {
+                document.querySelectorAll('#unreadChatBadge').forEach(el => {
+                    if (!el) return;
+                    if (count > 0) {
+                        el.textContent = count;
+                        el.style.display = 'flex';
+                        el.style.animation = 'lc-badge-bounce 0.5s ease';
+                    } else {
+                        el.style.display = 'none';
+                    }
+                });
+            }).catch(() => {});
+    }
+
     /* ── Dropdown ── */
     function initDropdown() {
         const trigger = document.getElementById('dropdownTrigger');
@@ -1237,10 +1316,12 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         updateCartBadges();
+        updateUnreadChatBadge();
         initDropdown();
         initMobileMenu();
     });
 
     window.updateNavCartCount = updateCartBadges;
+    window.updateUnreadChatBadge = updateUnreadChatBadge;
 })();
 </script>

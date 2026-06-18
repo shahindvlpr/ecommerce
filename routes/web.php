@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\SocialiteController;
 
 // Frontend Controllers
 use App\Http\Controllers\Frontend\HomeController;
@@ -36,11 +37,32 @@ use App\Http\Controllers\Customer\CustomerDashboardController;
 use App\Http\Controllers\Customer\CustomerOrderController;
 use App\Http\Controllers\Customer\CustomerReviewController;
 use App\Http\Controllers\Customer\AddressController;
+use App\Http\Controllers\Customer\ChatController;
+
+// Payment Controllers
+use App\Http\Controllers\Payment\BkashController;
+use App\Http\Controllers\Payment\NagadController;
+use App\Http\Controllers\Payment\SslCommerzController;
 
 // Webhook Controllers
 use App\Http\Controllers\Webhook\StripeWebhookController;
 use App\Http\Controllers\Webhook\PaypalWebhookController;
 use App\Http\Controllers\Webhook\SslCommerzWebhookController;
+
+/*
+|--------------------------------------------------------------------------
+| Social Login Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/auth/google', [SocialiteController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [SocialiteController::class, 'handleGoogleCallback']);
+
+Route::get('/auth/facebook', [SocialiteController::class, 'redirectToFacebook'])->name('auth.facebook');
+Route::get('/auth/facebook/callback', [SocialiteController::class, 'handleFacebookCallback']);
+
+Route::get('/auth/github', [SocialiteController::class, 'redirectToGithub'])->name('auth.github');
+Route::get('/auth/github/callback', [SocialiteController::class, 'handleGithubCallback']);
 
 /*
 |--------------------------------------------------------------------------
@@ -160,7 +182,7 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('checkout')->name('checkout.')->middleware(['auth'])->group(function () {
+    Route::prefix('checkout')->name('checkout.')->group(function () {
         Route::get('/', [CheckoutController::class, 'index'])->name('index');
         Route::post('/process', [CheckoutController::class, 'process'])->name('process');
         Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
@@ -213,6 +235,22 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/addresses/{address}', [AddressController::class, 'update'])->name('addresses.update');
         Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
         Route::post('/addresses/{address}/default', [AddressController::class, 'setDefault'])->name('addresses.default');
+
+        // Chat Routes
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
+    Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
+    Route::get('/chat/unread', [ChatController::class, 'getUnreadCount'])->name('chat.unread');
+    Route::post('/chat/read-all', [ChatController::class, 'markAllAsRead'])->name('chat.read-all');
+    
+    
+    Route::delete('/chat/{id}', [ChatController::class, 'destroy'])->name('chat.destroy');
+    Route::put('/chat/{id}', [ChatController::class, 'update'])->name('chat.update');
+    Route::delete('/chat/clear-all', [ChatController::class, 'clearAll'])->name('chat.clear');
+    
+    Route::get('/chat/history', [ChatController::class, 'getHistory'])->name('chat.history');
+    Route::get('/chat/latest', [ChatController::class, 'getLatest'])->name('chat.latest');
+    Route::post('/chat/upload', [ChatController::class, 'uploadAttachment'])->name('chat.upload');
     });
 
     /*
@@ -494,24 +532,17 @@ Route::prefix('ajax')->name('ajax.')->middleware(['auth'])->group(function () {
     Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.apply-coupon');
 });
 
-
-// ============================================
-// PAYMENT CALLBACK ROUTES
-// ============================================
-
-// bKash Callback
-Route::get('/payment/bkash/callback', [App\Http\Controllers\Payment\BkashController::class, 'callback'])
-    ->name('bkash.callback');
-
-// Nagad Callback
-Route::get('/payment/nagad/callback', [App\Http\Controllers\Payment\NagadController::class, 'callback'])
-    ->name('nagad.callback');
-
 /*
 |--------------------------------------------------------------------------
-| SSLCommerz Payment Routes
+| Payment Callback Routes
 |--------------------------------------------------------------------------
 */
+
+// bKash Callback
+Route::get('/payment/bkash/callback', [BkashController::class, 'callback'])->name('bkash.callback');
+
+// Nagad Callback
+//Route::get('/payment/nagad/callback', [NagadController::class, 'callback'])->name('nagad.callback');
 
 /*
 |--------------------------------------------------------------------------
@@ -520,18 +551,12 @@ Route::get('/payment/nagad/callback', [App\Http\Controllers\Payment\NagadControl
 */
 
 Route::prefix('payment/sslcommerz')->name('sslcommerz.')->group(function () {
-    Route::get('/pay/{order}', [App\Http\Controllers\Payment\SslCommerzController::class, 'pay'])
-        ->name('pay');
-    Route::post('/success', [App\Http\Controllers\Payment\SslCommerzController::class, 'success'])
-        ->name('success');
-    Route::post('/fail', [App\Http\Controllers\Payment\SslCommerzController::class, 'fail'])
-        ->name('fail');
-    Route::post('/cancel', [App\Http\Controllers\Payment\SslCommerzController::class, 'cancel'])
-        ->name('cancel');
-    Route::post('/ipn', [App\Http\Controllers\Payment\SslCommerzController::class, 'ipn'])
-        ->name('ipn');
+    Route::get('/pay/{order}', [SslCommerzController::class, 'pay'])->name('pay');
+    Route::post('/success', [SslCommerzController::class, 'success'])->name('success');
+    Route::post('/fail', [SslCommerzController::class, 'fail'])->name('fail');
+    Route::post('/cancel', [SslCommerzController::class, 'cancel'])->name('cancel');
+    Route::post('/ipn', [SslCommerzController::class, 'ipn'])->name('ipn');
 });
-
 
 /*
 |--------------------------------------------------------------------------

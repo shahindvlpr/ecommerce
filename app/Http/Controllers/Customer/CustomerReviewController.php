@@ -3,153 +3,123 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Review;
 use App\Models\Product;
-use App\Models\Order;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerReviewController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
-        
-        // Check if user is customer or admin
-        if ($user->role !== 'customer' && !$user->is_admin) {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $reviews = Review::where('user_id', $user->id)
+        $reviews = Review::where('user_id', Auth::id())
             ->with('product')
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->paginate(10);
-
-        return view('customer.reviews', compact('reviews'));
+            
+        return view('customer.reviews.index', compact('reviews'));
     }
 
     public function store(Request $request)
     {
-        $user = Auth::user();
-        
-        if ($user->role !== 'customer' && !$user->is_admin) {
-            abort(403, 'Unauthorized access.');
-        }
-
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|max:1000',
             'title' => 'nullable|string|max:255',
-            'comment' => 'nullable|string',
         ]);
 
         // Check if user already reviewed this product
-        $existingReview = Review::where('user_id', $user->id)
+        $existing = Review::where('user_id', Auth::id())
             ->where('product_id', $request->product_id)
             ->first();
 
-        if ($existingReview) {
-            return redirect()->back()->with('error', 'You have already reviewed this product.');
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You already reviewed this product!'
+            ], 400);
         }
 
+        // Check if user purchased this product
+        $hasPurchased = \App\Models\OrderItem::whereHas('order', function($q) {
+            $q->where('user_id', Auth::id())->where('status', 'delivered');
+        })->where('product_id', $request->product_id)->exists();
+
         $review = Review::create([
-            'user_id' => $user->id,
+            'user_id' => Auth::id(),
             'product_id' => $request->product_id,
-            'order_id' => $request->order_id ?? null,
             'rating' => $request->rating,
             'title' => $request->title,
             'comment' => $request->comment,
-            'is_verified' => $this->isVerifiedPurchase($user->id, $request->product_id),
-            'is_approved' => false, // Admin approval needed
+            'is_approved' => $hasPurchased ? true : false, // Auto-approve if purchased
+            'is_verified' => $hasPurchased,
         ]);
 
         // Update product rating
         $product = Product::find($request->product_id);
-        if ($product) {
-            $this->updateProductRating($product);
-        }
+        $product->updateRating();
 
-        return redirect()->back()->with('success', 'Review submitted successfully! It will be visible after admin approval.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Review submitted successfully!',
+            'review' => $review
+        ]);
     }
 
     public function update(Request $request, $id)
     {
-        $user = Auth::user();
+        $review = Review::where('user_id', Auth::id())->where('id', $id)->firstOrFail();
         
-        if ($user->role !== 'customer' && !$user->is_admin) {
-            abort(403, 'Unauthorized access.');
-        }
-
         $request->validate([
             'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|max:1000',
             'title' => 'nullable|string|max:255',
-            'comment' => 'nullable|string',
         ]);
-
-        $review = Review::where('user_id', $user->id)
-            ->where('id', $id)
-            ->firstOrFail();
 
         $review->update([
             'rating' => $request->rating,
             'title' => $request->title,
             'comment' => $request->comment,
+            'is_approved' => false, // Need re-approval
         ]);
 
         // Update product rating
         $product = Product::find($review->product_id);
-        if ($product) {
-            $this->updateProductRating($product);
-        }
+        $product->updateRating();
 
-        return redirect()->back()->with('success', 'Review updated successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Review updated successfully!'
+        ]);
     }
 
     public function destroy($id)
     {
-        $user = Auth::user();
-        
-        if ($user->role !== 'customer' && !$user->is_admin) {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $review = Review::where('user_id', $user->id)
-            ->where('id', $id)
-            ->firstOrFail();
-
+        $review = Review::where('user_id', Auth::id())->where('id', $id)->firstOrFail();
         $productId = $review->product_id;
         $review->delete();
 
         // Update product rating
         $product = Product::find($productId);
         if ($product) {
-            $this->updateProductRating($product);
+            $product->updateRating();
         }
 
-        return redirect()->back()->with('success', 'Review deleted successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Review deleted successfully!'
+        ]);
     }
 
-    private function isVerifiedPurchase($userId, $productId)
+    public function getProductReviews($productId)
     {
-        // Check if user has purchased this product
-        return Order::where('user_id', $userId)
-            ->where('status', 'delivered')
-            ->whereHas('items', function ($query) use ($productId) {
-                $query->where('product_id', $productId);
-            })
-            ->exists();
-    }
+        $reviews = Review::where('product_id', $productId)
+            ->where('is_approved', true)
+            ->with('user')
+            ->latest()
+            ->paginate(10);
 
-    private function updateProductRating($product)
-    {
-        $avgRating = Review::where('product_id', $product->id)
-            ->where('is_approved', true)
-            ->avg('rating');
-        
-        $product->rating = $avgRating ?? 0;
-        $product->reviews_count = Review::where('product_id', $product->id)
-            ->where('is_approved', true)
-            ->count();
-        $product->save();
+        return response()->json($reviews);
     }
 }

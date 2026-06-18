@@ -1,3 +1,4 @@
+
 {{-- resources/views/layouts/partials/navbar.blade.php --}}
 
 <nav class="lc-nav">
@@ -22,6 +23,10 @@
                     <li><a href="{{ route('admin.categories.index') }}" class="lc-navlink"><i class="fas fa-tags"></i><span>Categories</span></a></li>
                     <li><a href="{{ route('admin.products.index') }}" class="lc-navlink"><i class="fas fa-box"></i><span>Products</span></a></li>
                     <li><a href="{{ route('admin.orders.index') }}" class="lc-navlink"><i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>
+                @elseif(auth()->user()->role === 'vendor')
+                    <li><a href="{{ route('vendor.dashboard') }}" class="lc-navlink"><i class="fas fa-store"></i><span>Dashboard</span></a></li>
+                    <li><a href="{{ route('vendor.products.index') }}" class="lc-navlink"><i class="fas fa-box"></i><span>Products</span></a></li>
+                    <li><a href="{{ route('vendor.orders.index') }}" class="lc-navlink"><i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>
                 @else
                     <li><a href="{{ route('shop.index') }}" class="lc-navlink"><i class="fas fa-store"></i><span>Shop</span></a></li>
                     <li><a href="{{ route('about') }}" class="lc-navlink"><i class="fas fa-info-circle"></i><span>About</span></a></li>
@@ -38,13 +43,16 @@
         <div class="lc-nav__actions">
 
             @auth
-                {{-- Cart Button --}}
+                {{-- Cart Button (Only for Customers) --}}
+                @if(auth()->user()->role === 'customer')
                 <a href="{{ route('cart.index') }}" class="lc-cart-btn" aria-label="Shopping cart">
                     <i class="fas fa-shopping-bag"></i>
                     <span id="navCartCount" class="lc-cart-badge">0</span>
                 </a>
+                @endif
 
-                {{-- ✅ CHAT BUTTON (New) --}}
+                {{-- Chat Button (Only for Customers) --}}
+                @if(auth()->user()->role === 'customer')
                 <a href="{{ route('customer.chat.index') }}" class="lc-cart-btn" aria-label="Live Chat" title="Live Chat">
                     <i class="fas fa-comment-dots" style="color: #a78bfa;"></i>
                     @php
@@ -64,6 +72,7 @@
                         <span id="unreadChatBadge" class="lc-cart-badge" style="display: none; background: linear-gradient(135deg, #ef4444, #f97316);">0</span>
                     @endif
                 </a>
+                @endif
 
                 {{-- ─────────────────────────────────────────────
                      PREMIUM USER DROPDOWN
@@ -116,8 +125,8 @@
                         {{-- Divider --}}
                         <div class="lc-dp__divider"></div>
 
-                        {{-- Quick Stats (for customers) --}}
-                        @if(!auth()->user()->is_admin && auth()->user()->role !== 'admin')
+                        {{-- Quick Stats (for customers only) --}}
+                        @if(auth()->user()->role === 'customer')
                         <div class="lc-dp__stats">
                             <a href="{{ route('customer.orders') }}" class="lc-dp__stat-item">
                                 <span class="lc-dp__stat-icon lc-dp__stat-icon--orders">
@@ -157,6 +166,17 @@
                                     </span>
                                     <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
                                 </a>
+                            @elseif(auth()->user()->role === 'vendor')
+                                <a href="{{ route('vendor.dashboard') }}" class="lc-dp__item" role="menuitem">
+                                    <span class="lc-dp__item-icon" style="--icon-color: 16,185,129;">
+                                        <i class="fas fa-store"></i>
+                                    </span>
+                                    <span class="lc-dp__item-content">
+                                        <span class="lc-dp__item-label">Vendor Panel</span>
+                                        <span class="lc-dp__item-desc">Manage your store</span>
+                                    </span>
+                                    <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
+                                </a>
                             @else
                                 <a href="{{ route('dashboard') }}" class="lc-dp__item" role="menuitem">
                                     <span class="lc-dp__item-icon" style="--icon-color: 99,102,241;">
@@ -175,8 +195,7 @@
                                 $profileRoute = route('profile.edit'); // default
                                 
                                 if ($user->role === 'admin') {
-                                    $profileRoute = route('admin.profile');
-                                } elseif ($user->role === 'vendor') {
+                                    $profileRoute = route('profile.edit');                                } elseif ($user->role === 'vendor') {
                                     $profileRoute = route('vendor.profile');
                                 } elseif ($user->role === 'customer') {
                                     $profileRoute = route('customer.profile');
@@ -194,7 +213,7 @@
                                 <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
                             </a>
 
-                            @if(!auth()->user()->is_admin && auth()->user()->role !== 'admin')
+                            @if(auth()->user()->role === 'customer')
                                 <a href="{{ route('customer.orders') }}" class="lc-dp__item" role="menuitem">
                                     <span class="lc-dp__item-icon" style="--icon-color: 16,185,129;">
                                         <i class="fas fa-shopping-bag"></i>
@@ -217,7 +236,6 @@
                                     <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
                                 </a>
 
-                                {{-- ✅ CHAT IN DROPDOWN (New) --}}
                                 <a href="{{ route('customer.chat.index') }}" class="lc-dp__item" role="menuitem">
                                     <span class="lc-dp__item-icon" style="--icon-color: 168,85,247;">
                                         <i class="fas fa-comment-dots"></i>
@@ -225,6 +243,30 @@
                                     <span class="lc-dp__item-content">
                                         <span class="lc-dp__item-label">Live Chat</span>
                                         <span class="lc-dp__item-desc">Get support</span>
+                                    </span>
+                                    <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
+                                </a>
+                            @endif
+
+                            @if(auth()->user()->role === 'vendor')
+                                <a href="{{ route('vendor.products.index') }}" class="lc-dp__item" role="menuitem">
+                                    <span class="lc-dp__item-icon" style="--icon-color: 139,92,246;">
+                                        <i class="fas fa-box"></i>
+                                    </span>
+                                    <span class="lc-dp__item-content">
+                                        <span class="lc-dp__item-label">My Products</span>
+                                        <span class="lc-dp__item-desc">Manage inventory</span>
+                                    </span>
+                                    <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
+                                </a>
+
+                                <a href="{{ route('vendor.orders.index') }}" class="lc-dp__item" role="menuitem">
+                                    <span class="lc-dp__item-icon" style="--icon-color: 16,185,129;">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </span>
+                                    <span class="lc-dp__item-content">
+                                        <span class="lc-dp__item-label">My Orders</span>
+                                        <span class="lc-dp__item-desc">Track orders</span>
                                     </span>
                                     <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
                                 </a>
@@ -272,12 +314,12 @@
         {{-- ── MOBILE CONTROLS ── --}}
         <div class="lc-mob-controls">
             @auth
+                @if(auth()->user()->role === 'customer')
                 <a href="{{ route('cart.index') }}" class="lc-cart-btn lc-cart-btn--mob">
                     <i class="fas fa-shopping-bag"></i>
                     <span id="mobileCartCount" class="lc-cart-badge">0</span>
                 </a>
 
-                {{-- ✅ Mobile Chat Button (New) --}}
                 <a href="{{ route('customer.chat.index') }}" class="lc-cart-btn lc-cart-btn--mob" style="position: relative;">
                     <i class="fas fa-comment-dots" style="color: #a78bfa;"></i>
                     @php
@@ -295,6 +337,7 @@
                         </span>
                     @endif
                 </a>
+                @endif
             @endauth
             <button class="lc-hamburger" id="mobileMenuToggle" aria-label="Toggle menu" aria-expanded="false">
                 <span></span><span></span><span></span>
@@ -323,6 +366,10 @@
                 <a href="{{ route('admin.categories.index') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(139,92,246,.15)"><i class="fas fa-tags" style="color:#a78bfa"></i></div><span>Categories</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
                 <a href="{{ route('admin.products.index') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(139,92,246,.15)"><i class="fas fa-box" style="color:#a78bfa"></i></div><span>Products</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
                 <a href="{{ route('admin.orders.index') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(16,185,129,.15)"><i class="fas fa-shopping-cart" style="color:#34d399"></i></div><span>Orders</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
+            @elseif(auth()->check() && auth()->user()->role === 'vendor')
+                <a href="{{ route('vendor.dashboard') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(139,92,246,.15)"><i class="fas fa-store" style="color:#a78bfa"></i></div><span>Dashboard</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
+                <a href="{{ route('vendor.products.index') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(139,92,246,.15)"><i class="fas fa-box" style="color:#a78bfa"></i></div><span>Products</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
+                <a href="{{ route('vendor.orders.index') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(16,185,129,.15)"><i class="fas fa-shopping-cart" style="color:#34d399"></i></div><span>Orders</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
             @else
                 <a href="{{ route('shop.index') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(139,92,246,.15)"><i class="fas fa-store" style="color:#a78bfa"></i></div><span>Shop</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
                 <a href="{{ route('about') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(59,130,246,.15)"><i class="fas fa-info-circle" style="color:#60a5fa"></i></div><span>About</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
@@ -332,11 +379,10 @@
             @auth
                 <div class="lc-mob-divider"></div>
                 <a href="{{ route('profile.edit') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(59,130,246,.15)"><i class="fas fa-user" style="color:#60a5fa"></i></div><span>Profile</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
-                @if(!auth()->user()->is_admin && auth()->user()->role !== 'admin')
+                
+                @if(auth()->user()->role === 'customer')
                     <a href="{{ route('customer.orders') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(16,185,129,.15)"><i class="fas fa-shopping-bag" style="color:#34d399"></i></div><span>My Orders</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
                     <a href="{{ route('customer.wishlist') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(244,63,94,.15)"><i class="fas fa-heart" style="color:#fb7185"></i></div><span>Wishlist</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
-                    
-                    {{-- ✅ Mobile Chat Link (New) --}}
                     <a href="{{ route('customer.chat.index') }}" class="lc-mob-link">
                         <div class="lc-mob-link__icon" style="background:rgba(168,85,247,.15)">
                             <i class="fas fa-comment-dots" style="color:#a78bfa"></i>
@@ -345,6 +391,12 @@
                         <i class="fas fa-chevron-right lc-mob-link__chevron"></i>
                     </a>
                 @endif
+
+                @if(auth()->user()->role === 'vendor')
+                    <a href="{{ route('vendor.products.index') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(139,92,246,.15)"><i class="fas fa-box" style="color:#a78bfa"></i></div><span>My Products</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
+                    <a href="{{ route('vendor.orders.index') }}" class="lc-mob-link"><div class="lc-mob-link__icon" style="background:rgba(16,185,129,.15)"><i class="fas fa-shopping-cart" style="color:#34d399"></i></div><span>My Orders</span><i class="fas fa-chevron-right lc-mob-link__chevron"></i></a>
+                @endif
+
                 <div class="lc-mob-divider"></div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -1269,7 +1321,6 @@
             if (e.key === 'Escape' && open) closeDropdown();
         });
 
-        /* Close when a link inside is clicked */
         panel.querySelectorAll('a, button').forEach(el => {
             el.addEventListener('click', () => closeDropdown());
         });

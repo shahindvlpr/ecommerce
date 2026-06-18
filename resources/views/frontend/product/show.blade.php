@@ -97,6 +97,21 @@
         cursor: not-allowed;
         transform: none !important;
     }
+    .btn-outline-primary-premium {
+        border: 2px solid #667eea;
+        color: #667eea;
+        background: transparent;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .btn-outline-primary-premium:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
     .product-card {
         transition: all 0.3s ease;
         border: 1px solid rgba(0,0,0,0.05);
@@ -172,6 +187,91 @@
         background: #fef3c7;
         color: #d97706;
     }
+
+    /* ============================================
+       REVIEW STYLES
+    ============================================ */
+    .review-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.2rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+    .review-card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    .review-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    .review-avatar.small {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+    .review-stars {
+        color: #f59e0b;
+        font-size: 0.9rem;
+    }
+    .review-stars .empty {
+        color: #d1d5db;
+    }
+    .review-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    .review-image:hover {
+        transform: scale(1.05);
+        border-color: #667eea;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    }
+    .verified-badge {
+        background: #dcfce7;
+        color: #16a34a;
+        padding: 0.1rem 0.5rem;
+        border-radius: 2rem;
+        font-size: 0.55rem;
+        font-weight: 600;
+    }
+    .helpful-btn {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .helpful-btn:hover {
+        color: #667eea;
+        transform: scale(1.1);
+    }
+
+    /* ============================================
+       REVIEW MODAL
+    ============================================ */
+    .star-rating i {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .star-rating i:hover {
+        transform: scale(1.3);
+    }
+    .star-rating i.active {
+        color: #f59e0b !important;
+    }
+
     @keyframes slideInRight {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
@@ -192,6 +292,10 @@
         }
         .product-image {
             height: 150px;
+        }
+        .review-image {
+            width: 45px;
+            height: 45px;
         }
     }
 </style>
@@ -218,7 +322,6 @@
                 <!-- Main Image -->
                 <div class="main-image">
                     @php
-                        // ✅ IMAGE MAP for fallback
                         $imageMap = [
                             'iphone' => 'iphone.jpg',
                             'samsung' => 'samsung.jpg',
@@ -228,11 +331,7 @@
                             'lamp' => 'lamp.jpg',
                             'book' => 'book.jpg',
                         ];
-                        
-                        // Get main image using the model's accessor
                         $mainImageUrl = $product->thumbnail_url;
-                        
-                        // If thumbnail_url returns placeholder, try to find from image map
                         if (str_contains($mainImageUrl, 'placehold.co')) {
                             $productName = strtolower($product->name);
                             foreach ($imageMap as $key => $file) {
@@ -252,10 +351,7 @@
                 
                 <!-- Thumbnails -->
                 @php
-                    // Get gallery images using the model's accessor
                     $galleryImageUrls = $product->gallery_images_url;
-                    
-                    // If gallery is empty or only has placeholder, try to find from image map
                     if (empty($galleryImageUrls) || (count($galleryImageUrls) == 1 && str_contains($galleryImageUrls[0], 'placehold.co'))) {
                         $galleryImageUrls = [];
                         $productName = strtolower($product->name);
@@ -292,10 +388,8 @@
              PRODUCT INFO
         ============================================ -->
         <div class="col-lg-6">
-            <!-- Product Name -->
             <h1 class="fw-bold mb-2" style="font-size: 1.8rem;">{{ $product->name }}</h1>
             
-            <!-- Rating & Stock -->
             <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
                 <div class="d-flex align-items-center gap-2">
                     <div class="rating-stars">
@@ -331,7 +425,6 @@
                 @endif
             </div>
 
-            <!-- Price -->
             <div class="mb-3">
                 @if($product->sale_price && $product->sale_price < $product->price)
                     <div class="d-flex align-items-center gap-3">
@@ -360,14 +453,12 @@
                 @endif
             </div>
 
-            <!-- Short Description -->
             @if($product->short_description)
                 <div class="mb-3 p-3 bg-light rounded-3">
                     <p class="mb-0 text-muted">{{ $product->short_description }}</p>
                 </div>
             @endif
 
-            <!-- Full Description -->
             @if($product->description)
                 <div class="mb-4">
                     <p class="text-secondary" style="line-height: 1.8;">
@@ -376,7 +467,6 @@
                 </div>
             @endif
 
-            <!-- Features / Highlights -->
             @if($product->attributes && is_array($product->attributes))
             <div class="mb-4">
                 <h6 class="fw-bold mb-2"><i class="fas fa-list-check text-primary me-2"></i>Key Features</h6>
@@ -393,7 +483,6 @@
             </div>
             @endif
 
-            <!-- Quantity & Add to Cart -->
             @if($product->stock > 0)
             <div class="d-flex flex-wrap gap-3 align-items-center mb-4 p-3 bg-light rounded-3">
                 <div class="d-flex align-items-center gap-3">
@@ -428,7 +517,6 @@
             </div>
             @endif
 
-            <!-- Product Meta -->
             <div class="product-meta border-top pt-3">
                 <div class="row g-2 small">
                     <div class="col-md-6">
@@ -456,52 +544,163 @@
         </div>
     </div>
 
-    <!-- ============================================
-         PRODUCT REVIEWS
-    ============================================ -->
-    @if(isset($totalReviews) && $totalReviews > 0)
-    <div class="mt-5">
-        <h4 class="fw-bold mb-4">
+<!-- ============================================
+     PRODUCT REVIEWS (COMPLETE)
+============================================ -->
+<div class="mt-5" id="reviewsSection">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h4 class="fw-bold mb-0">
             <i class="fas fa-star text-warning me-2"></i>
-            Customer Reviews ({{ $totalReviews }})
+            Customer Reviews ({{ $totalReviews ?? 0 }})
         </h4>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card shadow-sm border-0 rounded-4 text-center p-4">
-                    <h2 class="fw-bold text-primary" style="font-size: 3rem;">
-                        {{ number_format($product->rating ?? 0, 1) }}
-                    </h2>
-                    <div class="rating-stars mb-2" style="font-size: 1.2rem;">
-                        @php $rating = round($product->rating ?? 0); @endphp
-                        @for($i = 1; $i <= 5; $i++)
-                            <i class="fas fa-star {{ $i <= $rating ? '' : 'empty' }}"></i>
-                        @endfor
-                    </div>
-                    <p class="text-muted">{{ $totalReviews }} reviews</p>
-                </div>
-            </div>
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0 rounded-4 p-4">
-                    @php
-                        $reviewPercentages = $reviewPercentages ?? [];
-                    @endphp
-                    @for($i = 5; $i >= 1; $i--)
-                        @php
-                            $percentage = $reviewPercentages[$i] ?? 0;
-                        @endphp
-                        <div class="d-flex align-items-center gap-3 mb-2">
-                            <span class="text-muted" style="width: 35px; font-weight: 600;">{{ $i }}★</span>
-                            <div class="progress flex-grow-1">
-                                <div class="progress-bar" style="width: {{ $percentage }}%;"></div>
-                            </div>
-                            <span class="text-muted" style="width: 45px; font-weight: 500;">{{ $percentage }}%</span>
-                        </div>
+        @auth
+            @if(isset($canReview) && $canReview)
+                <button class="btn btn-primary-premium" onclick="openReviewModal()">
+                    <i class="fas fa-pen me-2"></i> Write a Review
+                </button>
+            @elseif(isset($canReview) && !$canReview && auth()->check())
+                @php
+                    $hasReviewed = \App\Models\Review::where('user_id', auth()->id())
+                        ->where('product_id', $product->id)
+                        ->exists();
+                @endphp
+                @if($hasReviewed)
+                    <button class="btn btn-outline-secondary" disabled>
+                        <i class="fas fa-check me-2"></i> Already Reviewed
+                    </button>
+                @else
+                    <button class="btn btn-outline-secondary" disabled>
+                        <i class="fas fa-lock me-2"></i> Purchase to Review
+                    </button>
+                @endif
+            @endif
+        @else
+            <a href="{{ route('login') }}" class="btn btn-outline-primary-premium">
+                <i class="fas fa-sign-in-alt me-2"></i> Login to Review
+            </a>
+        @endauth
+    </div>
+
+    <!-- Review Statistics -->
+    @if(($totalReviews ?? 0) > 0)
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 rounded-4 text-center p-4">
+                <h2 class="fw-bold text-primary" style="font-size: 3rem;">
+                    {{ number_format($product->rating ?? 0, 1) }}
+                </h2>
+                <div class="rating-stars mb-2" style="font-size: 1.2rem;">
+                    @php $rating = round($product->rating ?? 0); @endphp
+                    @for($i = 1; $i <= 5; $i++)
+                        <i class="fas fa-star {{ $i <= $rating ? '' : 'empty' }}"></i>
                     @endfor
                 </div>
+                <p class="text-muted">{{ $totalReviews }} reviews</p>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                @php
+                    $reviewPercentages = $reviewPercentages ?? [];
+                @endphp
+                @for($i = 5; $i >= 1; $i--)
+                    @php
+                        $percentage = $reviewPercentages[$i] ?? 0;
+                    @endphp
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <span class="text-muted" style="width: 35px; font-weight: 600;">{{ $i }}★</span>
+                        <div class="progress flex-grow-1">
+                            <div class="progress-bar" style="width: {{ $percentage }}%;"></div>
+                        </div>
+                        <span class="text-muted" style="width: 45px; font-weight: 500;">{{ $percentage }}%</span>
+                    </div>
+                @endfor
             </div>
         </div>
     </div>
     @endif
+
+    <!-- Reviews List -->
+    <div id="reviewsList">
+        @if(isset($reviews) && $reviews->count() > 0)
+            @foreach($reviews as $review)
+            <div class="review-card mb-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="review-avatar" style="background: {{ '#667eea' }};">
+                            {{ strtoupper(substr($review->user->name ?? 'U', 0, 1)) }}
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <strong>{{ $review->user->name ?? 'Anonymous' }}</strong>
+                                @if($review->is_verified)
+                                    <span class="verified-badge">
+                                        <i class="fas fa-check-circle"></i> Verified Purchase
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="review-stars" style="font-size: 0.85rem;">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <i class="fas fa-star {{ $i <= $review->rating ? '' : 'empty' }}"></i>
+                                @endfor
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ $review->created_at->diffForHumans() }}</small>
+                </div>
+
+                @if($review->title)
+                    <h6 class="mt-2 mb-1">{{ $review->title }}</h6>
+                @endif
+                <p class="text-muted mb-2">{{ $review->comment }}</p>
+
+                @if($review->images && count($review->images) > 0)
+                    <div class="d-flex gap-2 flex-wrap mb-2">
+                        @foreach($review->images as $image)
+                            <img src="{{ asset('storage/' . $image) }}" 
+                                 alt="Review image"
+                                 class="review-image"
+                                 onclick="window.open('{{ asset('storage/' . $image) }}', '_blank')">
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="d-flex gap-3 align-items-center">
+                    <button onclick="markHelpful({{ $review->id }})" class="btn btn-sm btn-outline-secondary helpful-btn">
+                        <i class="fas fa-thumbs-up"></i> Helpful ({{ $review->helpful_count ?? 0 }})
+                    </button>
+                    <button onclick="reportReview({{ $review->id }})" class="btn btn-sm btn-outline-danger helpful-btn">
+                        <i class="fas fa-flag"></i> Report
+                    </button>
+                </div>
+            </div>
+            @endforeach
+            
+            @if(isset($reviews) && $reviews->hasPages())
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $reviews->links() }}
+                </div>
+            @endif
+        @else
+            <div class="text-center py-4">
+                <i class="fas fa-comment fa-3x text-muted mb-3 d-block"></i>
+                <h5>No reviews yet</h5>
+                <p class="text-muted">Be the first to review this product!</p>
+                @auth
+                    @if(isset($canReview) && $canReview)
+                        <button class="btn btn-primary-premium" onclick="openReviewModal()">
+                            <i class="fas fa-pen me-2"></i> Write a Review
+                        </button>
+                    @endif
+                @else
+                    <a href="{{ route('login') }}" class="btn btn-outline-primary-premium">
+                        <i class="fas fa-sign-in-alt me-2"></i> Login to Review
+                    </a>
+                @endauth
+            </div>
+        @endif
+    </div>
+</div>
 
     <!-- ============================================
          RELATED PRODUCTS
@@ -524,10 +723,7 @@
                 <div class="card product-card shadow-sm border-0 rounded-4 h-100">
                     <div class="product-image">
                         @php
-                            // Use the model's accessor
                             $relatedImageUrl = $related->thumbnail_url;
-                            
-                            // If placeholder, try to find from image map
                             if (str_contains($relatedImageUrl, 'placehold.co')) {
                                 $imageMap = [
                                     'iphone' => 'iphone.jpg',
@@ -594,6 +790,63 @@
         </div>
     </div>
     @endif
+</div>
+
+<!-- ============================================
+     REVIEW MODAL
+============================================ -->
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-pen text-primary me-2"></i> Write a Review
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <form id="reviewForm" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+
+                    <!-- Rating -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Rating <span class="text-danger">*</span></label>
+                        <div class="star-rating d-flex gap-3" id="starRating">
+                            @for($i = 1; $i <= 5; $i++)
+                                <i class="fas fa-star" data-value="{{ $i }}" style="font-size: 2rem; color: #d1d5db; cursor: pointer; transition: all 0.2s;"></i>
+                            @endfor
+                        </div>
+                        <small class="text-muted" id="ratingText">Select a rating</small>
+                        <input type="hidden" name="rating" id="ratingInput" value="0" required>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Review Title</label>
+                        <input type="text" name="title" class="form-control" placeholder="Summarize your experience...">
+                    </div>
+
+                    <!-- Comment -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Review <span class="text-danger">*</span></label>
+                        <textarea name="comment" class="form-control" rows="4" placeholder="Share your experience with this product..." required></textarea>
+                    </div>
+
+                    <!-- Images -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Add Photos</label>
+                        <input type="file" name="images[]" class="form-control" multiple accept="image/*">
+                        <small class="text-muted">You can upload up to 5 images (Max 2MB each)</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-premium w-100 py-2" id="submitReviewBtn">
+                        <i class="fas fa-paper-plane me-2"></i> Submit Review
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -670,68 +923,65 @@
         });
     }
 
-// ============================================
-// 3. TOGGLE WISHLIST - FIXED
-// ============================================
-function toggleWishlist(event) {
-    const productId = {{ $product->id }};
-    const btn = document.getElementById('wishlistBtn');
-    const isInWishlist = btn.classList.contains('btn-danger');
-    
-    if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        btn.disabled = true;
-    }
-    
-    // Determine URL and method based on current state
-    const url = isInWishlist 
-        ? '{{ route("wishlist.remove", ["id" => $product->id]) }}'
-        : '{{ route("wishlist.add", ["productId" => $product->id]) }}';
-    const method = isInWishlist ? 'DELETE' : 'POST';
-    
-    fetch(url, {
-        method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+    // ============================================
+    // 3. TOGGLE WISHLIST
+    // ============================================
+    function toggleWishlist(event) {
+        const productId = {{ $product->id }};
+        const btn = document.getElementById('wishlistBtn');
+        const isInWishlist = btn.classList.contains('btn-danger');
+        
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'added' || data.success) {
-            btn.className = 'btn btn-danger btn-lg';
-            btn.innerHTML = '<i class="fas fa-heart"></i>';
-            showNotification('❤️ Added to wishlist!', 'success');
-        } else if (data.status === 'removed' || data.success === false) {
-            btn.className = 'btn btn-outline-danger btn-lg';
-            btn.innerHTML = '<i class="fas fa-heart"></i>';
-            showNotification('💔 Removed from wishlist!', 'info');
-        } else {
-            // Fallback: toggle based on current state
-            if (isInWishlist) {
-                btn.className = 'btn btn-outline-danger btn-lg';
-                btn.innerHTML = '<i class="fas fa-heart"></i>';
-            } else {
+        
+        const url = isInWishlist 
+            ? '{{ route("wishlist.remove", ["id" => $product->id]) }}'
+            : '{{ route("wishlist.add", ["productId" => $product->id]) }}';
+        const method = isInWishlist ? 'DELETE' : 'POST';
+        
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'added' || data.success) {
                 btn.className = 'btn btn-danger btn-lg';
                 btn.innerHTML = '<i class="fas fa-heart"></i>';
+                showNotification('❤️ Added to wishlist!', 'success');
+            } else if (data.status === 'removed' || data.success === false) {
+                btn.className = 'btn btn-outline-danger btn-lg';
+                btn.innerHTML = '<i class="fas fa-heart"></i>';
+                showNotification('💔 Removed from wishlist!', 'info');
+            } else {
+                if (isInWishlist) {
+                    btn.className = 'btn btn-outline-danger btn-lg';
+                    btn.innerHTML = '<i class="fas fa-heart"></i>';
+                } else {
+                    btn.className = 'btn btn-danger btn-lg';
+                    btn.innerHTML = '<i class="fas fa-heart"></i>';
+                }
             }
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('❌ Something went wrong!', 'error');
-        // Revert button state on error
-        if (isInWishlist) {
-            btn.className = 'btn btn-danger btn-lg';
-        } else {
-            btn.className = 'btn btn-outline-danger btn-lg';
-        }
-        btn.innerHTML = '<i class="fas fa-heart"></i>';
-    })
-    .finally(() => {
-        if (btn) btn.disabled = false;
-    });
-}
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('❌ Something went wrong!', 'error');
+            if (isInWishlist) {
+                btn.className = 'btn btn-danger btn-lg';
+            } else {
+                btn.className = 'btn btn-outline-danger btn-lg';
+            }
+            btn.innerHTML = '<i class="fas fa-heart"></i>';
+        })
+        .finally(() => {
+            if (btn) btn.disabled = false;
+        });
+    }
 
     // ============================================
     // 4. CHANGE MAIN IMAGE
@@ -741,13 +991,9 @@ function toggleWishlist(event) {
         if (mainImg) {
             mainImg.src = src;
         }
-        
-        // Remove active class from all thumbnails
         document.querySelectorAll('.thumbnail-img').forEach(el => {
             el.classList.remove('active');
         });
-        
-        // Add active class to clicked thumbnail
         if (element) {
             element.classList.add('active');
         }
@@ -762,9 +1008,8 @@ function toggleWishlist(event) {
             .then(data => {
                 const badge = document.getElementById('cartCount');
                 if (badge) {
-                    const count = data.count || 0;
-                    badge.textContent = count;
-                    badge.style.display = count > 0 ? 'inline-block' : 'none';
+                    badge.textContent = data.count || 0;
+                    badge.style.display = data.count > 0 ? 'inline-block' : 'none';
                 }
             })
             .catch(error => console.error('Error updating cart count:', error));
@@ -782,13 +1027,6 @@ function toggleWishlist(event) {
             error: '#ef4444',
             warning: '#f59e0b',
             info: '#3b82f6'
-        };
-        
-        const icons = {
-            success: 'check-circle',
-            error: 'exclamation-circle',
-            warning: 'exclamation-triangle',
-            info: 'info-circle'
         };
         
         const notification = document.createElement('div');
@@ -814,18 +1052,9 @@ function toggleWishlist(event) {
             backdrop-filter: blur(10px);
         `;
         notification.innerHTML = `
-            <i class="fas fa-${icons[type] || icons.success}" style="font-size: 1.2rem;"></i>
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" style="font-size: 1.2rem;"></i>
             <span>${message}</span>
-            <button onclick="this.parentElement.remove()" style="
-                background: transparent;
-                border: none;
-                color: white;
-                opacity: 0.7;
-                cursor: pointer;
-                margin-left: auto;
-                font-size: 1rem;
-                padding: 4px;
-            ">
+            <button onclick="this.parentElement.remove()" style="background: transparent; border: none; color: white; opacity: 0.7; cursor: pointer; margin-left: auto; font-size: 1rem; padding: 4px;">
                 <i class="fas fa-times"></i>
             </button>
         `;
@@ -839,18 +1068,147 @@ function toggleWishlist(event) {
     }
 
     // ============================================
-    // 7. INITIALIZE ON PAGE LOAD
+    // 7. STAR RATING (Review Modal)
+    // ============================================
+    let selectedRating = 0;
+    const stars = document.querySelectorAll('#starRating i');
+    const ratingInput = document.getElementById('ratingInput');
+    const ratingText = document.getElementById('ratingText');
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const value = parseInt(this.dataset.value);
+            selectedRating = value;
+            ratingInput.value = value;
+            updateStars(value);
+            const labels = ['', 'Terrible', 'Poor', 'Average', 'Good', 'Excellent'];
+            ratingText.textContent = labels[value] || 'Select a rating';
+        });
+
+        star.addEventListener('mouseenter', function() {
+            const value = parseInt(this.dataset.value);
+            updateStars(value);
+        });
+
+        star.addEventListener('mouseleave', function() {
+            updateStars(selectedRating);
+        });
+    });
+
+    function updateStars(value) {
+        stars.forEach(star => {
+            const starValue = parseInt(star.dataset.value);
+            if (starValue <= value) {
+                star.style.color = '#f59e0b';
+                star.style.transform = 'scale(1.2)';
+            } else {
+                star.style.color = '#d1d5db';
+                star.style.transform = 'scale(1)';
+            }
+        });
+    }
+
+    // ============================================
+    // 8. SUBMIT REVIEW
+    // ============================================
+    document.getElementById('reviewForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const btn = document.getElementById('submitReviewBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Submitting...';
+        btn.disabled = true;
+
+        const formData = new FormData(this);
+
+        fetch('{{ route("customer.reviews.store") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('✅ ' + data.message, 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showNotification('❌ ' + data.message, 'error');
+                btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Review';
+                btn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('❌ Something went wrong!', 'error');
+            btn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Submit Review';
+            btn.disabled = false;
+        });
+    });
+
+    // ============================================
+    // 9. OPEN REVIEW MODAL
+    // ============================================
+    function openReviewModal() {
+        const modal = new bootstrap.Modal(document.getElementById('reviewModal'));
+        modal.show();
+    }
+
+    // ============================================
+    // 10. MARK HELPFUL
+    // ============================================
+    function markHelpful(reviewId) {
+        fetch(`/customer/reviews/${reviewId}/helpful`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('✅ Thanks for your feedback!', 'success');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // ============================================
+    // 11. REPORT REVIEW
+    // ============================================
+    function reportReview(reviewId) {
+        if (!confirm('Are you sure you want to report this review?')) return;
+
+        fetch(`/customer/reviews/${reviewId}/report`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('✅ Review reported!', 'success');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // ============================================
+    // 12. INITIALIZE
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
         updateCartCount();
         
-        // Auto-select first thumbnail
         const firstThumb = document.querySelector('.thumbnail-img');
         if (firstThumb) {
             firstThumb.classList.add('active');
         }
         
-        // Prevent negative values
         if (quantityInput) {
             quantityInput.addEventListener('change', function() {
                 let val = parseInt(this.value) || 1;
@@ -862,5 +1220,6 @@ function toggleWishlist(event) {
 
     console.log('%c🛍️ EktaMart Product Details Page Loaded', 'color: #667eea; font-size: 14px; font-weight: bold;');
     console.log('%c📦 Product: {{ $product->name }}', 'color: #764ba2; font-size: 12px;');
+    console.log('%c⭐ Reviews: {{ $totalReviews ?? 0 }}', 'color: #f59e0b; font-size: 12px;');
 </script>
 @endsection

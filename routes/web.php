@@ -223,9 +223,13 @@ Route::middleware(['auth'])->group(function () {
         
         // Reviews
         Route::get('/reviews', [CustomerReviewController::class, 'index'])->name('reviews');
-        Route::post('/reviews', [CustomerReviewController::class, 'store'])->name('reviews.store');
-        Route::put('/reviews/{review}', [CustomerReviewController::class, 'update'])->name('reviews.update');
-        Route::delete('/reviews/{review}', [CustomerReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::post('/reviews', [CustomerReviewController::class, 'store'])->name('reviews.store');
+    Route::put('/reviews/{review}', [CustomerReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reviews/{review}', [CustomerReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::get('/reviews/product/{productId}', [CustomerReviewController::class, 'getProductReviews'])->name('reviews.product');
+    Route::post('/reviews/{review}/helpful', [CustomerReviewController::class, 'helpful'])->name('reviews.helpful');
+    Route::post('/reviews/{review}/report', [CustomerReviewController::class, 'report'])->name('reviews.report');
+
         
         // Addresses
         Route::get('/addresses', [AddressController::class, 'index'])->name('addresses');

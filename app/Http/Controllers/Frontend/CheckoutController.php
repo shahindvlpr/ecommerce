@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Cart;
@@ -37,7 +36,8 @@ class CheckoutController extends Controller
         // Calculate totals
         $subtotal = 0;
         foreach ($cart as $item) {
-            $subtotal += $item->price * $item->quantity;
+            $price = $item->product->sale_price ?? $item->product->price;
+            $subtotal += $price * $item->quantity;
         }
 
         $shipping = $subtotal > 100 ? 0 : 10;
@@ -80,6 +80,7 @@ class CheckoutController extends Controller
             'postal_code' => 'nullable|string|max:20',
             'country' => 'required|string|max:255',
             'payment_method' => 'required|in:cod,bkash,nagad,sslcommerz',
+            'notes' => 'nullable|string',
         ]);
 
         // Get cart items
@@ -94,7 +95,8 @@ class CheckoutController extends Controller
         // Calculate totals
         $subtotal = 0;
         foreach ($cart as $item) {
-            $subtotal += $item->price * $item->quantity;
+            $price = $item->product->sale_price ?? $item->product->price;
+            $subtotal += $price * $item->quantity;
         }
 
         $shipping = $subtotal > 100 ? 0 : 10;
@@ -104,68 +106,100 @@ class CheckoutController extends Controller
         // Generate order number
         $orderNumber = 'ORD-' . strtoupper(Str::random(8)) . '-' . time();
 
-        // Create order
-        $order = Order::create([
-            'user_id' => $user->id,
-            'order_number' => $orderNumber,
-            'subtotal' => $subtotal,
-            'discount' => 0,
-            'tax' => $tax,
-            'shipping_cost' => $shipping,
-            'total' => $total,
-            'status' => 'pending',
-            'payment_status' => 'pending',
-            'shipping_status' => 'pending',
-            'shipping_address' => $request->address . ', ' . $request->city . ', ' . ($request->state ?? '') . ', ' . $request->postal_code . ', ' . $request->country,
-            'billing_address' => $request->address . ', ' . $request->city . ', ' . ($request->state ?? '') . ', ' . $request->postal_code . ', ' . $request->country,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'notes' => $request->notes ?? null,
-        ]);
+        // Build full address
+        $fullAddress = $request->address . ', ' . $request->city;
+        if ($request->state) {
+            $fullAddress .= ', ' . $request->state;
+        }
+        if ($request->postal_code) {
+            $fullAddress .= ', ' . $request->postal_code;
+        }
+        $fullAddress .= ', ' . $request->country;
 
-        // Create order items
-        foreach ($cart as $item) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $item->product_id,
-                'product_variation_id' => $item->product_variation_id ?? null,
-                'quantity' => $item->quantity,
-                'price' => $item->price,
-                'total' => $item->price * $item->quantity,
+        try {
+            // Create order
+            $order = Order::create([
+                'user_id' => $user->id,
+                'order_number' => $orderNumber,
+                
+                // Customer info
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'city' => $request->city,
+                'state' => $request->state,
+                'postal_code' => $request->postal_code,
+                'country' => $request->country,
+                'payment_method' => $request->payment_method,
+                
+                // Financials
+                'subtotal' => $subtotal,
+                'discount' => 0,
+                'tax' => $tax,
+                'shipping_cost' => $shipping,
+                'total' => $total,
+                
+                // Statuses
+                'status' => Order::STATUS_PENDING,
+                'payment_status' => Order::PAYMENT_PENDING,
+                'shipping_status' => Order::SHIPPING_PENDING,
+                
+                // Addresses
+                'shipping_address' => $fullAddress,
+                'billing_address' => $fullAddress,
+                
+                // Additional
+                'notes' => $request->notes ?? null,
             ]);
 
-            // Update product stock
-            $product = $item->product;
-            if ($product) {
-                $product->stock -= $item->quantity;
-                $product->save();
+            // Create order items
+            foreach ($cart as $item) {
+                $price = $item->product->sale_price ?? $item->product->price;
+                
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $item->product_id,
+                    'product_variation_id' => $item->product_variation_id ?? null,
+                    'quantity' => $item->quantity,
+                    'price' => $price,
+                    'total' => $price * $item->quantity,
+                ]);
+
+                // Update product stock
+                $product = $item->product;
+                if ($product) {
+                    $product->stock -= $item->quantity;
+                    $product->save();
+                }
             }
-        }
 
-        // Clear cart
-        Cart::where('user_id', $user->id)->delete();
+            // Clear cart
+            Cart::where('user_id', $user->id)->delete();
 
-        // Redirect based on payment method
-        if ($request->payment_method == 'cod') {
-            // Cash on Delivery
+            // Redirect based on payment method
+            if ($request->payment_method == 'cod') {
+                return redirect()->route('checkout.success', $order->id)
+                    ->with('success', 'Order placed successfully! You will pay on delivery.');
+            } elseif ($request->payment_method == 'bkash') {
+                return redirect()->route('checkout.success', $order->id)
+                    ->with('success', 'Order placed successfully! Please complete bKash payment.');
+            } elseif ($request->payment_method == 'nagad') {
+                return redirect()->route('checkout.success', $order->id)
+                    ->with('success', 'Order placed successfully! Please complete Nagad payment.');
+            } elseif ($request->payment_method == 'sslcommerz') {
+                return redirect()->route('checkout.success', $order->id)
+                    ->with('success', 'Order placed successfully! Please complete SSLCommerz payment.');
+            }
+
             return redirect()->route('checkout.success', $order->id)
                 ->with('success', 'Order placed successfully!');
-        } elseif ($request->payment_method == 'bkash') {
-            // bKash payment integration
-            return redirect()->route('checkout.success', $order->id)
-                ->with('success', 'Order placed successfully! Please complete bKash payment.');
-        } elseif ($request->payment_method == 'nagad') {
-            // Nagad payment integration
-            return redirect()->route('checkout.success', $order->id)
-                ->with('success', 'Order placed successfully! Please complete Nagad payment.');
-        } elseif ($request->payment_method == 'sslcommerz') {
-            // SSLCommerz payment integration
-            return redirect()->route('checkout.success', $order->id)
-                ->with('success', 'Order placed successfully! Please complete payment.');
-        }
 
-        return redirect()->route('checkout.success', $order->id)
-            ->with('success', 'Order placed successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Something went wrong! Please try again. ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     /**
@@ -199,7 +233,10 @@ class CheckoutController extends Controller
     public function applyCoupon(Request $request)
     {
         // Coupon logic will be implemented here
-        return response()->json(['success' => false, 'message' => 'Coupon feature coming soon!']);
+        return response()->json([
+            'success' => false, 
+            'message' => 'Coupon feature coming soon!'
+        ]);
     }
 
     /**
@@ -208,8 +245,14 @@ class CheckoutController extends Controller
     public function getDivisions()
     {
         $divisions = [
-            'Dhaka', 'Chittagong', 'Rajshahi', 'Khulna', 
-            'Barisal', 'Sylhet', 'Rangpur', 'Mymensingh'
+            'Dhaka', 
+            'Chittagong', 
+            'Rajshahi', 
+            'Khulna', 
+            'Barisal', 
+            'Sylhet', 
+            'Rangpur', 
+            'Mymensingh'
         ];
         return response()->json($divisions);
     }
@@ -220,16 +263,25 @@ class CheckoutController extends Controller
     public function getDistricts($divisionId)
     {
         $districts = [
-            'Dhaka' => ['Dhaka', 'Gazipur', 'Narayanganj', 'Tangail', 'Kishoreganj'],
-            'Chittagong' => ['Chittagong', 'Cox\'s Bazar', 'Rangamati', 'Bandarban', 'Khagrachari'],
-            'Rajshahi' => ['Rajshahi', 'Bogura', 'Pabna', 'Sirajganj', 'Natore'],
-            'Khulna' => ['Khulna', 'Jessore', 'Jhenaidah', 'Magura', 'Narail'],
-            'Barisal' => ['Barisal', 'Patuakhali', 'Bhola', 'Jhalokati', 'Pirojpur'],
+            'Dhaka' => ['Dhaka', 'Gazipur', 'Narayanganj', 'Tangail', 'Kishoreganj', 'Manikganj', 'Munshiganj', 'Narsingdi', 'Rajbari', 'Shariatpur', 'Faridpur', 'Madaripur', 'Gopalganj'],
+            'Chittagong' => ['Chittagong', 'Cox\'s Bazar', 'Rangamati', 'Bandarban', 'Khagrachari', 'Comilla', 'Feni', 'Noakhali', 'Lakshmipur', 'Chandpur', 'Brahmanbaria'],
+            'Rajshahi' => ['Rajshahi', 'Bogura', 'Pabna', 'Sirajganj', 'Natore', 'Chapainawabganj', 'Naogaon', 'Joypurhat'],
+            'Khulna' => ['Khulna', 'Jessore', 'Jhenaidah', 'Magura', 'Narail', 'Bagerhat', 'Satkhira', 'Kushtia', 'Chuadanga', 'Meherpur'],
+            'Barisal' => ['Barisal', 'Patuakhali', 'Bhola', 'Jhalokati', 'Pirojpur', 'Barguna'],
             'Sylhet' => ['Sylhet', 'Moulvibazar', 'Habiganj', 'Sunamganj'],
-            'Rangpur' => ['Rangpur', 'Dinajpur', 'Kurigram', 'Gaibandha', 'Nilphamari'],
+            'Rangpur' => ['Rangpur', 'Dinajpur', 'Kurigram', 'Gaibandha', 'Nilphamari', 'Lalmonirhat', 'Thakurgaon', 'Panchagarh'],
             'Mymensingh' => ['Mymensingh', 'Jamalpur', 'Netrokona', 'Sherpur'],
         ];
         
         return response()->json($districts[$divisionId] ?? []);
+    }
+
+    /**
+     * Get upazilas by district.
+     */
+    public function getUpazilas($districtId)
+    {
+        // This can be expanded with actual data
+        return response()->json([]);
     }
 }

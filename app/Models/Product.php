@@ -111,6 +111,15 @@ class Product extends Model
     // ==================== ACCESSORS ====================
 
     /**
+     * Get the image URL (alias for thumbnail_url)
+     * Used in views: {{ $product->image_url }}
+     */
+    public function getImageUrlAttribute(): string
+    {
+        return $this->thumbnail_url;
+    }
+
+    /**
      * Get the primary display image URL
      * Priority: thumbnail → images JSON array → ProductImage relation → placeholder
      */
@@ -195,7 +204,12 @@ class Product extends Model
             return asset($path);
         }
 
-        return asset('storage/' . $path);
+        // Check if path already contains products/
+        if (str_starts_with($path, 'products/')) {
+            return asset('storage/' . $path);
+        }
+
+        return asset('storage/products/' . $path);
     }
 
     /**

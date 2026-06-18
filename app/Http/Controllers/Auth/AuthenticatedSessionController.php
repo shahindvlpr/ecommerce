@@ -28,7 +28,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // এই লাইনটি পরিবর্তন করুন
+        // পুরাতন: return redirect()->intended(route('dashboard', absolute: false));
+        
+        // নতুন: সরাসরি হোমপেজে রিডাইরেক্ট করুন
+        return redirect('/');
+        
+        // অথবা যদি চান ড্যাশবোর্ডেই যাক, তাহলে:
+        // return redirect()->route('dashboard');
     }
 
     /**

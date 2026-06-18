@@ -53,7 +53,7 @@ class Product extends Model
         'trending' => 'boolean',
         'status' => 'boolean',
         'rating' => 'decimal:2',
-        'images' => 'array', // ✅ Cast to array
+        'images' => 'array',
         'attributes' => 'array',
         'meta_data' => 'array',
     ];
@@ -130,21 +130,60 @@ class Product extends Model
         return $this->stock > 0;
     }
 
+    /**
+     * Get the first image URL safely
+     */
+    public function getFirstImageAttribute(): string
+    {
+        // 1. Check thumbnail
+        if ($this->thumbnail && !empty($this->thumbnail)) {
+            return $this->thumbnail;
+        }
+
+        // 2. Check images field (JSON array)
+        if ($this->images) {
+            // If it's already an array
+            if (is_array($this->images) && !empty($this->images)) {
+                return $this->images[0];
+            }
+            // If it's a string (JSON), decode it
+            if (is_string($this->images)) {
+                $decoded = json_decode($this->images, true);
+                if (is_array($decoded) && !empty($decoded)) {
+                    return $decoded[0];
+                }
+            }
+        }
+
+        // 3. Check images relation
+        $firstImage = $this->images()->first();
+        if ($firstImage && $firstImage->image) {
+            return $firstImage->image;
+        }
+
+        // 4. Default fallback
+        return 'default-product.jpg';
+    }
+
+    /**
+     * Get image URL with full path
+     */
     public function getImageUrlAttribute(): string
     {
-        if ($this->thumbnail) {
-            if (str_starts_with($this->thumbnail, 'http://') || str_starts_with($this->thumbnail, 'https://')) {
-                return $this->thumbnail;
-            }
-            return asset('storage/' . $this->thumbnail);
+        $image = $this->first_image;
+        
+        // Check if it's a full URL
+        if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+            return $image;
+        }
+        
+        // Check if it's a placeholder
+        if ($image === 'default-product.jpg' || str_contains($image, 'via.placeholder.com')) {
+            return $image;
         }
 
-        // If thumbnail not exists, try first image from images array
-        if (!empty($this->images) && is_array($this->images) && isset($this->images[0])) {
-            return asset('storage/' . $this->images[0]);
-        }
-
-        return $this->getPlaceholderImage();
+        // Return storage path
+        return asset('storage/' . $image);
     }
 
     private function getPlaceholderImage(): string
@@ -177,54 +216,73 @@ class Product extends Model
     }
 
     /**
-     * Get gallery images - SAFE WITH NULL CHECK
+     * Get gallery images safely
      */
     public function getGalleryImagesAttribute(): array
     {
         $images = [];
         
-        // 1. Add thumbnail as first image if exists
-        if ($this->thumbnail) {
-            if (str_starts_with($this->thumbnail, 'http://') || str_starts_with($this->thumbnail, 'https://')) {
-                $images[] = $this->thumbnail;
-            } else {
-                $images[] = asset('storage/' . $this->thumbnail);
-            }
+        // 1. Add thumbnail
+        if ($this->thumbnail && !empty($this->thumbnail)) {
+            $images[] = $this->thumbnail;
         }
         
-        // 2. ✅ CRITICAL FIX: Check if images is not null and is array
-        if ($this->images !== null && is_array($this->images)) {
-            foreach ($this->images as $image) {
-                if (!empty($image)) {
-                    if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
-                        $images[] = $image;
-                    } else {
-                        $images[] = asset('storage/' . $image);
+        // 2. Get images from JSON field
+        if ($this->images) {
+            // If it's a string (JSON)
+            if (is_string($this->images)) {
+                $decoded = json_decode($this->images, true);
+                if (is_array($decoded)) {
+                    foreach ($decoded as $img) {
+                        if (!empty($img) && !in_array($img, $images)) {
+                            $images[] = $img;
+                        }
+                    }
+                }
+            }
+            // If it's an array
+            elseif (is_array($this->images)) {
+                foreach ($this->images as $img) {
+                    if (!empty($img) && !in_array($img, $images)) {
+                        $images[] = $img;
                     }
                 }
             }
         }
         
-        // 3. Add images from images relation
+        // 3. Get images from relation
         if ($this->images()->exists()) {
             foreach ($this->images as $image) {
-                if ($image && $image->image) {
-                    if (str_starts_with($image->image, 'http://') || str_starts_with($image->image, 'https://')) {
-                        $images[] = $image->image;
-                    } else {
-                        $images[] = asset('storage/' . $image->image);
-                    }
+                if ($image && $image->image && !empty($image->image) && !in_array($image->image, $images)) {
+                    $images[] = $image->image;
                 }
             }
         }
         
         // 4. If no images, add placeholder
         if (empty($images)) {
-            $images[] = $this->image_url;
+            $images[] = $this->getPlaceholderImage();
         }
         
-        // 5. Remove duplicates and re-index
-        return array_values(array_unique($images));
+        return $images;
+    }
+
+    /**
+     * Get formatted gallery images with full URLs
+     */
+    public function getGalleryImagesUrlAttribute(): array
+    {
+        $urls = [];
+        foreach ($this->gallery_images as $image) {
+            if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
+                $urls[] = $image;
+            } elseif ($image === 'default-product.jpg' || str_contains($image, 'via.placeholder.com')) {
+                $urls[] = $image;
+            } else {
+                $urls[] = asset('storage/' . $image);
+            }
+        }
+        return $urls;
     }
 
     public function getFormattedPriceAttribute(): string
@@ -240,7 +298,7 @@ class Product extends Model
     public function getStarsAttribute(): string
     {
         $html = '';
-        $rating = round($this->rating);
+        $rating = round($this->rating ?? 0);
         for ($i = 1; $i <= 5; $i++) {
             if ($i <= $rating) {
                 $html .= '<i class="fas fa-star text-warning"></i>';

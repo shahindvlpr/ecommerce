@@ -149,16 +149,29 @@
                                 </a>
                             @endif
 
-                            <a href="{{ route('profile.edit') }}" class="lc-dp__item" role="menuitem">
-                                <span class="lc-dp__item-icon" style="--icon-color: 59,130,246;">
-                                    <i class="fas fa-user-circle"></i>
-                                </span>
-                                <span class="lc-dp__item-content">
-                                    <span class="lc-dp__item-label">My Profile</span>
-                                    <span class="lc-dp__item-desc">Edit personal info</span>
-                                </span>
-                                <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
-                            </a>
+@php
+    $user = Auth::user();
+    $profileRoute = route('profile.edit'); // default
+    
+    if ($user->role === 'admin') {
+        $profileRoute = route('admin.profile');
+    } elseif ($user->role === 'vendor') {
+        $profileRoute = route('vendor.profile');
+    } elseif ($user->role === 'customer') {
+        $profileRoute = route('customer.profile');
+    }
+@endphp
+
+<a href="{{ $profileRoute }}" class="lc-dp__item" role="menuitem">
+    <span class="lc-dp__item-icon" style="--icon-color: 59,130,246;">
+        <i class="fas fa-user-circle"></i>
+    </span>
+    <span class="lc-dp__item-content">
+        <span class="lc-dp__item-label">My Profile</span>
+        <span class="lc-dp__item-desc">Edit personal info</span>
+    </span>
+    <span class="lc-dp__item-arrow"><i class="fas fa-arrow-right"></i></span>
+</a>
 
                             @if(!auth()->user()->is_admin && auth()->user()->role !== 'admin')
                                 <a href="{{ route('customer.orders') }}" class="lc-dp__item" role="menuitem">

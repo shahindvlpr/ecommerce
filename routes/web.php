@@ -167,7 +167,7 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('customer')->name('customer.')->middleware(['customer.access'])->group(function () {
+    Route::prefix('customer')->name('customer.')->middleware(['auth'])->group(function () {
         
         // Dashboard
         Route::get('/dashboard', [CustomerDashboardController::class, 'index'])->name('dashboard');

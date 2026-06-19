@@ -3,66 +3,64 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-
-
 use App\Models\Review;
 use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $reviews = Review::with(['product', 'user'])
+            ->latest()
+            ->paginate(15);
+        
+        return view('admin.reviews.index', compact('reviews'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function pending()
     {
-        //
+        $reviews = Review::with(['product', 'user'])
+            ->where('is_approved', 0)
+            ->latest()
+            ->paginate(15);
+        
+        return view('admin.reviews.pending', compact('reviews'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function approve(Review $review)
     {
-        //
+        $review->is_approved = true;
+        $review->save();
+
+        // Update product rating
+        if ($review->product) {
+            $review->product->updateRating();
+        }
+
+        return redirect()->back()
+            ->with('success', 'Review approved successfully!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Review $review)
+    public function reject(Review $review)
     {
-        //
+        $review->is_approved = false;
+        $review->save();
+
+        return redirect()->back()
+            ->with('success', 'Review rejected successfully!');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Review $review)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Review $review)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Review $review)
     {
-        //
+        $product = $review->product;
+        $review->delete();
+
+        // Update product rating
+        if ($product) {
+            $product->updateRating();
+        }
+
+        return redirect()->back()
+            ->with('success', 'Review deleted successfully!');
     }
 }

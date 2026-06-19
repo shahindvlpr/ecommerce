@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\Backup;
+use App\Helpers\BackupHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -218,21 +220,35 @@ class SettingController extends Controller
         return redirect()->back()->with('success', 'Cache cleared successfully!');
     }
 
+    // ==================== BACKUP METHODS ====================
+
     /**
      * Show backup page.
      */
     public function backup()
     {
-        $backups = $this->getBackupFiles();
+        $backups = BackupHelper::getBackups();
         return view('admin.backup.index', compact('backups'));
     }
 
     /**
      * Create backup.
      */
-    public function createBackup()
+    public function createBackup(Request $request)
     {
-        return response()->json(['success' => true, 'message' => 'Backup created successfully!']);
+        try {
+            $backup = BackupHelper::createFullBackup();
+            return response()->json([
+                'success' => true,
+                'message' => 'Backup created successfully!',
+                'backup' => $backup
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Backup failed: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -240,7 +256,13 @@ class SettingController extends Controller
      */
     public function downloadBackup($file)
     {
-        return redirect()->back()->with('info', 'Download feature coming soon!');
+        $download = BackupHelper::downloadBackup($file);
+        
+        if ($download) {
+            return $download;
+        }
+        
+        return redirect()->back()->with('error', 'Backup file not found!');
     }
 
     /**
@@ -248,7 +270,11 @@ class SettingController extends Controller
      */
     public function deleteBackup($file)
     {
-        return redirect()->back()->with('success', 'Backup deleted successfully!');
+        if (BackupHelper::deleteBackup($file)) {
+            return redirect()->back()->with('success', 'Backup deleted successfully!');
+        }
+        
+        return redirect()->back()->with('error', 'Failed to delete backup!');
     }
 
     // ==================== HELPER METHODS ====================
@@ -372,10 +398,5 @@ class SettingController extends Controller
             $content = preg_replace("/^{$key}=.*/m", "{$key}={$value}", $content);
             file_put_contents($path, $content);
         }
-    }
-
-    private function getBackupFiles()
-    {
-        return [];
     }
 }

@@ -13,7 +13,7 @@ use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AttributeController;
-use App\Http\Controllers\Admin\PaymentController;  // ✅ সঠিক namespace
+use App\Http\Controllers\Admin\PaymentController;  
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin.access'])
@@ -197,7 +197,13 @@ Route::prefix('vendors')->name('vendors.')->group(function () {
 });
 
 
-
+// Backup
+Route::prefix('backup')->name('backup.')->group(function () {
+    Route::get('/', [SettingController::class, 'backup'])->name('index');
+    Route::post('/create', [SettingController::class, 'createBackup'])->name('create');
+    Route::get('/download/{file}', [SettingController::class, 'downloadBackup'])->name('download');
+    Route::delete('/delete/{file}', [SettingController::class, 'deleteBackup'])->name('delete');
+});
 
 
 

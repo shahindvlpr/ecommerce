@@ -4,278 +4,509 @@
 @section('title', 'Dashboard - EktaMart Admin')
 
 @section('content')
-<div class="container-fluid px-4 py-4">
+<div class="container-fluid px-4 py-3">
 
 <style>
+:root {
+    --card-radius: 1rem;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
+   ANIMATIONS
+============================================================ */
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(30px); }
+    from { opacity: 0; transform: translateX(20px); }
     to { opacity: 1; transform: translateX(0); }
 }
 @keyframes shimmer {
     0% { background-position: -1000px 0; }
     100% { background-position: 1000px 0; }
 }
-.animate-fade-up { animation: fadeInUp 0.6s ease-out forwards; }
-.animate-slide-right { animation: slideInRight 0.5s ease-out forwards; }
+.animate-fade-up { animation: fadeInUp 0.5s ease-out forwards; }
+.animate-slide-right { animation: slideInRight 0.4s ease-out forwards; }
 
+/* ============================================================
+   STATS CARDS - COMPACT & MODERN
+============================================================ */
 .stats-card {
-    border: none; border-radius: 1.25rem; overflow: hidden;
-    transition: all 0.3s ease; position: relative; cursor: pointer;
+    border: none;
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    transition: var(--transition);
+    position: relative;
+    cursor: pointer;
+    height: 100%;
+    min-height: 100px;
 }
-.stats-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+.stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
 .stats-card::before {
-    content: ''; position: absolute; top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
     transition: left 0.5s ease;
 }
 .stats-card:hover::before { left: 100%; }
-.card-stats { padding: 1.5rem; position: relative; z-index: 1; }
-.stats-icon { position: absolute; right: 1.5rem; bottom: 1rem; opacity: 0.2; font-size: 4rem; }
-.stats-card h5 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 0.5rem; }
-.stats-card h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0; }
-.stats-growth { font-size: 0.75rem; margin-top: 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem; }
 
-.chart-card {
-    border: none; border-radius: 1.25rem;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    transition: all 0.3s ease; height: 100%;
+.stats-card .card-inner {
+    padding: 1rem 1.25rem;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
 }
-.chart-card:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-.chart-header { background: transparent; border-bottom: 2px solid #e2e8f0; padding: 1rem 1.5rem; }
-.chart-header h5 { font-weight: 700; color: #1e293b; margin: 0; }
 
+.stats-card .stats-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+.stats-card .stats-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stats-card .stats-content .stats-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.75;
+    font-weight: 600;
+    margin-bottom: 0.1rem;
+}
+
+.stats-card .stats-content .stats-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.05rem;
+}
+
+.stats-card .stats-content .stats-change {
+    font-size: 0.65rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    opacity: 0.85;
+    font-weight: 500;
+}
+
+/* Stats Card Colors */
+.stats-card-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
+.stats-card-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+.stats-card-orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+.stats-card-red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+.stats-card-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
+.stats-card-teal { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; }
+.stats-card-pink { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); color: white; }
+
+/* ============================================================
+   WELCOME CARD
+============================================================ */
 .welcome-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none; border-radius: 1.25rem; color: white;
-    overflow: hidden; position: relative;
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%);
+    border: none;
+    border-radius: var(--card-radius);
+    color: white;
+    overflow: hidden;
+    position: relative;
+    padding: 1.25rem 1.5rem;
 }
 .welcome-card::after {
-    content: ''; position: absolute; top: -50%; right: -50%;
-    width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -30%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
     pointer-events: none;
 }
-.welcome-content { padding: 1.5rem; position: relative; z-index: 1; }
-.welcome-icon { font-size: 3rem; margin-bottom: 0.5rem; }
-.date-time { font-size: 0.85rem; opacity: 0.9; }
+.welcome-card .welcome-text h4 {
+    font-weight: 700;
+    margin-bottom: 0.1rem;
+    font-size: 1.1rem;
+}
+.welcome-card .welcome-text p {
+    opacity: 0.8;
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+.welcome-card .welcome-time {
+    text-align: right;
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+.welcome-card .welcome-time i { margin-right: 0.3rem; }
 
-.recent-table { border-radius: 1rem; overflow: hidden; }
-.recent-table thead { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
-.recent-table thead th { color: white; font-weight: 600; font-size: 0.85rem; border: none; padding: 1rem; }
-.recent-table tbody tr { transition: all 0.3s ease; border-bottom: 1px solid #e2e8f0; }
+/* ============================================================
+   CHART CARDS
+============================================================ */
+.chart-card {
+    border: none;
+    border-radius: var(--card-radius);
+    background: white;
+    transition: var(--transition);
+    height: 100%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.chart-card:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+}
+.chart-card .card-header-custom {
+    padding: 0.8rem 1.2rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.chart-card .card-header-custom h5 {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.chart-card .card-header-custom h5 i { color: #8b5cf6; }
+.chart-card .card-body-custom { padding: 1rem 1.2rem; }
+
+/* ============================================================
+   RECENT ORDERS TABLE
+============================================================ */
+.recent-table { border-radius: var(--card-radius); overflow: hidden; }
+.recent-table thead { background: #f8fafc; }
+.recent-table thead th {
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #64748b;
+    border: none;
+    padding: 0.6rem 0.8rem;
+}
+.recent-table tbody td {
+    padding: 0.5rem 0.8rem;
+    vertical-align: middle;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+.recent-table tbody tr { transition: var(--transition); }
 .recent-table tbody tr:hover { background: #f8fafc; }
-.recent-table tbody td { padding: 1rem; vertical-align: middle; }
+.recent-table tbody tr:last-child td { border-bottom: none; }
 
-.badge-status { padding: 0.35rem 0.75rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 600; }
+/* ============================================================
+   BADGES
+============================================================ */
+.badge-status {
+    padding: 0.2rem 0.6rem;
+    border-radius: 2rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
 .badge-paid { background: #dcfce7; color: #166534; }
 .badge-pending { background: #fed7aa; color: #9a3412; }
 .badge-delivered { background: #dbeafe; color: #1e40af; }
 .badge-cancelled { background: #fee2e2; color: #991b1b; }
 .badge-shipped { background: #e0e7ff; color: #3730a3; }
+.badge-processing { background: #fef3c7; color: #92400e; }
 
-.bg-gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.bg-gradient-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-.bg-gradient-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-.bg-gradient-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-
-.btn-quick {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    color: #1e293b; border: 1px solid #e2e8f0;
-    transition: all 0.3s ease; border-radius: 0.75rem;
-    text-decoration: none; display: flex; align-items: center;
-    gap: 1rem; padding: 0.9rem 1rem;
+/* ============================================================
+   QUICK ACTIONS
+============================================================ */
+.quick-action {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 1rem;
+    border-radius: 0.75rem;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    text-decoration: none;
+    transition: var(--transition);
+    color: #1e293b;
 }
-.btn-quick:hover { transform: translateX(5px); color: white; border-color: transparent; }
-.btn-quick:hover small { color: rgba(255,255,255,0.8) !important; }
-.btn-quick-purple:hover { background: linear-gradient(135deg, #667eea, #764ba2); }
-.btn-quick-green:hover { background: linear-gradient(135deg, #10b981, #059669); }
-.btn-quick-yellow:hover { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.btn-quick-blue:hover { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+.quick-action:hover {
+    transform: translateX(4px);
+    color: white;
+    border-color: transparent;
+}
+.quick-action .qa-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+.quick-action .qa-content strong { font-size: 0.8rem; display: block; }
+.quick-action .qa-content small { font-size: 0.65rem; opacity: 0.7; }
 
-.animate-slide-right { opacity: 0; transform: translateX(30px); animation-fill-mode: forwards; }
-.animate-fade-up { opacity: 0; transform: translateY(30px); animation-fill-mode: forwards; }
+.quick-action:hover .qa-content small { color: rgba(255,255,255,0.8) !important; }
 
-.table-responsive::-webkit-scrollbar { height: 8px; }
-.table-responsive::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
-.table-responsive::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 10px; }
+.qa-purple:hover { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.qa-purple .qa-icon { background: rgba(139,92,246,0.15); color: #8b5cf6; }
+.qa-purple:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
 
+.qa-green:hover { background: linear-gradient(135deg, #10b981, #059669); }
+.qa-green .qa-icon { background: rgba(16,185,129,0.15); color: #10b981; }
+.qa-green:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
+
+.qa-orange:hover { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.qa-orange .qa-icon { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.qa-orange:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
+
+.qa-blue:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.qa-blue .qa-icon { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.qa-blue:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
+
+/* ============================================================
+   PERFORMANCE SUMMARY
+============================================================ */
+.perf-item {
+    padding: 0.7rem 1rem;
+    background: #f8fafc;
+    border-radius: 0.75rem;
+    text-align: center;
+    border: 1px solid #f1f5f9;
+    transition: var(--transition);
+}
+.perf-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.perf-item .perf-icon { font-size: 1.2rem; margin-bottom: 0.2rem; }
+.perf-item .perf-label { font-size: 0.65rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+.perf-item .perf-value { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
 @media (max-width: 768px) {
-    .stats-card h2 { font-size: 1.75rem; }
-    .stats-icon { font-size: 3rem; }
-    .welcome-content { padding: 1rem; }
-    .welcome-icon { font-size: 2rem; }
+    .stats-card .card-inner { padding: 0.8rem 1rem; }
+    .stats-card .stats-value { font-size: 1.2rem; }
+    .stats-card .stats-icon { width: 38px; height: 38px; font-size: 0.9rem; }
+    .welcome-card { padding: 1rem; }
+    .welcome-card .welcome-text h4 { font-size: 0.95rem; }
+    .welcome-card .welcome-time { text-align: left; margin-top: 0.5rem; }
+    .chart-card .card-body-custom { padding: 0.8rem; }
+    .quick-action { padding: 0.5rem 0.8rem; }
+    .perf-item { padding: 0.5rem 0.8rem; }
+    .perf-item .perf-value { font-size: 0.95rem; }
+}
+
+@media (max-width: 576px) {
+    .stats-card .card-inner { flex-direction: column; text-align: center; }
+    .stats-card .stats-icon { width: 32px; height: 32px; font-size: 0.8rem; }
+    .recent-table thead th, .recent-table tbody td { padding: 0.4rem 0.5rem; font-size: 0.7rem; }
+    .badge-status { font-size: 0.55rem; padding: 0.1rem 0.4rem; }
 }
 </style>
 
-{{-- Welcome Section --}}
-<div class="welcome-card mb-4 animate-fade-up">
-    <div class="welcome-content d-flex justify-content-between align-items-center flex-wrap gap-3">
-        <div>
-            <div class="welcome-icon"><i class="fas fa-chart-line"></i></div>
-            <h3 class="mb-1 fw-bold">Welcome back, Admin!</h3>
-            <p class="mb-0 opacity-75">Here's what's happening with your store today.</p>
+{{-- ============================================================
+     WELCOME SECTION
+============================================================ --}}
+<div class="welcome-card animate-fade-up mb-3">
+    <div class="row align-items-center g-2">
+        <div class="col-md-8 welcome-text">
+            <h4>👋 Welcome back, <span id="adminName">{{ Auth::user()->name ?? 'Admin' }}</span>!</h4>
+            <p>Here's what's happening with your store today.</p>
         </div>
-        <div class="text-end">
-            <div class="date-time"><i class="fas fa-calendar-alt me-1"></i><span id="currentDate"></span></div>
-            <div class="date-time mt-1"><i class="fas fa-clock me-1"></i><span id="currentTime"></span></div>
-        </div>
-    </div>
-</div>
-
-{{-- Stats Cards --}}
-<div class="row g-4 mb-4">
-    <div class="col-md-6 col-xl-3 animate-slide-right" style="animation-delay:0.1s">
-        <div class="stats-card bg-gradient-primary">
-            <div class="card-stats">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h5 class="text-white opacity-75">Total Categories</h5>
-                        <h2 class="text-white" id="totalCategories">{{ \App\Models\Category::count() }}</h2>
-                        <span class="stats-growth text-white"><i class="fas fa-arrow-up"></i> +12% this month</span>
-                    </div>
-                    <div class="stats-icon"><i class="fas fa-layer-group text-white"></i></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3 animate-slide-right" style="animation-delay:0.2s">
-        <div class="stats-card bg-gradient-success">
-            <div class="card-stats">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h5 class="text-white opacity-75">Total Products</h5>
-                        <h2 class="text-white" id="totalProducts">{{ \App\Models\Product::count() }}</h2>
-                        <span class="stats-growth text-white"><i class="fas fa-arrow-up"></i> +8% this month</span>
-                    </div>
-                    <div class="stats-icon"><i class="fas fa-boxes text-white"></i></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3 animate-slide-right" style="animation-delay:0.3s">
-        <div class="stats-card bg-gradient-warning">
-            <div class="card-stats">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h5 class="text-white opacity-75">Total Orders</h5>
-                        <h2 class="text-white" id="totalOrders">{{ \App\Models\Order::count() }}</h2>
-                        <span class="stats-growth text-white"><i class="fas fa-arrow-up"></i> +23% this month</span>
-                    </div>
-                    <div class="stats-icon"><i class="fas fa-shopping-cart text-white"></i></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-xl-3 animate-slide-right" style="animation-delay:0.4s">
-        <div class="stats-card bg-gradient-danger">
-            <div class="card-stats">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h5 class="text-white opacity-75">Total Users</h5>
-                        <h2 class="text-white" id="totalUsers">{{ \App\Models\User::count() }}</h2>
-                        <span class="stats-growth text-white"><i class="fas fa-arrow-up"></i> +5% this month</span>
-                    </div>
-                    <div class="stats-icon"><i class="fas fa-users text-white"></i></div>
-                </div>
-            </div>
+        <div class="col-md-4 welcome-time">
+            <div><i class="fas fa-calendar-alt"></i><span id="currentDate"></span></div>
+            <div><i class="fas fa-clock"></i><span id="currentTime"></span></div>
         </div>
     </div>
 </div>
 
-{{-- Charts Row --}}
-<div class="row g-4 mb-4">
+{{-- ============================================================
+     STATS CARDS - COMPACT
+============================================================ --}}
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.05s">
+        <div class="stats-card stats-card-purple">
+            <div class="card-inner">
+                <div class="stats-icon"><i class="fas fa-layer-group"></i></div>
+                <div class="stats-content">
+                    <div class="stats-label">Categories</div>
+                    <div class="stats-value" id="totalCategories">{{ \App\Models\Category::count() }}</div>
+                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 12%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.10s">
+        <div class="stats-card stats-card-green">
+            <div class="card-inner">
+                <div class="stats-icon"><i class="fas fa-boxes"></i></div>
+                <div class="stats-content">
+                    <div class="stats-label">Products</div>
+                    <div class="stats-value" id="totalProducts">{{ \App\Models\Product::count() }}</div>
+                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 8%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.15s">
+        <div class="stats-card stats-card-orange">
+            <div class="card-inner">
+                <div class="stats-icon"><i class="fas fa-shopping-cart"></i></div>
+                <div class="stats-content">
+                    <div class="stats-label">Orders</div>
+                    <div class="stats-value" id="totalOrders">{{ \App\Models\Order::count() }}</div>
+                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 23%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.20s">
+        <div class="stats-card stats-card-red">
+            <div class="card-inner">
+                <div class="stats-icon"><i class="fas fa-users"></i></div>
+                <div class="stats-content">
+                    <div class="stats-label">Users</div>
+                    <div class="stats-value" id="totalUsers">{{ \App\Models\User::count() }}</div>
+                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 5%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.25s">
+        <div class="stats-card stats-card-blue">
+            <div class="card-inner">
+                <div class="stats-icon"><i class="fas fa-dollar-sign"></i></div>
+                <div class="stats-content">
+                    <div class="stats-label">Revenue</div>
+                    <div class="stats-value">${{ number_format(\App\Models\Order::sum('total') ?? 0, 0) }}</div>
+                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 18%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.30s">
+        <div class="stats-card stats-card-pink">
+            <div class="card-inner">
+                <div class="stats-icon"><i class="fas fa-star"></i></div>
+                <div class="stats-content">
+                    <div class="stats-label">Reviews</div>
+                    <div class="stats-value">{{ \App\Models\Review::count() }}</div>
+                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 15%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ============================================================
+     CHARTS SECTION
+============================================================ --}}
+<div class="row g-3 mb-3">
     <div class="col-lg-8 animate-fade-up">
-        <div class="card chart-card">
-            <div class="chart-header">
-                <h5><i class="fas fa-chart-line text-primary me-2"></i>Sales Overview</h5>
+        <div class="chart-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-chart-line"></i> Sales Overview</h5>
+                <span class="badge bg-success bg-opacity-10 text-success">+12.5%</span>
             </div>
-            <div class="card-body">
-                <canvas id="salesChart" height="300"></canvas>
+            <div class="card-body-custom">
+                <canvas id="salesChart" height="220"></canvas>
             </div>
         </div>
     </div>
 
     <div class="col-lg-4 animate-fade-up">
-        <div class="card chart-card">
-            <div class="chart-header">
-                <h5><i class="fas fa-chart-pie text-primary me-2"></i>Category Distribution</h5>
+        <div class="chart-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-chart-pie"></i> Category Distribution</h5>
             </div>
-            <div class="card-body">
-                <canvas id="categoryChart" height="300"></canvas>
+            <div class="card-body-custom">
+                <canvas id="categoryChart" height="220"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Recent Orders & Quick Actions --}}
-<div class="row g-4">
+{{-- ============================================================
+     RECENT ORDERS & QUICK ACTIONS
+============================================================ --}}
+<div class="row g-3">
     <div class="col-lg-8 animate-fade-up">
-        <div class="card chart-card">
-            <div class="chart-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h5><i class="fas fa-clock text-primary me-2"></i>Recent Orders</h5>
-                <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-outline-primary rounded-pill">
+        <div class="chart-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-clock"></i> Recent Orders</h5>
+                <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                     View All <i class="fas fa-arrow-right ms-1"></i>
                 </a>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body-custom p-0">
                 <div class="table-responsive">
                     <table class="table recent-table mb-0">
                         <thead>
                             <tr>
-                                <th>Order ID</th>
+                                <th>Order</th>
                                 <th>Customer</th>
                                 <th>Amount</th>
                                 <th>Status</th>
-                                <th>Date</th>
+                                <th class="text-end">Date</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @php
-                                $recentOrders = \App\Models\Order::with('user')->latest()->take(5)->get();
-                            @endphp
+                            @php $recentOrders = \App\Models\Order::with('user')->latest()->take(5)->get(); @endphp
                             @forelse($recentOrders as $order)
                             <tr>
-                                <td><code>#{{ $order->id }}</code></td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="rounded-circle bg-primary bg-opacity-10 p-2">
-                                            <i class="fas fa-user text-primary fa-sm"></i>
-                                        </div>
-                                        {{ $order->user->name ?? 'Guest' }}
-                                    </div>
-                                </td>
-                                <td class="fw-bold text-success">
-                                    ${{ number_format($order->total ?? 0, 2) }}
-                                </td>
+                                <td><span class="fw-semibold">#{{ $order->order_number ?? $order->id }}</span></td>
+                                <td>{{ $order->user->name ?? 'Guest' }}</td>
+                                <td class="fw-semibold text-success">${{ number_format($order->total ?? 0, 2) }}</td>
                                 <td>
                                     @php
                                         $statusClass = match($order->status ?? 'pending') {
                                             'delivered' => 'badge-delivered',
-                                            'paid'      => 'badge-paid',
-                                            'pending'   => 'badge-pending',
-                                            'shipped'   => 'badge-shipped',
+                                            'paid' => 'badge-paid',
+                                            'pending' => 'badge-pending',
+                                            'shipped' => 'badge-shipped',
                                             'cancelled' => 'badge-cancelled',
-                                            default     => 'badge-pending',
+                                            'processing' => 'badge-processing',
+                                            default => 'badge-pending',
                                         };
                                     @endphp
-                                    <span class="badge-status {{ $statusClass }}">
-                                        {{ ucfirst($order->status ?? 'pending') }}
-                                    </span>
+                                    <span class="badge-status {{ $statusClass }}">{{ ucfirst($order->status ?? 'Pending') }}</span>
                                 </td>
-                                <td><small>{{ $order->created_at?->diffForHumans() ?? 'N/A' }}</small></td>
+                                <td class="text-end text-muted"><small>{{ $order->created_at?->diffForHumans() ?? 'N/A' }}</small></td>
                             </tr>
                             @empty
                             <tr>
                                 <td colspan="5" class="text-center text-muted py-4">
-                                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>No orders found
+                                    <i class="fas fa-inbox fa-2x d-block mb-2"></i>No orders found
                                 </td>
                             </tr>
                             @endforelse
@@ -287,37 +518,37 @@
     </div>
 
     <div class="col-lg-4 animate-fade-up">
-        <div class="card chart-card">
-            <div class="chart-header">
-                <h5><i class="fas fa-bolt text-primary me-2"></i>Quick Actions</h5>
+        <div class="chart-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
             </div>
-            <div class="card-body d-grid gap-3">
-                <a href="{{ route('admin.products.create') }}" class="btn-quick btn-quick-purple">
-                    <i class="fas fa-plus-circle fa-2x text-purple" style="color:#8b5cf6"></i>
-                    <div>
-                        <strong>Add New Product</strong><br>
-                        <small class="text-muted">Add products to your store</small>
+            <div class="card-body-custom d-grid gap-2">
+                <a href="{{ route('admin.products.create') }}" class="quick-action qa-purple">
+                    <div class="qa-icon"><i class="fas fa-plus"></i></div>
+                    <div class="qa-content">
+                        <strong>Add Product</strong>
+                        <small>Add new product to store</small>
                     </div>
                 </a>
-                <a href="{{ route('admin.categories.create') }}" class="btn-quick btn-quick-green">
-                    <i class="fas fa-tag fa-2x" style="color:#10b981"></i>
-                    <div>
-                        <strong>Create Category</strong><br>
-                        <small class="text-muted">Organize products with categories</small>
+                <a href="{{ route('admin.categories.create') }}" class="quick-action qa-green">
+                    <div class="qa-icon"><i class="fas fa-tag"></i></div>
+                    <div class="qa-content">
+                        <strong>New Category</strong>
+                        <small>Organize products</small>
                     </div>
                 </a>
-                <a href="{{ route('admin.orders.index') }}" class="btn-quick btn-quick-yellow">
-                    <i class="fas fa-truck fa-2x" style="color:#f59e0b"></i>
-                    <div>
-                        <strong>Manage Orders</strong><br>
-                        <small class="text-muted">View and process orders</small>
+                <a href="{{ route('admin.orders.index') }}" class="quick-action qa-orange">
+                    <div class="qa-icon"><i class="fas fa-truck"></i></div>
+                    <div class="qa-content">
+                        <strong>Process Orders</strong>
+                        <small>Manage pending orders</small>
                     </div>
                 </a>
-                <a href="{{ route('admin.users.index') }}" class="btn-quick btn-quick-blue">
-                    <i class="fas fa-users fa-2x" style="color:#06b6d4"></i>
-                    <div>
-                        <strong>Manage Users</strong><br>
-                        <small class="text-muted">View all registered customers</small>
+                <a href="{{ route('admin.users.index') }}" class="quick-action qa-blue">
+                    <div class="qa-icon"><i class="fas fa-users"></i></div>
+                    <div class="qa-content">
+                        <strong>Manage Users</strong>
+                        <small>View all customers</small>
                     </div>
                 </a>
             </div>
@@ -325,47 +556,43 @@
     </div>
 </div>
 
-{{-- Store Performance Summary --}}
-<div class="row mt-4">
-    <div class="col-12 animate-fade-up">
-        <div class="card chart-card">
-            <div class="chart-header">
-                <h5><i class="fas fa-chart-bar text-primary me-2"></i>Store Performance Summary</h5>
+{{-- ============================================================
+     PERFORMANCE SUMMARY
+============================================================ --}}
+<div class="row g-3 mt-1 animate-fade-up">
+    <div class="col-12">
+        <div class="chart-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-chart-bar"></i> Store Performance</h5>
             </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-md-3 mb-3 mb-md-0">
-                        <div class="p-3 rounded-3 bg-light">
-                            <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
-                            <h6 class="text-muted mb-1">Total Revenue</h6>
-                            <h4 class="fw-bold mb-0">
-                                ${{ number_format(\App\Models\Order::sum('total') ?? 0, 2) }}
-                            </h4>
+            <div class="card-body-custom">
+                <div class="row g-2">
+                    <div class="col-3 col-md-3">
+                        <div class="perf-item">
+                            <div class="perf-icon text-success"><i class="fas fa-dollar-sign"></i></div>
+                            <div class="perf-value">${{ number_format(\App\Models\Order::sum('total') ?? 0, 0) }}</div>
+                            <div class="perf-label">Revenue</div>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3 mb-md-0">
-                        <div class="p-3 rounded-3 bg-light">
-                            <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
-                            <h6 class="text-muted mb-1">Pending Orders</h6>
-                            <h4 class="fw-bold mb-0">
-                                {{ \App\Models\Order::where('status','pending')->count() }}
-                            </h4>
+                    <div class="col-3 col-md-3">
+                        <div class="perf-item">
+                            <div class="perf-icon text-warning"><i class="fas fa-clock"></i></div>
+                            <div class="perf-value">{{ \App\Models\Order::where('status','pending')->count() }}</div>
+                            <div class="perf-label">Pending</div>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3 mb-md-0">
-                        <div class="p-3 rounded-3 bg-light">
-                            <i class="fas fa-star fa-2x text-warning mb-2"></i>
-                            <h6 class="text-muted mb-1">Pending Reviews</h6>
-                            <h4 class="fw-bold mb-0">
-                                {{ \App\Models\Review::where('is_approved', 0)->count() }}
-                            </h4>
+                    <div class="col-3 col-md-3">
+                        <div class="perf-item">
+                            <div class="perf-icon text-info"><i class="fas fa-star"></i></div>
+                            <div class="perf-value">{{ \App\Models\Review::where('is_approved', 0)->count() }}</div>
+                            <div class="perf-label">Reviews</div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="p-3 rounded-3 bg-light">
-                            <i class="fas fa-boxes fa-2x text-info mb-2"></i>
-                            <h6 class="text-muted mb-1">Total Products</h6>
-                            <h4 class="fw-bold mb-0">{{ \App\Models\Product::count() }}</h4>
+                    <div class="col-3 col-md-3">
+                        <div class="perf-item">
+                            <div class="perf-icon text-primary"><i class="fas fa-box"></i></div>
+                            <div class="perf-value">{{ \App\Models\Product::count() }}</div>
+                            <div class="perf-label">Products</div>
                         </div>
                     </div>
                 </div>
@@ -376,83 +603,125 @@
 
 </div>
 
+{{-- ============================================================
+     SCRIPTS
+============================================================ --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Date & Time
+// ============================================================
+// 1. DATE & TIME
+// ============================================================
 function updateDateTime() {
     const now = new Date();
-    document.getElementById('currentDate').innerHTML =
-        now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-    document.getElementById('currentTime').innerHTML =
+    document.getElementById('currentDate').textContent =
+        now.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+    document.getElementById('currentTime').textContent =
         now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
 }
 updateDateTime();
 setInterval(updateDateTime, 1000);
 
-// Sales Chart
+// ============================================================
+// 2. SALES CHART
+// ============================================================
 new Chart(document.getElementById('salesChart').getContext('2d'), {
     type: 'line',
     data: {
         labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
         datasets: [{
-            label: 'Sales Revenue ($)',
+            label: 'Revenue ($)',
             data: [12500,15200,16800,14200,18900,21400,23500,22800,25600,28900,31200,34800],
             borderColor: '#8b5cf6',
-            backgroundColor: 'rgba(139,92,246,0.1)',
-            borderWidth: 3, fill: true, tension: 0.4,
-            pointBackgroundColor: '#8b5cf6', pointBorderColor: '#fff',
-            pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7
+            backgroundColor: 'rgba(139,92,246,0.08)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#8b5cf6',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5,
+            pointRadius: 4,
+            pointHoverRadius: 6
         }]
     },
     options: {
-        responsive: true, maintainAspectRatio: true,
+        responsive: true,
+        maintainAspectRatio: true,
         plugins: {
-            legend: { position: 'top' },
-            tooltip: { callbacks: { label: ctx => 'Sales: $' + ctx.raw.toLocaleString() } }
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: ctx => '$' + ctx.raw.toLocaleString()
+                }
+            }
         },
         scales: {
-            y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } }
+            y: {
+                beginAtZero: true,
+                ticks: { callback: v => '$' + v.toLocaleString(), font: { size: 10 } },
+                grid: { color: 'rgba(0,0,0,0.04)' }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { font: { size: 9 } }
+            }
         }
     }
 });
 
-// Category Chart
+// ============================================================
+// 3. CATEGORY CHART
+// ============================================================
+const categoryLabels = {!! json_encode(\App\Models\Category::limit(5)->pluck('name')) !!};
+const categoryData = {!! json_encode(\App\Models\Category::withCount('products')->limit(5)->get()->pluck('products_count')) !!};
+
 new Chart(document.getElementById('categoryChart').getContext('2d'), {
     type: 'doughnut',
     data: {
-        labels: {!! json_encode(\App\Models\Category::limit(5)->pluck('name')) !!},
+        labels: categoryLabels,
         datasets: [{
-            data: {!! json_encode(\App\Models\Category::withCount('products')->limit(5)->get()->pluck('products_count')) !!},
-            backgroundColor: ['#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4'],
-            borderWidth: 0, hoverOffset: 10
+            data: categoryData,
+            backgroundColor: ['#8b5cf6','#10b981','#f59e0b','#ef4444','#3b82f6'],
+            borderWidth: 0,
+            hoverOffset: 8
         }]
     },
     options: {
-        responsive: true, maintainAspectRatio: true,
+        responsive: true,
+        maintainAspectRatio: true,
         plugins: {
-            legend: { position: 'bottom' },
-            tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + ' products' } }
-        }
+            legend: {
+                position: 'bottom',
+                labels: { boxWidth: 12, font: { size: 10 }, padding: 8 }
+            },
+            tooltip: {
+                callbacks: {
+                    label: ctx => ctx.label + ': ' + ctx.raw + ' products'
+                }
+            }
+        },
+        cutout: '65%'
     }
 });
 
-console.log('%c✨ EktaMart Admin Dashboard', 'color:#8b5cf6;font-size:16px;font-weight:bold;');
-</script>
-
-@push('scripts')
-<script>
+// ============================================================
+// 4. REAL-TIME STATS UPDATE
+// ============================================================
 setInterval(function() {
     fetch('{{ route("admin.dashboard.stats") }}')
         .then(r => r.json())
         .then(data => {
-            document.getElementById('totalCategories').innerText = data.categories;
-            document.getElementById('totalProducts').innerText   = data.products;
-            document.getElementById('totalOrders').innerText     = data.orders;
-            document.getElementById('totalUsers').innerText      = data.users;
+            document.getElementById('totalCategories').textContent = data.categories || 0;
+            document.getElementById('totalProducts').textContent = data.products || 0;
+            document.getElementById('totalOrders').textContent = data.orders || 0;
+            document.getElementById('totalUsers').textContent = data.users || 0;
         })
-        .catch(err => console.log('Stats refresh failed:', err));
+        .catch(() => {});
 }, 30000);
-</script>
-@endpush
 
+// ============================================================
+// 5. CONSOLE GREETING
+// ============================================================
+console.log('%c📊 EktaMart Admin Dashboard v2.0', 'color: #8b5cf6; font-size: 14px; font-weight: bold;');
+console.log('%c🚀 Real-time stats • Modern UI • Responsive', 'color: #6366f1; font-size: 12px;');
+</script>
 @endsection

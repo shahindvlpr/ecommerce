@@ -173,9 +173,35 @@
     top: 0;
     left: 0;
     z-index: 1000;
-    overflow-y: auto;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
+}
+
+/* ✅ Scrollable Body Container */
+.admin-sidebar {
+    overflow: hidden; /* Prevents body scroll */
+}
+
+/* ✅ Scrollbar Styling */
+.admin-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+.admin-sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+}
+.admin-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(83, 74, 183, 0.4);
+    border-radius: 4px;
+}
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(83, 74, 183, 0.6);
+}
+
+/* Firefox Scrollbar */
+.admin-sidebar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(83, 74, 183, 0.4) transparent;
 }
 
 /* ✅ Collapsed Sidebar */
@@ -227,11 +253,6 @@
     font-size: 1.2rem;
 }
 
-/* Scrollbar */
-.admin-sidebar::-webkit-scrollbar { width: 3px; }
-.admin-sidebar::-webkit-scrollbar-track { background: transparent; }
-.admin-sidebar::-webkit-scrollbar-thumb { background: rgba(83,74,183,0.4); border-radius: 3px; }
-
 /* ============================================================
    SIDEBAR COMPONENTS
 ============================================================ */
@@ -282,7 +303,15 @@
 .sb-admin-role { font-size: 10px; color: #7F77DD; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sb-online { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; margin-left: auto; flex-shrink: 0; }
 
-.sb-body { flex: 1; padding: .5rem 0; }
+/* ✅ Scrollable Body - FIXED */
+.sb-body {
+    flex: 1 1 auto;
+    padding: 0.5rem 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    max-height: calc(100vh - 220px);
+}
 
 .sb-section {
     padding: .6rem 1.25rem .2rem;
@@ -376,12 +405,47 @@
     .admin-sidebar {
         transform: translateX(-100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 280px;
     }
     .admin-sidebar.open {
         transform: translateX(0);
     }
     .main-content {
         margin-left: 0 !important;
+        padding-top: 56px;
+    }
+    .admin-sidebar.collapsed {
+        width: 280px;
+    }
+    .admin-sidebar.collapsed .sb-brand > div,
+    .admin-sidebar.collapsed .sb-admin > div,
+    .admin-sidebar.collapsed .sb-admin .sb-online,
+    .admin-sidebar.collapsed .sb-section,
+    .admin-sidebar.collapsed .sb-item span,
+    .admin-sidebar.collapsed .sb-badge,
+    .admin-sidebar.collapsed .sb-footer .sb-version,
+    .admin-sidebar.collapsed .sb-logout-btn span {
+        display: block;
+    }
+    .admin-sidebar.collapsed .sb-brand { padding: 1.1rem 1.25rem; justify-content: flex-start; }
+    .admin-sidebar.collapsed .sb-admin { padding: .85rem 1.25rem; justify-content: flex-start; }
+    .admin-sidebar.collapsed .sb-item { padding: 7px 1.25rem; justify-content: flex-start; }
+    .admin-sidebar.collapsed .sb-item i { font-size: 14px; width: 16px; }
+    .admin-sidebar.collapsed .sb-footer { text-align: left; }
+    .admin-sidebar.collapsed .sb-logout-btn { justify-content: flex-start; padding: 6px 0; }
+    .admin-sidebar.collapsed .sb-logout-btn i { font-size: 14px; }
+    
+    .sb-body {
+        max-height: calc(100vh - 200px);
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-sidebar {
+        width: 280px;
+    }
+    .sb-body {
+        max-height: calc(100vh - 190px);
     }
 }
 
@@ -451,6 +515,20 @@ function toggleMobileSidebar() {
         sidebar.classList.toggle('open');
     }
 }
+
+// ============================================================
+// CLOSE SIDEBAR ON OUTSIDE CLICK (Mobile)
+// ============================================================
+document.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('adminSidebar');
+    const toggleBtn = document.querySelector('.nb-toggle');
+    
+    if (window.innerWidth <= 992 && sidebar && sidebar.classList.contains('open')) {
+        if (!sidebar.contains(e.target) && !toggleBtn?.contains(e.target)) {
+            sidebar.classList.remove('open');
+        }
+    }
+});
 
 console.log('%c📁 EktaMart Admin Sidebar Loaded', 'color: #8b5cf6; font-size: 13px; font-weight: bold;');
 </script>

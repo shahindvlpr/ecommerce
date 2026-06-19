@@ -34,13 +34,10 @@ class UserController extends Controller
      * Display a listing of vendors only.
      */
     public function vendors()
-    {
-        $users = User::where('role', 'vendor')
-            ->latest()
-            ->paginate(10);
-        
-        return view('admin.vendors.index', compact('users'));
-    }
+{
+    $vendors = User::where('role', 'vendor')->latest()->paginate(10);
+    return view('admin.vendors.index', compact('vendors'));
+}
 
     /**
      * Show the form for creating a new user.
@@ -75,14 +72,19 @@ class UserController extends Controller
             ->with('success', 'User created successfully!');
     }
 
-    /**
-     * Display the specified user.
-     */
-    public function show(User $user)
-    {
-        return view('admin.users.show', compact('user'));
+/**
+ * Display the specified user.
+ */
+public function show(User $user)
+{
+    // If vendor, show vendor details
+    if ($user->role === 'vendor') {
+        return view('admin.vendors.show', compact('user'));
     }
-
+    
+    // For customers or other roles
+    return view('admin.users.show', compact('user'));
+}
     /**
      * Show the form for editing the specified user.
      */
@@ -248,4 +250,6 @@ class UserController extends Controller
 
         return redirect()->back()->with('success', 'Vendor approved successfully!');
     }
+
+    
 }

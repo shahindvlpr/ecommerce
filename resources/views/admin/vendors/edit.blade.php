@@ -1,18 +1,18 @@
 @extends('layouts.admin')
 
-@section('title', 'Create User - EktaMart Admin')
+@section('title', 'Edit Vendor - EktaMart Admin')
 
 @section('content')
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="fw-bold mb-0">
-                <i class="fas fa-user-plus text-primary me-2"></i>Create User
+                <i class="fas fa-store text-warning me-2"></i>Edit Vendor
             </h4>
-            <p class="text-muted small">Add a new user</p>
+            <p class="text-muted small">Update vendor information</p>
         </div>
-        <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back
+        <a href="{{ route('admin.vendors.index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Vendors
         </a>
     </div>
 
@@ -31,92 +31,92 @@
 
     <div class="card shadow-sm border-0 rounded-4">
         <div class="card-body">
-            <form action="{{ route('admin.users.store') }}" method="POST">
+            <form action="{{ route('admin.users.update', $user) }}" method="POST">
                 @csrf
+                @method('PUT')
 
                 <div class="row">
+                    <!-- Basic Info -->
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">Store Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
-                                   placeholder="Enter full name" value="{{ old('name') }}" required>
+                                   value="{{ old('name', $user->name) }}" required>
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
+
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Email Address <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
                             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
-                                   placeholder="Enter email address" value="{{ old('email') }}" required>
+                                   value="{{ old('email', $user->email) }}" required>
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
+
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Password <span class="text-danger">*</span></label>
-                            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" 
-                                   placeholder="Enter password" required>
-                            <small class="text-muted">Minimum 8 characters</small>
-                            @error('password')
+                            <label class="form-label fw-bold">Phone</label>
+                            <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" 
+                                   value="{{ old('phone', $user->phone ?? '') }}">
+                            @error('phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Confirm Password <span class="text-danger">*</span></label>
-                            <input type="password" name="password_confirmation" class="form-control" 
-                                   placeholder="Confirm password" required>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Role <span class="text-danger">*</span></label>
-                            <select name="role" class="form-control @error('role') is-invalid @enderror" required>
-                                <option value="">Select Role</option>
-                                <option value="customer" {{ old('role') == 'customer' ? 'selected' : '' }}>Customer</option>
-                                <option value="vendor" {{ old('role') == 'vendor' ? 'selected' : '' }}>Vendor</option>
-                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                            </select>
-                            @error('role')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
+
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Status</label>
                             <div class="form-check form-switch mt-2">
                                 <input type="checkbox" name="status" class="form-check-input" 
                                        id="statusSwitch" value="1" 
-                                       {{ old('status') !== '0' ? 'checked' : '' }}>
+                                       {{ old('status', $user->status) ? 'checked' : '' }}>
                                 <label class="form-check-label fw-semibold" for="statusSwitch">
-                                    <span id="statusLabel" class="badge bg-success">Active</span>
+                                    <span id="statusLabel" class="badge {{ $user->status ? 'bg-success' : 'bg-secondary' }}">
+                                        {{ $user->status ? 'Active' : 'Inactive' }}
+                                    </span>
                                 </label>
                             </div>
-                            <small class="text-muted">Inactive users won't be able to login</small>
                         </div>
                     </div>
+
+                    <!-- Vendor Specific Fields -->
                     <div class="col-md-12">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Phone Number</label>
-                            <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" 
-                                   placeholder="Enter phone number" value="{{ old('phone') }}">
-                            @error('phone')
+                            <label class="form-label fw-bold">Store Description</label>
+                            <textarea name="store_description" class="form-control @error('store_description') is-invalid @enderror" 
+                                      rows="3" placeholder="Describe your store">{{ old('store_description', $user->store_description ?? '') }}</textarea>
+                            @error('store_description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
+
                     <div class="col-md-12">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Address</label>
                             <textarea name="address" class="form-control @error('address') is-invalid @enderror" 
-                                      rows="3" placeholder="Enter full address">{{ old('address') }}</textarea>
+                                      rows="2" placeholder="Enter address">{{ old('address', $user->address ?? '') }}</textarea>
                             @error('address')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">New Password</label>
+                            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" 
+                                   placeholder="Leave empty to keep current password">
+                            <small class="text-muted">Minimum 8 characters. Leave empty to keep current password.</small>
+                            @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -126,12 +126,10 @@
                 <hr>
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-save me-2"></i> Create User
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Vendor
                     </button>
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-lg">
-                        Cancel
-                    </a>
+                    <a href="{{ route('admin.vendors.index') }}" class="btn btn-outline-secondary">Cancel</a>
                 </div>
             </form>
         </div>
@@ -150,17 +148,13 @@
         }
     });
 
-    console.log('%c👤 Create User Page Loaded', 'color: #8b5cf6; font-size: 13px; font-weight: bold;');
+    console.log('%c✏️ Edit Vendor Page Loaded', 'color: #f59e0b; font-size: 13px; font-weight: bold;');
 </script>
 
 <style>
     .form-check-input:checked {
         background-color: #8b5cf6;
         border-color: #8b5cf6;
-    }
-    .form-check-input:focus {
-        border-color: #8b5cf6;
-        box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25);
     }
 </style>
 @endsection

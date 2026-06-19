@@ -78,7 +78,7 @@
            MAIN CONTENT WRAPPER
         ============================================================ */
         .main-content {
-            margin-left: 280px;
+            margin-left: 240px;
             transition: var(--transition);
             min-height: 100vh;
             display: flex;
@@ -695,7 +695,7 @@
         <!-- ============================================================
              INCLUDE UNIVERSAL NAVBAR (Single Source of Truth)
         ============================================================ -->
-        @include('layouts.partials.navbar')
+        @include('layouts.admin.navbar')
         
         <!-- ============================================================
              PAGE CONTENT

@@ -11,12 +11,66 @@ use Illuminate\Support\Facades\Cache;
 class SettingController extends Controller
 {
     /**
-     * Display settings page.
+     * Display general settings page.
      */
     public function index()
     {
         $settings = $this->getSettings();
         return view('admin.settings.index', compact('settings'));
+    }
+
+    /**
+     * Display general settings page.
+     */
+    public function general()
+    {
+        $settings = $this->getSettings();
+        return view('admin.settings.general', compact('settings'));
+    }
+
+    /**
+     * Display payment settings page.
+     */
+    public function payment()
+    {
+        $settings = $this->getSettings();
+        return view('admin.settings.payment', compact('settings'));
+    }
+
+    /**
+     * Display shipping settings page.
+     */
+    public function shipping()
+    {
+        $settings = $this->getSettings();
+        return view('admin.settings.shipping', compact('settings'));
+    }
+
+    /**
+     * Display email settings page.
+     */
+    public function email()
+    {
+        $settings = $this->getSettings();
+        return view('admin.settings.email', compact('settings'));
+    }
+
+    /**
+     * Display SEO settings page.
+     */
+    public function seo()
+    {
+        $settings = $this->getSettings();
+        return view('admin.settings.seo', compact('settings'));
+    }
+
+    /**
+     * Display social settings page.
+     */
+    public function social()
+    {
+        $settings = $this->getSettings();
+        return view('admin.settings.social', compact('settings'));
     }
 
     /**
@@ -178,7 +232,6 @@ class SettingController extends Controller
      */
     public function createBackup()
     {
-        // Create backup logic
         return response()->json(['success' => true, 'message' => 'Backup created successfully!']);
     }
 
@@ -187,7 +240,6 @@ class SettingController extends Controller
      */
     public function downloadBackup($file)
     {
-        // Download backup file
         return redirect()->back()->with('info', 'Download feature coming soon!');
     }
 
@@ -196,7 +248,6 @@ class SettingController extends Controller
      */
     public function deleteBackup($file)
     {
-        // Delete backup file
         return redirect()->back()->with('success', 'Backup deleted successfully!');
     }
 
@@ -270,7 +321,6 @@ class SettingController extends Controller
 
     private function updateEnvFile(Request $request)
     {
-        // Update SSLCommerz settings in .env
         if ($request->has('ssl_store_id')) {
             $this->updateEnvValue('SSLCOMMERZ_STORE_ID', $request->ssl_store_id);
         }
@@ -326,7 +376,6 @@ class SettingController extends Controller
 
     private function getBackupFiles()
     {
-        // Get backup files from storage
         return [];
     }
 }

@@ -129,10 +129,10 @@
 
         {{-- System --}}
         <div class="sb-section">System</div>
-        <a href="{{ route('admin.settings.index') }}"
-           class="sb-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-            <i class="fas fa-cog"></i> Settings
-        </a>
+<a href="{{ route('admin.settings.general') }}"
+   class="sb-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+    <i class="fas fa-cog"></i> Settings
+</a>
         <a href="{{ route('admin.backup.index') }}"
            class="sb-item {{ request()->routeIs('admin.backup.*') ? 'active' : '' }}">
             <i class="fas fa-database"></i> Backup

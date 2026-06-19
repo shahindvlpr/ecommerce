@@ -145,9 +145,18 @@ Route::middleware(['auth', 'admin.access'])
     // SETTINGS
     // ============================================================
 
+// Settings
 Route::prefix('settings')->name('settings.')->group(function () {
+    // GET routes
     Route::get('/', [SettingController::class, 'index'])->name('index');
-    Route::get('/general', [SettingController::class, 'general'])->name('general'); 
+    Route::get('/general', [SettingController::class, 'general'])->name('general');
+    Route::get('/payment', [SettingController::class, 'payment'])->name('payment');
+    Route::get('/shipping', [SettingController::class, 'shipping'])->name('shipping');
+    Route::get('/email', [SettingController::class, 'email'])->name('email');
+    Route::get('/seo', [SettingController::class, 'seo'])->name('seo');
+    Route::get('/social', [SettingController::class, 'social'])->name('social');
+    
+    // POST routes
     Route::post('/general', [SettingController::class, 'updateGeneral'])->name('general');
     Route::post('/payment', [SettingController::class, 'updatePayment'])->name('payment');
     Route::post('/shipping', [SettingController::class, 'updateShipping'])->name('shipping');

@@ -67,31 +67,24 @@
             <i class="fas fa-tag"></i> Attribute Values
         </a>
 
-        {{-- Sales --}}
-        <div class="sb-section">Sales</div>
-        <a href="{{ route('admin.orders.index') }}"
-           class="sb-item {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-            <i class="fas fa-shopping-bag"></i> Orders
-            @php $pendingOrders = \App\Models\Order::where('status', 'pending')->count(); @endphp
-            @if($pendingOrders > 0)
-                <span class="sb-badge red">{{ $pendingOrders }}</span>
-            @endif
-        </a>
-        <a href="{{ route('admin.orders.index') }}"
-           class="sb-item">
-            <i class="fas fa-credit-card"></i> Payments
-        </a>
-
-        {{-- Marketing --}}
-        <div class="sb-section">Marketing</div>
-        <a href="{{ route('admin.coupons.index') }}"
-           class="sb-item {{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
-            <i class="fas fa-ticket-alt"></i> Coupons
-        </a>
-        <a href="{{ route('admin.banners.index') }}"
-           class="sb-item {{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
-            <i class="fas fa-image"></i> Banners
-        </a>
+{{-- Sales --}}
+<div class="sb-section">Sales</div>
+<a href="{{ route('admin.orders.index') }}"
+   class="sb-item {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+    <i class="fas fa-shopping-bag"></i> Orders
+    @php $pendingOrders = \App\Models\Order::where('status', 'pending')->count(); @endphp
+    @if($pendingOrders > 0)
+        <span class="sb-badge red">{{ $pendingOrders }}</span>
+    @endif
+</a>
+<a href="{{ route('admin.payments.index') }}"
+   class="sb-item {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
+    <i class="fas fa-credit-card"></i> Payments
+    @php $pendingPayments = \App\Models\Payment::where('status', 'pending')->count(); @endphp
+    @if($pendingPayments > 0)
+        <span class="sb-badge amber">{{ $pendingPayments }}</span>
+    @endif
+</a>
 
         {{-- Users --}}
         <div class="sb-section">Users</div>

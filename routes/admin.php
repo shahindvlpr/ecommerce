@@ -12,7 +12,8 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\AttributeController;
+use App\Http\Controllers\Admin\AttributeController;
+use App\Http\Controllers\Admin\PaymentController;  // ✅ সঠিক namespace
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin.access'])
@@ -20,28 +21,48 @@ Route::middleware(['auth', 'admin.access'])
     ->name('admin.')
     ->group(function () {
 
-    // Dashboard
+    // ============================================================
+    // DASHBOARD
+    // ============================================================
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/analytics', [DashboardController::class, 'analytics'])->name('analytics');
     Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
-    
 
-    // Categories
+    // ============================================================
+    // CATEGORIES
+    // ============================================================
     Route::resource('categories', CategoryController::class);
     Route::post('/categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('categories.toggle-status');
 
-    // Brands
+    // ============================================================
+    // BRANDS
+    // ============================================================
     Route::resource('brands', BrandController::class);
     Route::post('/brands/{brand}/toggle-status', [BrandController::class, 'toggleStatus'])->name('brands.toggle-status');
 
-    // Products
+    // ============================================================
+    // PRODUCTS
+    // ============================================================
     Route::resource('products', ProductController::class);
     Route::post('/products/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
     Route::post('/products/{product}/toggle-featured', [ProductController::class, 'toggleFeatured'])->name('products.toggle-featured');
     Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel');
     Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
 
-    // Orders
+    // ============================================================
+    // ATTRIBUTES
+    // ============================================================
+    Route::resource('attributes', AttributeController::class);
+    Route::post('/attributes/{attribute}/toggle-status', [AttributeController::class, 'toggleStatus'])->name('attributes.toggle-status');
+
+    // ============================================================
+    // ATTRIBUTE VALUES
+    // ============================================================
+    Route::resource('attribute-values', AttributeValueController::class);
+
+    // ============================================================
+    // ORDERS
+    // ============================================================
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/pending', [OrderController::class, 'pending'])->name('pending');
@@ -54,12 +75,30 @@ Route::middleware(['auth', 'admin.access'])
         Route::get('/export/excel', [OrderController::class, 'exportExcel'])->name('export.excel');
     });
 
-    // Users
+    // ============================================================
+    // ✅ PAYMENTS (সঠিকভাবে)
+    // ============================================================
+    Route::prefix('payments')->name('payments.')->group(function () {
+        Route::get('/', [PaymentController::class, 'index'])->name('index');
+        Route::get('/pending', [PaymentController::class, 'pending'])->name('pending');
+        Route::get('/paid', [PaymentController::class, 'paid'])->name('paid');
+        Route::get('/failed', [PaymentController::class, 'failed'])->name('failed');
+        Route::get('/refunded', [PaymentController::class, 'refunded'])->name('refunded');
+        Route::get('/{payment}', [PaymentController::class, 'show'])->name('show');
+        Route::post('/{payment}/status', [PaymentController::class, 'updateStatus'])->name('update-status');
+        Route::get('/export/excel', [PaymentController::class, 'exportExcel'])->name('export.excel');
+    });
+
+    // ============================================================
+    // USERS
+    // ============================================================
     Route::resource('users', UserController::class);
     Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
     Route::post('/users/{user}/change-role', [UserController::class, 'changeRole'])->name('users.change-role');
 
-    // Vendors
+    // ============================================================
+    // VENDORS
+    // ============================================================
     Route::prefix('vendors')->name('vendors.')->group(function () {
         Route::get('/', [UserController::class, 'vendors'])->name('index');
         Route::get('/{user}', [UserController::class, 'show'])->name('show');
@@ -67,15 +106,21 @@ Route::middleware(['auth', 'admin.access'])
         Route::get('/{user}/products', [UserController::class, 'vendorProducts'])->name('products');
     });
 
-    // Coupons
+    // ============================================================
+    // COUPONS
+    // ============================================================
     Route::resource('coupons', CouponController::class);
     Route::post('/coupons/{coupon}/toggle-status', [CouponController::class, 'toggleStatus'])->name('coupons.toggle-status');
 
-    // Banners
+    // ============================================================
+    // BANNERS
+    // ============================================================
     Route::resource('banners', BannerController::class);
     Route::post('/banners/{banner}/toggle-status', [BannerController::class, 'toggleStatus'])->name('banners.toggle-status');
 
-    // Reviews
+    // ============================================================
+    // REVIEWS
+    // ============================================================
     Route::prefix('reviews')->name('reviews.')->group(function () {
         Route::get('/', [ReviewController::class, 'index'])->name('index');
         Route::get('/pending', [ReviewController::class, 'pending'])->name('pending');
@@ -84,7 +129,9 @@ Route::middleware(['auth', 'admin.access'])
         Route::delete('/{review}', [ReviewController::class, 'destroy'])->name('destroy');
     });
 
-    // Reports
+    // ============================================================
+    // REPORTS
+    // ============================================================
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/sales', [ReportController::class, 'sales'])->name('sales');
         Route::get('/products', [ReportController::class, 'products'])->name('products');
@@ -94,7 +141,9 @@ Route::middleware(['auth', 'admin.access'])
         Route::get('/export/sales', [ReportController::class, 'exportSales'])->name('export.sales');
     });
 
-    // Settings
+    // ============================================================
+    // SETTINGS
+    // ============================================================
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/', [SettingController::class, 'index'])->name('index');
         Route::post('/general', [SettingController::class, 'updateGeneral'])->name('general');
@@ -105,19 +154,45 @@ Route::middleware(['auth', 'admin.access'])
         Route::post('/clear-cache', [SettingController::class, 'clearCache'])->name('clear-cache');
     });
 
-    // Notifications
+    // ============================================================
+    // NOTIFICATIONS
+    // ============================================================
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [DashboardController::class, 'notifications'])->name('index');
         Route::post('/{id}/read', [DashboardController::class, 'markAsRead'])->name('read');
         Route::post('/read-all', [DashboardController::class, 'markAllAsRead'])->name('read-all');
     });
 
-    // Attributes
-Route::resource('attributes', AttributeController::class);
-Route::post('/attributes/{attribute}/toggle-status', [AttributeController::class, 'toggleStatus'])->name('attributes.toggle-status');
 
-// Attribute Values
-Route::resource('attribute-values', AttributeValueController::class);
+// Users
+Route::resource('users', UserController::class);
+Route::post('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
+Route::post('/users/{user}/change-role', [UserController::class, 'changeRole'])->name('users.change-role');
+
+// Customers (জন্য আলাদা Route)
+Route::prefix('customers')->name('customers.')->group(function () {
+    Route::get('/', [UserController::class, 'customers'])->name('index');
+    Route::get('/{user}', [UserController::class, 'show'])->name('show');
+    Route::get('/{user}/orders', [UserController::class, 'customerOrders'])->name('orders');
+});
+
+// Vendors (জন্য আলাদা Route)
+Route::prefix('vendors')->name('vendors.')->group(function () {
+    Route::get('/', [UserController::class, 'vendors'])->name('index');
+    Route::get('/{user}', [UserController::class, 'show'])->name('show');
+    Route::post('/{user}/approve', [UserController::class, 'approveVendor'])->name('approve');
+    Route::get('/{user}/products', [UserController::class, 'vendorProducts'])->name('products');
+});
+
+
+
+
+
+
+
+
+
+
 
 
 });

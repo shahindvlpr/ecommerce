@@ -570,3 +570,13 @@ Route::prefix('payment/sslcommerz')->name('sslcommerz.')->group(function () {
 
 Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [HomeController::class, 'robots'])->name('robots');
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes (Included from admin.php)
+|--------------------------------------------------------------------------
+*/
+
+require __DIR__ . '/admin.php';

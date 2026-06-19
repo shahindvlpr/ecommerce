@@ -4,9 +4,22 @@
 
 @section('content')
 <div class="container-fluid px-4">
-    <h4 class="fw-bold mb-4">
-        <i class="fas fa-users text-primary me-2"></i>Users
-    </h4>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">
+                <i class="fas fa-users text-primary me-2"></i>Users
+            </h4>
+            <p class="text-muted small">Manage all users</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.users.export.excel') }}" class="btn btn-success btn-sm">
+                <i class="fas fa-file-excel"></i> Export
+            </a>
+            <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add User
+            </a>
+        </div>
+    </div>
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -52,18 +65,20 @@
                             </td>
                             <td>{{ $user->created_at->format('d M Y') }}</td>
                             <td class="text-end pe-3">
-                                <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-warning">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                @if($user->role !== 'admin')
-                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                @endif
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    @if($user->role !== 'admin')
+                                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                         @empty

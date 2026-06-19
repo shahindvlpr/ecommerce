@@ -3,63 +3,90 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attribute;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class AttributeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $attributes = Attribute::withCount('values')->latest()->paginate(10);
+        return view('admin.attributes.index', compact('attributes'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('admin.attributes.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255|unique:attributes',
+            'type' => 'required|in:text,select,color,size',
+            'status' => 'nullable|boolean',
+        ]);
+
+        $slug = Str::slug($request->name);
+
+        Attribute::create([
+            'name' => $request->name,
+            'slug' => $slug,
+            'type' => $request->type,
+            'status' => $request->has('status'),
+        ]);
+
+        return redirect()->route('admin.attributes.index')
+            ->with('success', 'Attribute created successfully!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Attribute $attribute)
     {
-        //
+        $attribute->load('values');
+        return view('admin.attributes.show', compact('attribute'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function edit(Attribute $attribute)
     {
-        //
+        return view('admin.attributes.edit', compact('attribute'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Attribute $attribute)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255|unique:attributes,name,' . $attribute->id,
+            'type' => 'required|in:text,select,color,size',
+            'status' => 'nullable|boolean',
+        ]);
+
+        $slug = Str::slug($request->name);
+
+        $attribute->update([
+            'name' => $request->name,
+            'slug' => $slug,
+            'type' => $request->type,
+            'status' => $request->has('status'),
+        ]);
+
+        return redirect()->route('admin.attributes.index')
+            ->with('success', 'Attribute updated successfully!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(Attribute $attribute)
     {
-        //
+        $attribute->delete();
+
+        return redirect()->route('admin.attributes.index')
+            ->with('success', 'Attribute deleted successfully!');
+    }
+
+    public function toggleStatus(Attribute $attribute)
+    {
+        $attribute->status = !$attribute->status;
+        $attribute->save();
+
+        return redirect()->back()
+            ->with('success', 'Attribute status updated successfully!');
     }
 }

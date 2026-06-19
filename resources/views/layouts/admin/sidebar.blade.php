@@ -61,6 +61,11 @@
            class="sb-item {{ request()->routeIs('admin.attributes.*') ? 'active' : '' }}">
             <i class="fas fa-list-check"></i> Attributes
         </a>
+        <a href="{{ route('admin.attribute-values.index') }}"
+        class="sb-item {{ request()->routeIs('admin.attribute-values.*') ? 'active' : '' }}"
+        style="padding-left: 2rem;">
+            <i class="fas fa-tag"></i> Attribute Values
+        </a>
 
         {{-- Sales --}}
         <div class="sb-section">Sales</div>

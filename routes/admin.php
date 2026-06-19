@@ -1,17 +1,19 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\BrandController;
-use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Admin\OrderController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\BannerController;
-use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AttributeController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin.access'])
     ->prefix('admin')
@@ -109,4 +111,13 @@ Route::middleware(['auth', 'admin.access'])
         Route::post('/{id}/read', [DashboardController::class, 'markAsRead'])->name('read');
         Route::post('/read-all', [DashboardController::class, 'markAllAsRead'])->name('read-all');
     });
+
+    // Attributes
+Route::resource('attributes', AttributeController::class);
+Route::post('/attributes/{attribute}/toggle-status', [AttributeController::class, 'toggleStatus'])->name('attributes.toggle-status');
+
+// Attribute Values
+Route::resource('attribute-values', AttributeValueController::class);
+
+
 });

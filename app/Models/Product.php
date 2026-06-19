@@ -413,4 +413,25 @@ class Product extends Model
     {
         $this->increment('views');
     }
+
+
+
+    /**
+ * Get the attributes for this product.
+ */
+public function attributes()
+{
+    return $this->belongsToMany(Attribute::class, 'product_attributes')
+        ->withPivot('value')
+        ->withTimestamps();
+}
+
+/**
+ * Get the attribute values for this product.
+ */
+public function attributeValues()
+{
+    return $this->belongsToMany(AttributeValue::class, 'product_attributes', 'product_id', 'attribute_value_id')
+        ->withTimestamps();
+}
 }

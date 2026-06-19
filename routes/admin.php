@@ -144,15 +144,18 @@ Route::middleware(['auth', 'admin.access'])
     // ============================================================
     // SETTINGS
     // ============================================================
-    Route::prefix('settings')->name('settings.')->group(function () {
-        Route::get('/', [SettingController::class, 'index'])->name('index');
-        Route::post('/general', [SettingController::class, 'updateGeneral'])->name('general');
-        Route::post('/payment', [SettingController::class, 'updatePayment'])->name('payment');
-        Route::post('/shipping', [SettingController::class, 'updateShipping'])->name('shipping');
-        Route::post('/email', [SettingController::class, 'updateEmail'])->name('email');
-        Route::post('/seo', [SettingController::class, 'updateSeo'])->name('seo');
-        Route::post('/clear-cache', [SettingController::class, 'clearCache'])->name('clear-cache');
-    });
+
+Route::prefix('settings')->name('settings.')->group(function () {
+    Route::get('/', [SettingController::class, 'index'])->name('index');
+    Route::get('/general', [SettingController::class, 'general'])->name('general'); 
+    Route::post('/general', [SettingController::class, 'updateGeneral'])->name('general');
+    Route::post('/payment', [SettingController::class, 'updatePayment'])->name('payment');
+    Route::post('/shipping', [SettingController::class, 'updateShipping'])->name('shipping');
+    Route::post('/email', [SettingController::class, 'updateEmail'])->name('email');
+    Route::post('/seo', [SettingController::class, 'updateSeo'])->name('seo');
+    Route::post('/social', [SettingController::class, 'updateSocial'])->name('social');
+    Route::post('/clear-cache', [SettingController::class, 'clearCache'])->name('clear-cache');
+});
 
     // ============================================================
     // NOTIFICATIONS

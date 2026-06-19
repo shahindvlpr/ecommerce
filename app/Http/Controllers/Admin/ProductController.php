@@ -3,118 +3,216 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-
-use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
     /**
+     * Display a listing of products.
+     */
+    public function index()
+    {
+        $products = Product::with(['category', 'brand'])
+            ->latest()
+            ->paginate(10);
+            
+        return view('admin.products.index', compact('products'));
+    }
+
+    /**
+     * Show the form for creating a new product.
+     */
+    public function create()
+    {
+        $categories = Category::where('status', true)->get();
+        $brands = Brand::where('status', true)->get();
+        
+        return view('admin.products.create', compact('categories', 'brands'));
+    }
+
+    /**
+     * Store a newly created product.
+     */
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'slug' => 'nullable|string|max:255|unique:products',
+        'category_id' => 'required|exists:categories,id',
+        'brand_id' => 'nullable|exists:brands,id',
+        'price' => 'required|numeric|min:0',
+        'sale_price' => 'nullable|numeric|min:0',
+        'stock' => 'required|integer|min:0',
+        'sku' => 'nullable|string|max:100|unique:products',
+        'short_description' => 'nullable|string|max:500',
+        'description' => 'nullable|string',
+        'thumbnail' => 'nullable|image|max:2048',
+        'status' => 'nullable|boolean',
+        'featured' => 'nullable|boolean',
+        'trending' => 'nullable|boolean',
+    ]);
+
+    $slug = $request->slug ?? Str::slug($request->name);
+
+    // Handle thumbnail upload
+    $thumbnailPath = null;
+    if ($request->hasFile('thumbnail')) {
+        $thumbnailPath = $request->file('thumbnail')->store('products', 'public');
+    }
+
+    Product::create([
+        'name' => $request->name,
+        'slug' => $slug,
+        'category_id' => $request->category_id,
+        'brand_id' => $request->brand_id,
+        'price' => $request->price,
+        'sale_price' => $request->sale_price,
+        'stock' => $request->stock,
+        'sku' => $request->sku,
+        'short_description' => $request->short_description,
+        'description' => $request->description,
+        'thumbnail' => $thumbnailPath,
+        'status' => $request->has('status'),
+        'featured' => $request->has('featured'),
+        'trending' => $request->has('trending'),
+    ]);
+
+    return redirect()->route('admin.products.index')
+        ->with('success', 'Product created successfully!');
+}
+
+    /**
      * Display the specified product.
      */
-    public function show($slug)
+    public function show(Product $product)
     {
-        // Find product by slug with relationships
-        $product = Product::where('slug', $slug)
-            ->where('status', true)
-            ->with(['category', 'brand', 'images', 'variations', 'reviews' => function($query) {
-                $query->where('is_approved', true);
-            }])
-            ->firstOrFail();
-
-        // Increment view count
-        $product->incrementViews();
-
-        // Get related products (same category)
-        $relatedProducts = Product::where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
-            ->where('status', true)
-            ->inStock()
-            ->limit(4)
-            ->get();
-
-        // Get product rating distribution
-        $ratingDistribution = [
-            1 => 0,
-            2 => 0,
-            3 => 0,
-            4 => 0,
-            5 => 0,
-        ];
-        
-        if ($product->reviews) {
-            foreach ($product->reviews as $review) {
-                if (isset($ratingDistribution[$review->rating])) {
-                    $ratingDistribution[$review->rating]++;
-                }
-            }
-        }
-
-        // Calculate review percentages
-        $totalReviews = $product->reviews_count ?? 0;
-        $reviewPercentages = [];
-        if ($totalReviews > 0) {
-            for ($i = 5; $i >= 1; $i--) {
-                $reviewPercentages[$i] = round(($ratingDistribution[$i] / $totalReviews) * 100);
-            }
-        }
-
-        // Check if product is in wishlist (if user is logged in)
-        $inWishlist = false;
-        if (auth()->check()) {
-            $inWishlist = \App\Models\Wishlist::where('user_id', auth()->id())
-                ->where('product_id', $product->id)
-                ->exists();
-        }
-
-        return view('frontend.product.show', compact(
-            'product',
-            'relatedProducts',
-            'ratingDistribution',
-            'reviewPercentages',
-            'totalReviews',
-            'inWishlist'
-        ));
+        return view('admin.products.show', compact('product'));
     }
 
     /**
-     * Search products.
+     * Show the form for editing the specified product.
      */
-    public function search(Request $request)
+    public function edit(Product $product)
     {
-        $query = $request->get('q');
+        $categories = Category::where('status', true)->get();
+        $brands = Brand::where('status', true)->get();
         
-        $products = Product::where('status', true)
-            ->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('short_description', 'like', "%{$query}%")
-                  ->orWhere('description', 'like', "%{$query}%")
-                  ->orWhere('sku', 'like', "%{$query}%");
-            })
-            ->with(['category', 'brand'])
-            ->paginate(15);
-
-        return view('frontend.shop.index', compact('products'));
+        return view('admin.products.edit', compact('product', 'categories', 'brands'));
     }
 
     /**
-     * AJAX search for products.
+     * Update the specified product.
      */
-    public function ajaxSearch(Request $request)
+    public function update(Request $request, Product $product)
     {
-        $query = $request->get('q');
-        
-        if (strlen($query) < 2) {
-            return response()->json([]);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:products,slug,' . $product->id,
+            'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
+            'price' => 'required|numeric|min:0',
+            'sale_price' => 'nullable|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'sku' => 'nullable|string|max:100|unique:products,sku,' . $product->id,
+            'short_description' => 'nullable|string|max:500',
+            'description' => 'nullable|string',
+            'thumbnail' => 'nullable|image|max:2048',
+            'status' => 'nullable|boolean',
+            'featured' => 'nullable|boolean',
+            'trending' => 'nullable|boolean',
+        ]);
+
+        $slug = $request->slug ?? Str::slug($request->name);
+
+        // Handle thumbnail upload
+        if ($request->hasFile('thumbnail')) {
+            if ($product->thumbnail) {
+                Storage::disk('public')->delete($product->thumbnail);
+            }
+            $thumbnailPath = $request->file('thumbnail')->store('products', 'public');
+            $product->thumbnail = $thumbnailPath;
         }
 
-        $products = Product::where('status', true)
-            ->where('name', 'like', "%{$query}%")
-            ->limit(10)
-            ->get(['id', 'name', 'slug', 'price', 'thumbnail']);
+        $product->update([
+            'name' => $request->name,
+            'slug' => $slug,
+            'category_id' => $request->category_id,
+            'brand_id' => $request->brand_id,
+            'price' => $request->price,
+            'sale_price' => $request->sale_price,
+            'stock' => $request->stock,
+            'sku' => $request->sku,
+            'short_description' => $request->short_description,
+            'description' => $request->description,
+            'status' => $request->has('status'),
+            'featured' => $request->has('featured'),
+            'trending' => $request->has('trending'),
+        ]);
 
-        return response()->json($products);
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Product updated successfully!');
+    }
+
+    /**
+     * Remove the specified product.
+     */
+    public function destroy(Product $product)
+    {
+        // Delete thumbnail
+        if ($product->thumbnail) {
+            Storage::disk('public')->delete($product->thumbnail);
+        }
+        
+        $product->delete();
+
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Product deleted successfully!');
+    }
+
+    /**
+     * Toggle product status.
+     */
+    public function toggleStatus(Product $product)
+    {
+        $product->status = !$product->status;
+        $product->save();
+
+        return redirect()->back()
+            ->with('success', 'Product status updated successfully!');
+    }
+
+    /**
+     * Toggle product featured.
+     */
+    public function toggleFeatured(Product $product)
+    {
+        $product->featured = !$product->featured;
+        $product->save();
+
+        return redirect()->back()
+            ->with('success', 'Product featured status updated successfully!');
+    }
+
+    /**
+     * Export products to Excel.
+     */
+    public function exportExcel()
+    {
+        // Implement Excel export
+        return redirect()->back()->with('info', 'Export feature coming soon!');
+    }
+
+    /**
+     * Import products from Excel.
+     */
+    public function import(Request $request)
+    {
+        // Implement Excel import
+        return redirect()->back()->with('info', 'Import feature coming soon!');
     }
 }

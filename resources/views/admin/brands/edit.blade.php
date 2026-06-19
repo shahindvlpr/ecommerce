@@ -5,11 +5,14 @@
 @section('content')
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold">
-            <i class="fas fa-edit text-warning me-2"></i>Edit Brand
-        </h4>
+        <div>
+            <h4 class="fw-bold mb-0">
+                <i class="fas fa-edit text-warning me-2"></i>Edit Brand
+            </h4>
+            <p class="text-muted small">Update brand information</p>
+        </div>
         <a href="{{ route('admin.brands.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back
+            <i class="fas fa-arrow-left"></i> Back to Brands
         </a>
     </div>
 
@@ -32,26 +35,27 @@
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Logo</label>
-                            @if($brand->logo)
-                                <div class="mb-2">
-                                    <img src="{{ asset('storage/' . $brand->logo) }}" alt="{{ $brand->name }}" width="80" height="80" style="object-fit:contain;">
-                                </div>
-                            @endif
-                            <input type="file" name="logo" class="form-control @error('logo') is-invalid @enderror" accept="image/*">
-                            <small class="text-muted">Leave empty to keep current logo</small>
-                            @error('logo')
+                            <label class="form-label fw-bold">Slug</label>
+                            <input type="text" name="slug" class="form-control @error('slug') is-invalid @enderror" 
+                                   placeholder="auto-generated from name" value="{{ old('slug', $brand->slug) }}">
+                            <small class="text-muted">Leave empty to auto-generate</small>
+                            @error('slug')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Slug</label>
-                            <input type="text" name="slug" class="form-control @error('slug') is-invalid @enderror" 
-                                   placeholder="auto-generated from name" value="{{ old('slug', $brand->slug) }}">
-                            <small class="text-muted">Leave empty to auto-generate</small>
-                            @error('slug')
+                            <label class="form-label fw-bold">Logo</label>
+                            @if($brand->logo)
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . $brand->logo) }}" alt="{{ $brand->name }}" 
+                                         style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                </div>
+                            @endif
+                            <input type="file" name="logo" class="form-control @error('logo') is-invalid @enderror" accept="image/*">
+                            <small class="text-muted">Leave empty to keep current logo</small>
+                            @error('logo')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -79,6 +83,8 @@
                         </div>
                     </div>
                 </div>
+
+                <hr>
 
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">

@@ -22,6 +22,7 @@ Route::middleware(['auth', 'admin.access'])
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/analytics', [DashboardController::class, 'analytics'])->name('analytics');
     Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
+    
 
     // Categories
     Route::resource('categories', CategoryController::class);

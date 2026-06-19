@@ -4,14 +4,9 @@
 
 @section('content')
 <div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold">
-            <i class="fas fa-exclamation-triangle text-warning me-2"></i>Low Stock Products
-        </h4>
-        <a href="{{ route('admin.reports.products') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Reports
-        </a>
-    </div>
+    <h4 class="fw-bold mb-4">
+        <i class="fas fa-exclamation-triangle text-warning me-2"></i>Low Stock Products
+    </h4>
 
     @if($products->count() > 0)
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -22,9 +17,9 @@
     @endif
 
     <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover mb-0">
                     <thead class="bg-light">
                         <tr>
                             <th>#</th>
@@ -42,9 +37,10 @@
                             <td>{{ $loop->iteration }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <img src="{{ $product->thumbnail_url }}" alt="{{ $product->name }}" 
-                                         width="40" height="40" style="object-fit:cover; border-radius:8px;">
-                                    {{ $product->name }}
+                                    <img src="{{ $product->thumbnail_url ?? asset('images/default-product.png') }}" 
+                                         alt="{{ $product->name }}" 
+                                         style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;">
+                                    <span>{{ $product->name }}</span>
                                 </div>
                             </td>
                             <td>{{ $product->category->name ?? 'N/A' }}</td>
@@ -67,7 +63,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-3">
                                 <i class="fas fa-check-circle fa-2x text-success d-block mb-2"></i>
                                 All products have sufficient stock!
                             </td>

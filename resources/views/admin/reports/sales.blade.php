@@ -4,66 +4,110 @@
 
 @section('content')
 <div class="container-fluid px-4">
-    <h4 class="fw-bold mb-4">
-        <i class="fas fa-chart-line text-primary me-2"></i>Sales Report
-    </h4>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">
+                <i class="fas fa-chart-line text-primary me-2"></i>Sales Report
+            </h4>
+            <p class="text-muted small">View sales performance</p>
+        </div>
+        <a href="{{ route('admin.reports.export.sales') }}" class="btn btn-success btn-sm">
+            <i class="fas fa-file-excel"></i> Export Report
+        </a>
+    </div>
 
-    <div class="row g-4 mb-4">
+    {{-- Stats Cards --}}
+    <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h6 class="text-muted">Total Revenue</h6>
-                    <h3 class="fw-bold">${{ number_format(\App\Models\Order::where('status', 'delivered')->sum('total') ?? 0, 2) }}</h3>
+                <div class="card-body text-center">
+                    <h6 class="text-muted small">Total Revenue</h6>
+                    <h3 class="fw-bold text-success">${{ number_format($totalRevenue, 2) }}</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h6 class="text-muted">Total Orders</h6>
-                    <h3 class="fw-bold">{{ \App\Models\Order::where('status', 'delivered')->count() }}</h3>
+                <div class="card-body text-center">
+                    <h6 class="text-muted small">Total Orders</h6>
+                    <h3 class="fw-bold">{{ $totalOrders }}</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h6 class="text-muted">Average Order</h6>
-                    <h3 class="fw-bold">
-                        ${{ number_format(\App\Models\Order::where('status', 'delivered')->avg('total') ?? 0, 2) }}
-                    </h3>
+                <div class="card-body text-center">
+                    <h6 class="text-muted small">Average Order Value</h6>
+                    <h3 class="fw-bold">${{ number_format($averageOrderValue, 2) }}</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card shadow-sm border-0 rounded-4">
-                <div class="card-body">
-                    <h6 class="text-muted">This Month</h6>
-                    <h3 class="fw-bold">
-                        ${{ number_format(\App\Models\Order::where('status', 'delivered')->whereMonth('created_at', now()->month)->sum('total') ?? 0, 2) }}
-                    </h3>
+                <div class="card-body text-center">
+                    <h6 class="text-muted small">Date Range</h6>
+                    <h6 class="fw-bold">{{ $startDate }} to {{ $endDate }}</h6>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 rounded-4">
+    {{-- Chart --}}
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
         <div class="card-body">
-            <h5 class="fw-bold mb-3">Sales Chart</h5>
+            <h6 class="fw-bold mb-3">Sales Chart</h6>
             <canvas id="salesChart" height="300"></canvas>
+        </div>
+    </div>
+
+    {{-- Top Products --}}
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header bg-transparent border-0 pt-3">
+            <h6 class="fw-bold">Top Selling Products</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>Total Sold</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($topProducts as $product)
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $product->name }}</td>
+                            <td>{{ $product->total_sold }}</td>
+                            <td class="fw-bold">${{ number_format($product->total_revenue, 2) }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">No data available</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    new Chart(document.getElementById('salesChart').getContext('2d'), {
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const salesData = @json($salesData);
+    
+    new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            labels: salesData.map(item => item.date),
             datasets: [{
-                label: 'Sales ($)',
-                data: [10000, 13000, 15000, 12000, 18000, 22000, 25000, 23000, 28000, 32000, 35000, 40000],
+                label: 'Revenue ($)',
+                data: salesData.map(item => item.total_revenue),
                 borderColor: '#8b5cf6',
                 backgroundColor: 'rgba(139,92,246,0.1)',
                 fill: true,
@@ -72,7 +116,10 @@
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false }
+            }
         }
     });
 </script>

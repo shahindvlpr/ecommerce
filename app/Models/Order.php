@@ -43,6 +43,7 @@ class Order extends Model
         'postal_code',    
         'country',        
         'payment_method', 
+        'payment_status',
     ];
 
     protected $casts = [
@@ -53,6 +54,8 @@ class Order extends Model
         'total' => 'decimal:2',
         'meta_data' => 'array',
     ];
+
+
 
     const STATUS_PENDING = 'pending';
     const STATUS_PROCESSING = 'processing';

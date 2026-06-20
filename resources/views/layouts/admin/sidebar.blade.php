@@ -1,404 +1,477 @@
-
 {{-- resources/views/layouts/admin/sidebar.blade.php --}}
 
 <div class="admin-sidebar" id="adminSidebar">
-
-    {{-- Brand --}}
-    <div class="sb-brand">
-        <div class="sb-logo">
+    {{-- Brand Logo --}}
+    <div class="sidebar-brand">
+        <div class="brand-icon">
             <i class="fas fa-crown"></i>
         </div>
-        <div>
-            <div class="sb-name">EktaMart</div>
-            <div class="sb-tag">Admin Panel</div>
+        <div class="brand-text">
+            <span class="brand-name">EktaMart</span>
+            <span class="brand-tag">Admin Panel</span>
         </div>
     </div>
 
-    {{-- Admin Info --}}
-    <div class="sb-admin">
-        <div class="sb-avatar">
+    {{-- User Info --}}
+    <div class="sidebar-user">
+        <div class="user-avatar">
             {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
         </div>
-        <div style="flex:1;min-width:0">
-            <div class="sb-admin-name">{{ Str::limit(Auth::user()->name, 16) }}</div>
-            <div class="sb-admin-role">{{ Auth::user()->email }}</div>
+        <div class="user-info">
+            <div class="user-name">{{ Str::limit(Auth::user()->name, 16) }}</div>
+            <div class="user-role">Super Admin</div>
         </div>
-        <div class="sb-online" title="Online"></div>
+        <div class="user-status"></div>
     </div>
 
     {{-- Navigation --}}
-    <div class="sb-body">
-
-        {{-- Main --}}
-        <div class="sb-section">Main</div>
+    <nav class="sidebar-nav">
+        <div class="nav-section">Main</div>
         <a href="{{ route('admin.dashboard') }}"
-           class="sb-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-            <i class="fas fa-th-large"></i> Dashboard
+           class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+            <i class="fas fa-th-large"></i>
+            <span>Dashboard</span>
         </a>
         <a href="{{ route('admin.analytics') }}"
-           class="sb-item {{ request()->routeIs('admin.analytics') ? 'active' : '' }}">
-            <i class="fas fa-chart-bar"></i> Analytics
+           class="nav-link {{ request()->routeIs('admin.analytics') ? 'active' : '' }}">
+            <i class="fas fa-chart-bar"></i>
+            <span>Analytics</span>
         </a>
 
-        {{-- Catalogue --}}
-        <div class="sb-section">Catalogue</div>
+        <div class="nav-section">Catalog</div>
         <a href="{{ route('admin.categories.index') }}"
-           class="sb-item {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-            <i class="fas fa-layer-group"></i> Categories
+           class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+            <i class="fas fa-layer-group"></i>
+            <span>Categories</span>
         </a>
         <a href="{{ route('admin.brands.index') }}"
-           class="sb-item {{ request()->routeIs('admin.brands.*') ? 'active' : '' }}">
-            <i class="fas fa-tag"></i> Brands
+           class="nav-link {{ request()->routeIs('admin.brands.*') ? 'active' : '' }}">
+            <i class="fas fa-tag"></i>
+            <span>Brands</span>
         </a>
         <a href="{{ route('admin.products.index') }}"
-           class="sb-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
-            <i class="fas fa-box"></i> Products
-            @php $lowStock = \App\Models\Product::where('stock', '<', 10)->count(); @endphp
-            @if($lowStock > 0)
-                <span class="sb-badge amber">{{ $lowStock }}</span>
-            @endif
+           class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+            <i class="fas fa-box"></i>
+            <span>Products</span>
         </a>
         <a href="{{ route('admin.attributes.index') }}"
-           class="sb-item {{ request()->routeIs('admin.attributes.*') ? 'active' : '' }}">
-            <i class="fas fa-list-check"></i> Attributes
-        </a>
-        <a href="{{ route('admin.attribute-values.index') }}"
-        class="sb-item {{ request()->routeIs('admin.attribute-values.*') ? 'active' : '' }}"
-        style="padding-left: 2rem;">
-            <i class="fas fa-tag"></i> Attribute Values
+           class="nav-link {{ request()->routeIs('admin.attributes.*') ? 'active' : '' }}">
+            <i class="fas fa-list-check"></i>
+            <span>Attributes</span>
         </a>
 
-{{-- Sales --}}
-<div class="sb-section">Sales</div>
-<a href="{{ route('admin.orders.index') }}"
-   class="sb-item {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
-    <i class="fas fa-shopping-bag"></i> Orders
-    @php $pendingOrders = \App\Models\Order::where('status', 'pending')->count(); @endphp
-    @if($pendingOrders > 0)
-        <span class="sb-badge red">{{ $pendingOrders }}</span>
-    @endif
-</a>
-<a href="{{ route('admin.payments.index') }}"
-   class="sb-item {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
-    <i class="fas fa-credit-card"></i> Payments
-    @php $pendingPayments = \App\Models\Payment::where('status', 'pending')->count(); @endphp
-    @if($pendingPayments > 0)
-        <span class="sb-badge amber">{{ $pendingPayments }}</span>
-    @endif
-</a>
+        <div class="nav-section">Orders</div>
+        <a href="{{ route('admin.orders.index') }}"
+           class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+            <i class="fas fa-shopping-bag"></i>
+            <span>Orders</span>
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-undo-alt"></i>
+            <span>Returns</span>
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-file-invoice"></i>
+            <span>Invoices</span>
+        </a>
 
-        {{-- Users --}}
-        <div class="sb-section">Users</div>
+        <div class="nav-section">Customers</div>
         <a href="{{ route('admin.customers.index') }}"
-           class="sb-item {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
-            <i class="fas fa-users"></i> Customers
+           class="nav-link {{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
+            <i class="fas fa-users"></i>
+            <span>Customers</span>
         </a>
-        <a href="{{ route('admin.vendors.index') }}"
-           class="sb-item {{ request()->routeIs('admin.vendors.*') ? 'active' : '' }}">
-            <i class="fas fa-store"></i> Vendors
-            @php $pendingVendors = \App\Models\User::where('role', 'vendor')->where('status', 'pending')->count(); @endphp
-            @if($pendingVendors > 0)
-                <span class="sb-badge amber">{{ $pendingVendors }}</span>
-            @endif
-        </a>
-
-        {{-- Content --}}
-        <div class="sb-section">Content</div>
         <a href="{{ route('admin.reviews.index') }}"
-           class="sb-item {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
-            <i class="fas fa-star"></i> Reviews
-            @php $pendingReviews = \App\Models\Review::where('is_approved', false)->count(); @endphp
-            @if($pendingReviews > 0)
-                <span class="sb-badge red">{{ $pendingReviews }}</span>
-            @endif
+           class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
+            <i class="fas fa-star"></i>
+            <span>Reviews</span>
         </a>
 
-        {{-- Reports --}}
-        <div class="sb-section">Reports</div>
+        <div class="nav-section">Vendors</div>
+        <a href="{{ route('admin.vendors.index') }}"
+           class="nav-link {{ request()->routeIs('admin.vendors.*') ? 'active' : '' }}">
+            <i class="fas fa-store"></i>
+            <span>Vendor List</span>
+        </a>
+
+        <div class="nav-section">Marketing</div>
+        <a href="{{ route('admin.coupons.index') }}"
+           class="nav-link {{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
+            <i class="fas fa-ticket"></i>
+            <span>Coupons</span>
+        </a>
+        <a href="{{ route('admin.banners.index') }}"
+           class="nav-link {{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+            <i class="fas fa-image"></i>
+            <span>Banners</span>
+        </a>
+
+        <div class="nav-section">Payments</div>
+        <a href="{{ route('admin.payments.index') }}"
+           class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
+            <i class="fas fa-credit-card"></i>
+            <span>Transactions</span>
+        </a>
+
+        <div class="nav-section">Reports</div>
         <a href="{{ route('admin.reports.sales') }}"
-           class="sb-item {{ request()->routeIs('admin.reports.sales') ? 'active' : '' }}">
-            <i class="fas fa-chart-line"></i> Sales Report
+           class="nav-link {{ request()->routeIs('admin.reports.sales') ? 'active' : '' }}">
+            <i class="fas fa-chart-line"></i>
+            <span>Sales Report</span>
         </a>
         <a href="{{ route('admin.reports.products') }}"
-           class="sb-item {{ request()->routeIs('admin.reports.products') ? 'active' : '' }}">
-            <i class="fas fa-chart-pie"></i> Product Report
-        </a>
-        <a href="{{ route('admin.reports.users') }}"
-           class="sb-item {{ request()->routeIs('admin.reports.users') ? 'active' : '' }}">
-            <i class="fas fa-users"></i> User Report
+           class="nav-link {{ request()->routeIs('admin.reports.products') ? 'active' : '' }}">
+            <i class="fas fa-chart-pie"></i>
+            <span>Product Report</span>
         </a>
 
-       {{-- System --}}
-<div class="sb-section">System</div>
-<a href="{{ route('admin.settings.general') }}"
-   class="sb-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-    <i class="fas fa-cog"></i> Settings
-</a>
-<a href="{{ route('admin.backup.index') }}"
-   class="sb-item {{ request()->routeIs('admin.backup.*') ? 'active' : '' }}">
-    <i class="fas fa-database"></i> Backup
-</a>
-<a href="{{ route('admin.notifications.index') }}"
-   class="sb-item {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">
-    <i class="fas fa-bell"></i> Notifications
-    @php $unreadNotifications = \App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->count(); @endphp
-    @if($unreadNotifications > 0)
-        <span class="sb-badge red" id="notificationBadge">{{ $unreadNotifications > 9 ? '9+' : $unreadNotifications }}</span>
-    @else
-        <span class="sb-badge red" id="notificationBadge" style="display:none;">0</span>
-    @endif
-</a>
+        <div class="nav-section">Settings</div>
+        <a href="{{ route('admin.settings.general') }}"
+           class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+            <i class="fas fa-cog"></i>
+            <span>General Settings</span>
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-credit-card"></i>
+            <span>Payment Settings</span>
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-envelope"></i>
+            <span>Email Settings</span>
+        </a>
 
-    {{-- Footer --}}
-    <div class="sb-footer">
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="sb-logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
-        </form>
-        <div class="sb-version">EktaMart v1.0.0</div>
-    </div>
-
+        {{-- Logout --}}
+        <div class="nav-footer">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="nav-link logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
+            <div class="nav-version">v2.0.0</div>
+        </div>
+    </nav>
 </div>
 
 <style>
 /* ============================================================
-   ADMIN SIDEBAR - MAIN
+   SIDEBAR
 ============================================================ */
 .admin-sidebar {
-    width: 240px;
-    background: #1a1730;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    width: var(--sidebar-width);
+    height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 1000;
+    z-index: 1050;
+    background: var(--bg-sidebar);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    flex-shrink: 0;
+    overflow: hidden;
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-/* ✅ Scrollable Body Container */
-.admin-sidebar {
-    overflow: hidden; /* Prevents body scroll */
-}
-
-/* ✅ Scrollbar Styling */
-.admin-sidebar::-webkit-scrollbar {
-    width: 4px;
-}
-.admin-sidebar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-    border-radius: 4px;
-}
-.admin-sidebar::-webkit-scrollbar-thumb {
-    background: rgba(83, 74, 183, 0.4);
-    border-radius: 4px;
-}
-.admin-sidebar::-webkit-scrollbar-thumb:hover {
-    background: rgba(83, 74, 183, 0.6);
-}
-
-/* Firefox Scrollbar */
-.admin-sidebar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(83, 74, 183, 0.4) transparent;
-}
-
-/* ✅ Collapsed Sidebar */
 .admin-sidebar.collapsed {
-    width: 72px;
-}
-
-.admin-sidebar.collapsed .sb-brand > div,
-.admin-sidebar.collapsed .sb-admin > div,
-.admin-sidebar.collapsed .sb-admin .sb-online,
-.admin-sidebar.collapsed .sb-section,
-.admin-sidebar.collapsed .sb-item span,
-.admin-sidebar.collapsed .sb-badge,
-.admin-sidebar.collapsed .sb-footer .sb-version,
-.admin-sidebar.collapsed .sb-logout-btn span {
-    display: none;
-}
-
-.admin-sidebar.collapsed .sb-brand {
-    justify-content: center;
-    padding: 1.1rem 0.5rem;
-}
-
-.admin-sidebar.collapsed .sb-admin {
-    justify-content: center;
-    padding: 0.85rem 0.5rem;
-}
-
-.admin-sidebar.collapsed .sb-item {
-    justify-content: center;
-    padding: 7px 0.5rem;
-}
-
-.admin-sidebar.collapsed .sb-item i {
-    font-size: 1.2rem;
-    width: auto;
-}
-
-.admin-sidebar.collapsed .sb-footer {
-    text-align: center;
-}
-
-.admin-sidebar.collapsed .sb-logout-btn {
-    justify-content: center;
-    padding: 6px 0;
-}
-
-.admin-sidebar.collapsed .sb-logout-btn i {
-    font-size: 1.2rem;
+    width: var(--sidebar-collapsed);
 }
 
 /* ============================================================
-   SIDEBAR COMPONENTS
+   BRAND
 ============================================================ */
-.sb-brand {
-    padding: 1.1rem 1.25rem;
-    border-bottom: 0.5px solid rgba(255,255,255,0.07);
+.sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    padding: 18px 20px 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     flex-shrink: 0;
+    min-height: 64px;
 }
-.sb-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: #534AB7;
+
+.brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 15px;
-    color: #EEEDFE;
+    font-size: 18px;
+    color: #fff;
     flex-shrink: 0;
 }
-.sb-name { font-size: 15px; font-weight: 600; color: #fff; }
-.sb-tag { font-size: 10px; color: #7F77DD; }
 
-.sb-admin {
-    padding: .85rem 1.25rem;
-    border-bottom: 0.5px solid rgba(255,255,255,0.07);
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.2s ease;
+}
+
+.brand-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+}
+
+.brand-tag {
+    font-size: 9px;
+    color: #7F77DD;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+}
+
+.admin-sidebar.collapsed .brand-text {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+.admin-sidebar.collapsed .sidebar-brand {
+    justify-content: center;
+    padding: 18px 0;
+}
+
+.admin-sidebar.collapsed .brand-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+}
+
+/* ============================================================
+   USER INFO
+============================================================ */
+.sidebar-user {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     flex-shrink: 0;
 }
-.sb-avatar {
-    width: 34px; height: 34px;
+
+.user-avatar {
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-    background: #534AB7;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    font-weight: 600;
-    color: #EEEDFE;
+    font-weight: 700;
+    color: #fff;
     flex-shrink: 0;
 }
-.sb-admin-name { font-size: 13px; color: #e2e0f0; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sb-admin-role { font-size: 10px; color: #7F77DD; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sb-online { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; margin-left: auto; flex-shrink: 0; }
 
-/* ✅ Scrollable Body - FIXED */
-.sb-body {
-    flex: 1 1 auto;
-    padding: 0.5rem 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    min-height: 0;
-    max-height: calc(100vh - 220px);
+.user-info {
+    flex: 1;
+    min-width: 0;
+    transition: opacity 0.2s ease;
 }
 
-.sb-section {
-    padding: .6rem 1.25rem .2rem;
-    font-size: 10px;
-    font-weight: 600;
-    color: #534AB7;
-    text-transform: uppercase;
-    letter-spacing: .8px;
-    margin-top: .25rem;
-}
-
-.sb-item {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 7px 1.25rem;
+.user-name {
     font-size: 13px;
-    color: #9896b0;
-    cursor: pointer;
-    position: relative;
-    transition: all .15s;
-    text-decoration: none;
-    border: none;
-    background: none;
-    width: 100%;
-}
-.sb-item i { font-size: 14px; width: 16px; flex-shrink: 0; }
-.sb-item:hover { color: #e2e0f0; background: rgba(255,255,255,0.04); }
-.sb-item.active { color: #CECBF6; background: rgba(83,74,183,0.2); }
-.sb-item.active::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: #534AB7;
-    border-radius: 0 3px 3px 0;
-}
-
-.sb-badge {
-    margin-left: auto;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 20px;
     font-weight: 600;
-    flex-shrink: 0;
+    color: #e2e0f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.sb-badge.red { background: rgba(163,45,45,0.3); color: #F09595; }
-.sb-badge.amber { background: rgba(133,79,11,0.3); color: #FAC775; }
-.sb-badge.green { background: rgba(15,110,86,0.3); color: #5DCAA5; }
 
-.sb-footer {
-    padding: .75rem 1.25rem;
-    border-top: 0.5px solid rgba(255,255,255,0.07);
+.user-role {
+    font-size: 10px;
+    color: #7F77DD;
+    font-weight: 500;
+}
+
+.user-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10B981;
     flex-shrink: 0;
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
 }
-.sb-logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    font-size: 13px;
-    color: #9896b0;
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 6px 0;
-    width: 100%;
-    transition: color .15s;
+
+.admin-sidebar.collapsed .user-info {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
 }
-.sb-logout-btn:hover { color: #F09595; }
-.sb-logout-btn i { font-size: 14px; }
-.sb-version { font-size: 10px; color: #534AB7; margin-top: 6px; text-align: center; }
+
+.admin-sidebar.collapsed .sidebar-user {
+    justify-content: center;
+    padding: 12px 0;
+}
+
+.admin-sidebar.collapsed .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 11px;
+}
+
+.admin-sidebar.collapsed .user-status {
+    display: none;
+}
 
 /* ============================================================
-   MAIN CONTENT MARGIN
+   NAVIGATION
 ============================================================ */
-.main-content {
-    margin-left: 240px;
-    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: 100vh;
-    padding-top: 56px;
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 12px 16px 12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
 }
 
-.main-content.expanded {
-    margin-left: 72px;
+.sidebar-nav::-webkit-scrollbar {
+    width: 3px;
+}
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.3);
+    border-radius: 10px;
+}
+
+.nav-section {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: #7F77DD;
+    padding: 12px 12px 4px 12px;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+    transition: opacity 0.2s ease;
+}
+
+.admin-sidebar.collapsed .nav-section {
+    opacity: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    color: #9896b0;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    margin: 1px 0;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.nav-link:hover {
+    color: #e2e0f0;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-link.active {
+    color: #CECBF6;
+    background: rgba(139, 92, 246, 0.15);
+}
+
+.nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 24px;
+    background: linear-gradient(180deg, var(--primary), var(--secondary));
+    border-radius: 0 4px 4px 0;
+}
+
+.nav-link i {
+    width: 20px;
+    font-size: 14px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.nav-link span {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 0.2s ease;
+}
+
+.admin-sidebar.collapsed .nav-link {
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.admin-sidebar.collapsed .nav-link span {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+.admin-sidebar.collapsed .nav-link i {
+    font-size: 18px;
+    width: auto;
+}
+
+.admin-sidebar.collapsed .nav-link.active::before {
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    top: 50%;
+    width: 20px;
+    height: 3px;
+    border-radius: 4px;
+}
+
+/* ============================================================
+   NAV FOOTER
+============================================================ */
+.nav-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+.logout-btn {
+    color: #9896b0;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.logout-btn:hover {
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.nav-version {
+    font-size: 9px;
+    color: #534AB7;
+    text-align: center;
+    padding: 6px 0 2px 0;
+    transition: opacity 0.2s ease;
+}
+
+.admin-sidebar.collapsed .nav-version {
+    opacity: 0;
 }
 
 /* ============================================================
@@ -413,33 +486,66 @@
     .admin-sidebar.open {
         transform: translateX(0);
     }
-    .main-content {
-        margin-left: 0 !important;
-        padding-top: 56px;
-    }
     .admin-sidebar.collapsed {
+        transform: translateX(-100%);
         width: 280px;
     }
-    .admin-sidebar.collapsed .sb-brand > div,
-    .admin-sidebar.collapsed .sb-admin > div,
-    .admin-sidebar.collapsed .sb-admin .sb-online,
-    .admin-sidebar.collapsed .sb-section,
-    .admin-sidebar.collapsed .sb-item span,
-    .admin-sidebar.collapsed .sb-badge,
-    .admin-sidebar.collapsed .sb-footer .sb-version,
-    .admin-sidebar.collapsed .sb-logout-btn span {
+    .admin-sidebar.collapsed .brand-text,
+    .admin-sidebar.collapsed .user-info,
+    .admin-sidebar.collapsed .nav-section,
+    .admin-sidebar.collapsed .nav-link span,
+    .admin-sidebar.collapsed .nav-version,
+    .admin-sidebar.collapsed .user-status {
+        opacity: 1;
+        width: auto;
+        height: auto;
+        padding: inherit;
+        margin: inherit;
+        overflow: visible;
+    }
+    .admin-sidebar.collapsed .sidebar-brand {
+        justify-content: flex-start;
+        padding: 18px 20px;
+    }
+    .admin-sidebar.collapsed .brand-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 18px;
+    }
+    .admin-sidebar.collapsed .sidebar-user {
+        justify-content: flex-start;
+        padding: 14px 20px;
+    }
+    .admin-sidebar.collapsed .user-avatar {
+        width: 34px;
+        height: 34px;
+        font-size: 12px;
+    }
+    .admin-sidebar.collapsed .user-status {
         display: block;
     }
-    .admin-sidebar.collapsed .sb-brand { padding: 1.1rem 1.25rem; justify-content: flex-start; }
-    .admin-sidebar.collapsed .sb-admin { padding: .85rem 1.25rem; justify-content: flex-start; }
-    .admin-sidebar.collapsed .sb-item { padding: 7px 1.25rem; justify-content: flex-start; }
-    .admin-sidebar.collapsed .sb-item i { font-size: 14px; width: 16px; }
-    .admin-sidebar.collapsed .sb-footer { text-align: left; }
-    .admin-sidebar.collapsed .sb-logout-btn { justify-content: flex-start; padding: 6px 0; }
-    .admin-sidebar.collapsed .sb-logout-btn i { font-size: 14px; }
-    
-    .sb-body {
-        max-height: calc(100vh - 200px);
+    .admin-sidebar.collapsed .nav-link {
+        justify-content: flex-start;
+        padding: 8px 12px;
+    }
+    .admin-sidebar.collapsed .nav-link i {
+        font-size: 14px;
+        width: 20px;
+    }
+    .admin-sidebar.collapsed .nav-link span {
+        opacity: 1;
+        width: auto;
+    }
+    .admin-sidebar.collapsed .nav-link.active::before {
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 24px;
+        border-radius: 0 4px 4px 0;
+    }
+    .admin-sidebar.collapsed .nav-version {
+        opacity: 1;
     }
 }
 
@@ -447,71 +553,43 @@
     .admin-sidebar {
         width: 280px;
     }
-    .sb-body {
-        max-height: calc(100vh - 190px);
-    }
 }
 
 /* ============================================================
    DARK MODE
 ============================================================ */
 [data-theme="dark"] .admin-sidebar {
-    background: #0f0c29;
+    background: #0F0C29;
 }
 </style>
 
 <script>
 // ============================================================
-// SIDEBAR TOGGLE - SYNC WITH NAVBAR
+// SIDEBAR TOGGLE FUNCTIONS
 // ============================================================
 function toggleSidebar() {
     const sidebar = document.getElementById('adminSidebar');
-    const mainContent = document.getElementById('mainContent');
+    const main = document.getElementById('mainContent');
     const navbar = document.getElementById('adminNavbar');
-    
+
     if (!sidebar) return;
-    
+
     const isCollapsed = sidebar.classList.toggle('collapsed');
-    
-    // ✅ Main content adjust
-    if (mainContent) {
-        mainContent.classList.toggle('expanded', isCollapsed);
+
+    if (main) {
+        main.classList.toggle('expanded', isCollapsed);
     }
-    
-    // ✅ Navbar adjust - add/remove class
+
     if (navbar) {
-        if (isCollapsed) {
-            navbar.classList.add('sidebar-collapsed');
-        } else {
-            navbar.classList.remove('sidebar-collapsed');
-        }
+        navbar.classList.toggle('sidebar-collapsed', isCollapsed);
     }
-    
+
     localStorage.setItem('sidebarCollapsed', isCollapsed);
-    window.dispatchEvent(new CustomEvent('sidebarToggled', { 
-        detail: { collapsed: isCollapsed } 
+    window.dispatchEvent(new CustomEvent('sidebarToggled', {
+        detail: { collapsed: isCollapsed }
     }));
 }
 
-// ============================================================
-// LOAD SAVED STATE ON PAGE LOAD
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('adminSidebar');
-    const mainContent = document.getElementById('mainContent');
-    const navbar = document.getElementById('adminNavbar');
-    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    
-    if (sidebar && isCollapsed) {
-        sidebar.classList.add('collapsed');
-        if (mainContent) mainContent.classList.add('expanded');
-        if (navbar) navbar.classList.add('sidebar-collapsed');
-    }
-});
-
-// ============================================================
-// MOBILE SIDEBAR TOGGLE
-// ============================================================
 function toggleMobileSidebar() {
     const sidebar = document.getElementById('adminSidebar');
     if (sidebar) {
@@ -519,19 +597,30 @@ function toggleMobileSidebar() {
     }
 }
 
-// ============================================================
-// CLOSE SIDEBAR ON OUTSIDE CLICK (Mobile)
-// ============================================================
-document.addEventListener('click', function(e) {
+// Load saved state
+document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('adminSidebar');
-    const toggleBtn = document.querySelector('.nb-toggle');
-    
-    if (window.innerWidth <= 992 && sidebar && sidebar.classList.contains('open')) {
-        if (!sidebar.contains(e.target) && !toggleBtn?.contains(e.target)) {
-            sidebar.classList.remove('open');
-        }
+    const main = document.getElementById('mainContent');
+    const navbar = document.getElementById('adminNavbar');
+    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+    if (sidebar && isCollapsed) {
+        sidebar.classList.add('collapsed');
+        if (main) main.classList.add('expanded');
+        if (navbar) navbar.classList.add('sidebar-collapsed');
     }
+
+    // Close sidebar on outside click (mobile)
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 992) {
+            if (sidebar && sidebar.classList.contains('open')) {
+                if (!sidebar.contains(e.target) && !e.target.closest('.sidebar-toggle-btn')) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        }
+    });
 });
 
-console.log('%c📁 EktaMart Admin Sidebar Loaded', 'color: #8b5cf6; font-size: 13px; font-weight: bold;');
+console.log('%c📁 Admin Sidebar Loaded', 'color: #8B5CF6; font-size: 13px; font-weight: bold;');
 </script>

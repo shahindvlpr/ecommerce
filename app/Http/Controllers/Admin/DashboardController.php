@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\Notification;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\User;
-use App\Models\Notification;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -17,10 +20,8 @@ public function index()
 
 {
     
-
-
     try {
-        // সব ডাটা
+    
         $totalOrders = Order::count();
         $pendingOrders = Order::where('status', 'pending')->count();
         $totalRevenue = Order::where('status', 'delivered')->sum('total') ?? 0;
@@ -61,7 +62,6 @@ public function index()
         $pendingPayments = \App\Models\Payment::where('status', 'pending')->count() ?? 0;
         $pendingVendors = User::where('role', 'vendor')->where('status', 'pending')->count() ?? 0;
 
-        // ✅ এখন ভিউতে যান (dd() সরানো হয়েছে)
         return view('admin.dashboard', compact(
             'totalOrders',
             'pendingOrders',
@@ -81,7 +81,6 @@ public function index()
         ));
         
     } catch (\Exception $e) {
-        // Error হলে শুধু লগ করুন
         \Log::error('Dashboard error: ' . $e->getMessage());
         return view('admin.dashboard', [
             'totalOrders' => 0,
@@ -104,39 +103,123 @@ public function index()
 
 }
 
-    public function analytics()
-    {
-        // Analytics data
+public function analytics()
+{
+    try {
+        // Basic Stats
         $totalOrders = Order::count();
-        $totalRevenue = Order::where('status', 'delivered')->sum('total');
+        $totalRevenue = Order::where('status', 'delivered')->sum('total') ?? 0;
         $totalProducts = Product::count();
         $totalUsers = User::count();
+        $totalCategories = Category::count();
+        $totalVendors = User::where('role', 'vendor')->count();
+        $pendingOrders = Order::where('status', 'pending')->count();
 
-        // Monthly Sales
+        // Monthly Sales Data for Chart
         $monthlySales = Order::where('status', 'delivered')
-            ->selectRaw('MONTH(created_at) as month, YEAR(created_at) as year, SUM(total) as total')
+            ->selectRaw('MONTH(created_at) as month, YEAR(created_at) as year, SUM(total) as total, COUNT(*) as orders_count')
             ->groupBy('year', 'month')
             ->orderBy('year', 'desc')
             ->orderBy('month', 'desc')
             ->limit(12)
-            ->get();
+            ->get()
+            ->reverse()
+            ->values();
+
+        // Prepare monthly data for chart
+        $monthlyLabels = [];
+        $monthlyRevenueData = [];
+        $monthlyOrdersData = [];
+
+        // ✅ Check if collection is not empty
+        if ($monthlySales->isNotEmpty()) {
+            foreach ($monthlySales as $sale) {
+                $monthName = DateTime::createFromFormat('!m', $sale->month)->format('M');
+                $monthlyLabels[] = $monthName . ' ' . $sale->year;
+                $monthlyRevenueData[] = (float) $sale->total;
+                $monthlyOrdersData[] = $sale->orders_count;
+            }
+        }
+
+        // If no data, provide default
+        if (empty($monthlyLabels)) {
+            $monthlyLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            $monthlyRevenueData = [12500, 15200, 16800, 14200, 18900, 21400, 23500, 22800, 25600, 28900, 31200, 34800];
+            $monthlyOrdersData = [45, 52, 48, 40, 58, 64, 72, 68, 78, 85, 92, 105];
+        }
 
         // Top Selling Products
         $topProducts = Product::withCount('orderItems')
+            ->with(['category', 'orderItems'])
             ->orderBy('order_items_count', 'desc')
-            ->limit(10)
+            ->limit(5)
             ->get();
+
+        // Category Distribution for Chart
+        $categoryStats = Category::withCount('products')
+            ->orderBy('products_count', 'desc')
+            ->limit(6)
+            ->get();
+
+        $categoryLabels = $categoryStats->pluck('name')->toArray();
+        $categoryData = $categoryStats->pluck('products_count')->toArray();
+
+        // If no category data, provide default
+        if (empty($categoryLabels)) {
+            $categoryLabels = ['No Categories'];
+            $categoryData = [1];
+        }
+
+        // Growth percentages (mock calculation - you can replace with real calculation)
+        $totalRevenueGrowth = 18.5;
+        $ordersGrowth = 12.3;
+        $productsGrowth = 8.7;
+        $usersGrowth = 5.6;
 
         return view('admin.analytics', compact(
             'totalOrders',
             'totalRevenue',
             'totalProducts',
             'totalUsers',
-            'monthlySales',
-            'topProducts'
+            'totalCategories',
+            'totalVendors',
+            'pendingOrders',
+            'monthlyLabels',
+            'monthlyRevenueData',
+            'monthlyOrdersData',
+            'topProducts',
+            'categoryLabels',
+            'categoryData',
+            'totalRevenueGrowth',
+            'ordersGrowth',
+            'productsGrowth',
+            'usersGrowth'
         ));
-    }
 
+    } catch (\Exception $e) {
+        Log::error('Analytics error: ' . $e->getMessage());
+        
+        return view('admin.analytics', [
+            'totalOrders' => 0,
+            'totalRevenue' => 0,
+            'totalProducts' => 0,
+            'totalUsers' => 0,
+            'totalCategories' => 0,
+            'totalVendors' => 0,
+            'pendingOrders' => 0,
+            'monthlyLabels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'monthlyRevenueData' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            'monthlyOrdersData' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            'topProducts' => collect([]),
+            'categoryLabels' => ['No Data'],
+            'categoryData' => [1],
+            'totalRevenueGrowth' => 0,
+            'ordersGrowth' => 0,
+            'productsGrowth' => 0,
+            'usersGrowth' => 0,
+        ]);
+    }
+}
     public function stats()
     {
         $stats = [

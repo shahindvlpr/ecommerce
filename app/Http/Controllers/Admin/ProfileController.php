@@ -1,91 +1,60 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
     /**
-     * Display user profile.
+     * Display admin profile page.
      */
     public function index()
     {
-        $user = Auth::user();
-        return view('profile.index', compact('user'));
+        // ✅ $admin ভেরিয়েবলটি পাস করুন
+        $admin = Auth::user();
+        return view('admin.profile.index', compact('admin'));
     }
 
     /**
-     * Update user profile.
+     * Update admin profile information.
      */
     public function update(Request $request)
     {
-        $user = Auth::user();
+        $admin = Auth::user();
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $admin->id],
             'phone' => ['nullable', 'string', 'max:20'],
-            'address' => ['nullable', 'string', 'max:500'],
-            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif', 'max:2048'],
+            'bio' => ['nullable', 'string', 'max:500'],
         ]);
 
-        if ($request->hasFile('avatar')) {
-            if ($user->avatar && Storage::exists('public/avatars/' . $user->avatar)) {
-                Storage::delete('public/avatars/' . $user->avatar);
-            }
-
-            $avatarName = time() . '_' . $request->file('avatar')->getClientOriginalName();
-            $request->file('avatar')->storeAs('public/avatars', $avatarName);
-            $validated['avatar'] = $avatarName;
-        }
-
-        $user->update($validated);
+        $admin->update($validated);
 
         return redirect()->back()->with('success', 'Profile updated successfully!');
     }
 
     /**
-     * Update user password.
+     * Update admin password.
      */
     public function updatePassword(Request $request)
     {
-        $user = Auth::user();
+        $admin = Auth::user();
 
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
-        $user->update([
+        $admin->update([
             'password' => Hash::make($validated['password']),
         ]);
 
         return redirect()->back()->with('success', 'Password updated successfully!');
-    }
-
-    /**
-     * Update user preferences.
-     */
-    public function updatePreferences(Request $request)
-    {
-        $user = Auth::user();
-        
-        $validated = $request->validate([
-            'theme' => ['nullable', 'in:light,dark'],
-            'language' => ['nullable', 'string', 'max:10'],
-            'notifications' => ['nullable', 'boolean'],
-        ]);
-
-        $user->update([
-            'preferences' => array_merge($user->preferences ?? [], $validated)
-        ]);
-
-        return redirect()->back()->with('success', 'Preferences updated!');
     }
 }

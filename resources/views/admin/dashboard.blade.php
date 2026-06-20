@@ -1,863 +1,879 @@
-{{-- resources/views/admin/dashboard.blade.php --}}
 @extends('layouts.admin')
 
 @section('title', 'Dashboard - EktaMart Admin')
 
+@section('page-title', 'Dashboard')
+@section('icon', 'th-large')
+
 @section('content')
-<div class="container-fluid px-4 py-3">
+<div class="container-fluid">
+    
+    {{-- ============================================================
+         STATS CARDS - MODERN & COMPACT
+    ============================================================ --}}
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card stats-card-purple">
+                <div class="stats-card-inner">
+                    <div class="stats-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stats-content">
+                        <span class="stats-label">Total Orders</span>
+                        <h3 class="stats-value">{{ $totalOrders ?? 0 }}</h3>
+                        <span class="stats-change up">
+                            <i class="fas fa-arrow-up"></i> 12.5%
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    <span>{{ $pendingOrders ?? 0 }} Pending</span>
+                </div>
+            </div>
+        </div>
 
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card stats-card-green">
+                <div class="stats-card-inner">
+                    <div class="stats-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stats-content">
+                        <span class="stats-label">Revenue</span>
+                        <h3 class="stats-value">${{ number_format($totalRevenue ?? 0, 2) }}</h3>
+                        <span class="stats-change up">
+                            <i class="fas fa-arrow-up"></i> 18.2%
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    <span>This Month</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card stats-card-blue">
+                <div class="stats-card-inner">
+                    <div class="stats-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stats-content">
+                        <span class="stats-label">Products</span>
+                        <h3 class="stats-value">{{ $totalProducts ?? 0 }}</h3>
+                        <span class="stats-change up">
+                            <i class="fas fa-arrow-up"></i> 8.4%
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    @php $low = \App\Models\Product::where('stock', '<', 10)->count(); @endphp
+                    <span>{{ $low }} Low Stock</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card stats-card-orange">
+                <div class="stats-card-inner">
+                    <div class="stats-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stats-content">
+                        <span class="stats-label">Users</span>
+                        <h3 class="stats-value">{{ $totalUsers ?? 0 }}</h3>
+                        <span class="stats-change up">
+                            <i class="fas fa-arrow-up"></i> 5.6%
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    @php $vendors = \App\Models\User::where('role', 'vendor')->count(); @endphp
+                    <span>{{ $vendors }} Vendors</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ============================================================
+         STATS CARDS - ROW 2 (Additional Metrics)
+    ============================================================ --}}
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card stats-card-pink">
+                <div class="stats-card-inner">
+                    <div class="stats-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stats-content">
+                        <span class="stats-label">Reviews</span>
+                        <h3 class="stats-value">{{ \App\Models\Review::count() }}</h3>
+                        <span class="stats-change up">
+                            <i class="fas fa-arrow-up"></i> 15.2%
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    <span>{{ \App\Models\Review::where('is_approved', false)->count() }} Pending</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card stats-card-indigo">
+                <div class="stats-card-inner">
+                    <div class="stats-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="stats-content">
+                        <span class="stats-label">Payments</span>
+                        <h3 class="stats-value">{{ \App\Models\Payment::count() }}</h3>
+                        <span class="stats-change up">
+                            <i class="fas fa-arrow-up"></i> 22.8%
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    <span>{{ \App\Models\Payment::where('status', 'pending')->count() }} Pending</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card stats-card-teal">
+                <div class="stats-card-inner">
+                    <div class="stats-icon">
+                        <i class="fas fa-tag"></i>
+                    </div>
+                    <div class="stats-content">
+                        <span class="stats-label">Categories</span>
+                        <h3 class="stats-value">{{ \App\Models\Category::count() }}</h3>
+                        <span class="stats-change up">
+                            <i class="fas fa-arrow-up"></i> 3.1%
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    <span>Active Categories</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-6 col-md-6">
+            <div class="stats-card stats-card-red">
+                <div class="stats-card-inner">
+                    <div class="stats-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stats-content">
+                        <span class="stats-label">Low Stock</span>
+                        <h3 class="stats-value">{{ \App\Models\Product::where('stock', '<', 5)->where('stock', '>', 0)->count() }}</h3>
+                        <span class="stats-change down">
+                            <i class="fas fa-arrow-down"></i> Needs Attention
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-footer">
+                    <span>Critical Stock</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ============================================================
+         QUICK ACTIONS
+    ============================================================ --}}
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="quick-actions-card">
+                <div class="quick-actions-header">
+                    <h5><i class="fas fa-bolt text-warning me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="quick-actions-body">
+                    <a href="{{ route('admin.products.create') }}" class="quick-action-btn purple">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Product</span>
+                    </a>
+                    <a href="{{ route('admin.orders.index') }}" class="quick-action-btn green">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span>View Orders</span>
+                    </a>
+                    <a href="{{ route('admin.categories.create') }}" class="quick-action-btn blue">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Add Category</span>
+                    </a>
+                    <a href="{{ route('admin.users.index') }}" class="quick-action-btn orange">
+                        <i class="fas fa-users"></i>
+                        <span>Manage Users</span>
+                    </a>
+                    <a href="{{ route('admin.reports.sales') }}" class="quick-action-btn pink">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Sales Report</span>
+                    </a>
+                    <a href="{{ route('admin.coupons.index') }}" class="quick-action-btn teal">
+                        <i class="fas fa-ticket"></i>
+                        <span>Coupons</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ============================================================
+         RECENT ORDERS & ACTIVITY
+    ============================================================ --}}
+    <div class="row g-3">
+        <div class="col-xl-8">
+            <div class="card premium-card">
+                <div class="card-header-custom">
+                    <h5><i class="fas fa-clock text-primary me-2"></i>Recent Orders</h5>
+                    <a href="{{ route('admin.orders.index') }}" class="btn-view-all">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body-custom">
+                    @if(isset($recentOrders) && $recentOrders->count() > 0)
+                        <div class="table-responsive">
+                            <table class="table premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($recentOrders as $order)
+                                    <tr>
+                                        <td><span class="order-id">#{{ $order->id }}</span></td>
+                                        <td>{{ $order->user->name ?? 'Guest' }}</td>
+                                        <td class="fw-semibold">${{ number_format($order->total ?? 0, 2) }}</td>
+                                        <td>
+                                            @php
+                                                $statusColors = [
+                                                    'pending' => 'warning',
+                                                    'processing' => 'info',
+                                                    'shipped' => 'primary',
+                                                    'delivered' => 'success',
+                                                    'cancelled' => 'danger',
+                                                    'refunded' => 'secondary'
+                                                ];
+                                                $color = $statusColors[$order->status ?? 'pending'] ?? 'secondary';
+                                            @endphp
+                                            <span class="badge-status bg-{{ $color }}">
+                                                {{ ucfirst($order->status ?? 'Pending') }}
+                                            </span>
+                                        </td>
+                                        <td class="text-muted small">{{ $order->created_at->diffForHumans() }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h6>No Orders Found</h6>
+                            <p class="text-muted small">Your store hasn't received any orders yet.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="card premium-card">
+                <div class="card-header-custom">
+                    <h5><i class="fas fa-bell text-warning me-2"></i>Recent Activity</h5>
+                </div>
+                <div class="card-body-custom p-0">
+                    <div class="activity-list">
+                        @if(isset($latestNotifications) && $latestNotifications->count() > 0)
+                            @foreach($latestNotifications as $notif)
+                            <div class="activity-item {{ !$notif->is_read ? 'unread' : '' }}">
+                                <div class="activity-icon" style="background: {{ $notif->color ?? '#8B5CF6' }}20; color: {{ $notif->color ?? '#8B5CF6' }};">
+                                    <i class="{{ $notif->icon_class ?? 'fas fa-bell' }}"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">{{ $notif->title }}</div>
+                                    <div class="activity-time">{{ $notif->created_at->diffForHumans() }}</div>
+                                </div>
+                                @if(!$notif->is_read)
+                                    <span class="activity-dot"></span>
+                                @endif
+                            </div>
+                            @endforeach
+                        @else
+                            <div class="empty-state py-4">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <h6 class="mt-2">All caught up!</h6>
+                                <p class="text-muted small">No recent activity</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+@endsection
+
+@push('styles')
 <style>
-:root {
-    --card-radius: 1rem;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-    --shadow-hover: 0 12px 40px rgba(0,0,0,0.10);
-}
-
 /* ============================================================
-   ANIMATIONS
-============================================================ */
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideInRight {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-@keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-}
-.animate-fade-up { animation: fadeInUp 0.5s ease-out forwards; }
-.animate-slide-right { animation: slideInRight 0.4s ease-out forwards; }
-.animate-pulse { animation: pulse 2s infinite; }
-
-/* ============================================================
-   STATS CARDS - COMPACT & MODERN
+   STATS CARDS - PREMIUM
 ============================================================ */
 .stats-card {
-    border: none;
-    border-radius: var(--card-radius);
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
     overflow: hidden;
-    transition: var(--transition);
-    position: relative;
-    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
     height: 100%;
-    min-height: 100px;
 }
 .stats-card:hover {
-    transform: translateY(-4px) scale(1.01);
-    box-shadow: var(--shadow-hover);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
 }
-.stats-card:active { transform: scale(0.98); }
-.stats-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-    transition: left 0.6s ease;
-}
-.stats-card:hover::before { left: 100%; }
 
-.stats-card .card-inner {
-    padding: 1rem 1.25rem;
-    position: relative;
-    z-index: 1;
+.stats-card-inner {
+    padding: 16px 20px 12px 20px;
     display: flex;
-    align-items: center;
-    gap: 0.8rem;
+    align-items: flex-start;
+    gap: 14px;
 }
 
-.stats-card .stats-icon {
+.stats-icon {
     width: 44px;
     height: 44px;
-    border-radius: 0.75rem;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 18px;
     flex-shrink: 0;
-    background: rgba(255,255,255,0.2);
-    color: white;
-    transition: var(--transition);
-}
-.stats-card:hover .stats-icon {
-    transform: scale(1.1) rotate(-5deg);
 }
 
-.stats-card .stats-content { flex: 1; min-width: 0; }
-.stats-card .stats-content .stats-label {
-    font-size: 0.65rem;
+.stats-content {
+    flex: 1;
+    min-width: 0;
+}
+.stats-label {
+    font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    opacity: 0.75;
-    font-weight: 600;
-    margin-bottom: 0.1rem;
+    color: var(--text-muted);
+    display: block;
 }
-.stats-card .stats-content .stats-value {
-    font-size: 1.5rem;
+.stats-value {
+    font-size: 22px;
     font-weight: 700;
+    color: var(--text-primary);
+    margin: 2px 0 4px 0;
     line-height: 1.2;
-    margin-bottom: 0.05rem;
 }
-.stats-card .stats-content .stats-change {
-    font-size: 0.6rem;
+.stats-change {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 10px;
+    border-radius: 20px;
     display: inline-flex;
     align-items: center;
-    gap: 0.2rem;
-    opacity: 0.85;
-    font-weight: 500;
-    padding: 0.1rem 0.5rem;
-    border-radius: 1rem;
-    background: rgba(255,255,255,0.15);
+    gap: 4px;
+}
+.stats-change.up {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.stats-change.down {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.stats-footer {
+    padding: 8px 20px 14px 20px;
+    border-top: 1px solid var(--border-color);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.stats-footer span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 /* Stats Card Colors */
-.stats-card-purple { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
-.stats-card-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
-.stats-card-orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
-.stats-card-red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
-.stats-card-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
-.stats-card-teal { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; }
-.stats-card-pink { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); color: white; }
-.stats-card-indigo { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; }
+.stats-card-purple .stats-icon {
+    background: rgba(139, 92, 246, 0.12);
+    color: #8B5CF6;
+}
+.stats-card-purple .stats-footer {
+    color: #8B5CF6;
+}
+
+.stats-card-green .stats-icon {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10B981;
+}
+.stats-card-green .stats-footer {
+    color: #10B981;
+}
+
+.stats-card-blue .stats-icon {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3B82F6;
+}
+.stats-card-blue .stats-footer {
+    color: #3B82F6;
+}
+
+.stats-card-orange .stats-icon {
+    background: rgba(245, 158, 11, 0.12);
+    color: #F59E0B;
+}
+.stats-card-orange .stats-footer {
+    color: #F59E0B;
+}
+
+.stats-card-pink .stats-icon {
+    background: rgba(236, 72, 153, 0.12);
+    color: #EC4899;
+}
+.stats-card-pink .stats-footer {
+    color: #EC4899;
+}
+
+.stats-card-indigo .stats-icon {
+    background: rgba(99, 102, 241, 0.12);
+    color: #6366F1;
+}
+.stats-card-indigo .stats-footer {
+    color: #6366F1;
+}
+
+.stats-card-teal .stats-icon {
+    background: rgba(20, 184, 166, 0.12);
+    color: #14B8A6;
+}
+.stats-card-teal .stats-footer {
+    color: #14B8A6;
+}
+
+.stats-card-red .stats-icon {
+    background: rgba(239, 68, 68, 0.12);
+    color: #EF4444;
+}
+.stats-card-red .stats-footer {
+    color: #EF4444;
+}
 
 /* ============================================================
-   WELCOME CARD
+   QUICK ACTIONS CARD
 ============================================================ */
-.welcome-card {
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%);
-    border: none;
-    border-radius: var(--card-radius);
-    color: white;
-    overflow: hidden;
-    position: relative;
-    padding: 1.25rem 1.5rem;
-    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
-}
-.welcome-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -30%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-    pointer-events: none;
-}
-.welcome-card .welcome-text h4 {
-    font-weight: 700;
-    margin-bottom: 0.1rem;
-    font-size: 1.1rem;
-}
-.welcome-card .welcome-text p {
-    opacity: 0.8;
-    font-size: 0.85rem;
-    margin-bottom: 0;
-}
-.welcome-card .welcome-time {
-    text-align: right;
-    font-size: 0.75rem;
-    opacity: 0.8;
-}
-.welcome-card .welcome-time i { margin-right: 0.3rem; }
-.welcome-card .welcome-time div { line-height: 1.6; }
-
-/* ============================================================
-   CHART CARDS
-============================================================ */
-.chart-card {
-    border: none;
-    border-radius: var(--card-radius);
-    background: white;
-    transition: var(--transition);
-    height: 100%;
+.quick-actions-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm);
-    border: 1px solid #f1f5f9;
+    overflow: hidden;
 }
-.chart-card:hover {
-    box-shadow: var(--shadow-hover);
+.quick-actions-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+.quick-actions-header h5 {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin: 0;
+}
+.quick-actions-body {
+    padding: 14px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.quick-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+    background: var(--bg-body);
+    color: var(--text-secondary);
+}
+.quick-action-btn:hover {
     transform: translateY(-2px);
-    border-color: transparent;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
 }
-.chart-card .card-header-custom {
-    padding: 0.8rem 1.2rem;
-    border-bottom: 1px solid #f1f5f9;
+.quick-action-btn i {
+    font-size: 14px;
+}
+.quick-action-btn.purple:hover {
+    background: #8B5CF6;
+    color: #fff;
+    border-color: #8B5CF6;
+}
+.quick-action-btn.green:hover {
+    background: #10B981;
+    color: #fff;
+    border-color: #10B981;
+}
+.quick-action-btn.blue:hover {
+    background: #3B82F6;
+    color: #fff;
+    border-color: #3B82F6;
+}
+.quick-action-btn.orange:hover {
+    background: #F59E0B;
+    color: #fff;
+    border-color: #F59E0B;
+}
+.quick-action-btn.pink:hover {
+    background: #EC4899;
+    color: #fff;
+    border-color: #EC4899;
+}
+.quick-action-btn.teal:hover {
+    background: #14B8A6;
+    color: #fff;
+    border-color: #14B8A6;
+}
+
+/* ============================================================
+   PREMIUM CARD
+============================================================ */
+.premium-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    height: 100%;
+}
+.premium-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header-custom {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 8px;
 }
-.chart-card .card-header-custom h5 {
+.card-header-custom h5 {
     font-weight: 600;
-    font-size: 0.85rem;
-    color: #1e293b;
+    font-size: 14px;
+    color: var(--text-primary);
     margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
 }
-.chart-card .card-header-custom h5 i { color: #8b5cf6; }
-.chart-card .card-body-custom { padding: 1rem 1.2rem; }
+
+.btn-view-all {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--primary);
+    text-decoration: none;
+    padding: 4px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+.btn-view-all:hover {
+    background: rgba(139, 92, 246, 0.08);
+    color: var(--primary-dark);
+}
+
+.card-body-custom {
+    padding: 0;
+}
 
 /* ============================================================
-   RECENT ORDERS TABLE
+   PREMIUM TABLE
 ============================================================ */
-.recent-table { border-radius: var(--card-radius); overflow: hidden; }
-.recent-table thead { background: #f8fafc; }
-.recent-table thead th {
+.premium-table {
+    margin: 0;
+    font-size: 13px;
+}
+.premium-table thead th {
+    background: var(--bg-body);
+    color: var(--text-muted);
     font-weight: 600;
-    font-size: 0.7rem;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
-    color: #64748b;
-    border: none;
-    padding: 0.6rem 0.8rem;
+    letter-spacing: 0.5px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-color);
 }
-.recent-table tbody td {
-    padding: 0.5rem 0.8rem;
+.premium-table tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
     vertical-align: middle;
-    font-size: 0.8rem;
-    border-bottom: 1px solid #f1f5f9;
 }
-.recent-table tbody tr {
-    transition: var(--transition);
-    cursor: pointer;
+.premium-table tbody tr:hover {
+    background: rgba(139, 92, 246, 0.02);
 }
-.recent-table tbody tr:hover { background: #f8fafc; }
-.recent-table tbody tr:last-child td { border-bottom: none; }
-.recent-table .order-number {
-    font-weight: 600;
-    color: #1e293b;
-    text-decoration: none;
+.premium-table tbody tr:last-child td {
+    border-bottom: none;
 }
-.recent-table .order-number:hover { color: #8b5cf6; }
 
-/* ============================================================
-   BADGES
-============================================================ */
+.order-id {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
 .badge-status {
-    padding: 0.2rem 0.7rem;
-    border-radius: 2rem;
-    font-size: 0.65rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
     font-weight: 600;
-    display: inline-block;
 }
-.badge-paid { background: #dcfce7; color: #166534; }
-.badge-pending { background: #fed7aa; color: #9a3412; }
-.badge-delivered { background: #dbeafe; color: #1e40af; }
-.badge-cancelled { background: #fee2e2; color: #991b1b; }
-.badge-shipped { background: #e0e7ff; color: #3730a3; }
-.badge-processing { background: #fef3c7; color: #92400e; }
-.badge-refunded { background: #fce4ec; color: #c62828; }
-.badge-completed { background: #e8f5e9; color: #2e7d32; }
+.badge-status.bg-warning {
+    background: #fef3c7 !important;
+    color: #d97706 !important;
+}
+.badge-status.bg-info {
+    background: #dbeafe !important;
+    color: #2563eb !important;
+}
+.badge-status.bg-primary {
+    background: #e0e7ff !important;
+    color: #4f46e5 !important;
+}
+.badge-status.bg-success {
+    background: #dcfce7 !important;
+    color: #16a34a !important;
+}
+.badge-status.bg-danger {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+}
+.badge-status.bg-secondary {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+}
 
 /* ============================================================
-   QUICK ACTIONS
+   ACTIVITY LIST
 ============================================================ */
-.quick-action {
+.activity-list {
+    padding: 4px 0;
+}
+.activity-item {
     display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    padding: 0.7rem 1rem;
-    border-radius: 0.75rem;
-    background: #f8fafc;
-    border: 1px solid #f1f5f9;
-    text-decoration: none;
-    transition: var(--transition);
-    color: #1e293b;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.2s ease;
 }
-.quick-action:hover {
-    transform: translateX(6px);
-    color: white;
-    border-color: transparent;
+.activity-item:last-child {
+    border-bottom: none;
 }
-.quick-action .qa-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 0.5rem;
+.activity-item:hover {
+    background: var(--bg-body);
+}
+.activity-item.unread {
+    background: rgba(139, 92, 246, 0.03);
+}
+
+.activity-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.9rem;
+    font-size: 13px;
     flex-shrink: 0;
 }
-.quick-action .qa-content strong { font-size: 0.8rem; display: block; }
-.quick-action .qa-content small { font-size: 0.65rem; opacity: 0.7; }
-.quick-action:hover .qa-content small { color: rgba(255,255,255,0.8) !important; }
 
-.qa-purple:hover { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-.qa-purple .qa-icon { background: rgba(139,92,246,0.15); color: #8b5cf6; }
-.qa-purple:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
-
-.qa-green:hover { background: linear-gradient(135deg, #10b981, #059669); }
-.qa-green .qa-icon { background: rgba(16,185,129,0.15); color: #10b981; }
-.qa-green:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
-
-.qa-orange:hover { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.qa-orange .qa-icon { background: rgba(245,158,11,0.15); color: #f59e0b; }
-.qa-orange:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
-
-.qa-blue:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.qa-blue .qa-icon { background: rgba(59,130,246,0.15); color: #3b82f6; }
-.qa-blue:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
-
-.qa-red:hover { background: linear-gradient(135deg, #ef4444, #dc2626); }
-.qa-red .qa-icon { background: rgba(239,68,68,0.15); color: #ef4444; }
-.qa-red:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
-
-/* ============================================================
-   PERFORMANCE SUMMARY
-============================================================ */
-.perf-item {
-    padding: 0.7rem 1rem;
-    background: #f8fafc;
-    border-radius: 0.75rem;
-    text-align: center;
-    border: 1px solid #f1f5f9;
-    transition: var(--transition);
+.activity-content {
+    flex: 1;
+    min-width: 0;
 }
-.perf-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+.activity-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
 }
-.perf-item .perf-icon { font-size: 1.2rem; margin-bottom: 0.2rem; }
-.perf-item .perf-label { font-size: 0.65rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
-.perf-item .perf-value { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
+.activity-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
 
-/* ============================================================
-   ACTIVITY INDICATOR
-============================================================ */
 .activity-dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    margin-right: 0.3rem;
+    background: #8B5CF6;
+    flex-shrink: 0;
+    margin-top: 6px;
+    animation: pulse 2s ease-in-out infinite;
 }
-.activity-dot.online { background: #10b981; }
-.activity-dot.offline { background: #ef4444; }
-.activity-dot.away { background: #f59e0b; }
+
+/* ============================================================
+   EMPTY STATE
+============================================================ */
+.empty-state {
+    text-align: center;
+    padding: 30px 20px;
+}
+.empty-state i {
+    font-size: 32px;
+    color: var(--text-muted);
+    opacity: 0.3;
+}
+.empty-state h6 {
+    margin-top: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.empty-state p {
+    margin: 4px 0 0 0;
+}
+
+/* ============================================================
+   DARK MODE
+============================================================ */
+[data-theme="dark"] .stats-card {
+    background: #1A1A3E;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .stats-card .stats-value {
+    color: #f1f5f9;
+}
+[data-theme="dark"] .quick-actions-card {
+    background: #1A1A3E;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .quick-action-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #9896b0;
+}
+[data-theme="dark"] .quick-action-btn:hover {
+    color: #fff;
+}
+[data-theme="dark"] .premium-card {
+    background: #1A1A3E;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .premium-table thead th {
+    background: rgba(255, 255, 255, 0.03);
+    color: #7F77DD;
+}
+[data-theme="dark"] .premium-table tbody td {
+    border-color: rgba(255, 255, 255, 0.04);
+    color: #e2e0f0;
+}
+[data-theme="dark"] .card-header-custom h5 {
+    color: #e2e0f0;
+}
+[data-theme="dark"] .activity-item {
+    border-color: rgba(255, 255, 255, 0.04);
+}
+[data-theme="dark"] .activity-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+[data-theme="dark"] .activity-title {
+    color: #e2e0f0;
+}
+[data-theme="dark"] .stats-footer {
+    border-top-color: rgba(255, 255, 255, 0.04);
+}
+[data-theme="dark"] .card-header-custom {
+    border-bottom-color: rgba(255, 255, 255, 0.04);
+}
+[data-theme="dark"] .quick-actions-header {
+    border-bottom-color: rgba(255, 255, 255, 0.04);
+}
 
 /* ============================================================
    RESPONSIVE
 ============================================================ */
 @media (max-width: 768px) {
-    .stats-card .card-inner { padding: 0.8rem 1rem; }
-    .stats-card .stats-value { font-size: 1.2rem; }
-    .stats-card .stats-icon { width: 38px; height: 38px; font-size: 0.9rem; }
-    .welcome-card { padding: 1rem; }
-    .welcome-card .welcome-text h4 { font-size: 0.95rem; }
-    .welcome-card .welcome-time { text-align: left; margin-top: 0.5rem; }
-    .chart-card .card-body-custom { padding: 0.8rem; }
-    .quick-action { padding: 0.5rem 0.8rem; }
-    .perf-item { padding: 0.5rem 0.8rem; }
-    .perf-item .perf-value { font-size: 0.95rem; }
+    .stats-card-inner {
+        padding: 12px 16px 8px 16px;
+        gap: 10px;
+    }
+    .stats-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+    }
+    .stats-value {
+        font-size: 18px;
+    }
+    .stats-footer {
+        padding: 6px 16px 10px 16px;
+        font-size: 11px;
+    }
+    .quick-actions-body {
+        padding: 10px 16px;
+        gap: 6px;
+    }
+    .quick-action-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+    .quick-action-btn i {
+        font-size: 12px;
+    }
+    .card-header-custom {
+        padding: 10px 16px;
+    }
+    .premium-table {
+        font-size: 12px;
+    }
+    .premium-table thead th,
+    .premium-table tbody td {
+        padding: 6px 10px;
+    }
 }
 
 @media (max-width: 576px) {
-    .stats-card .card-inner { flex-direction: column; text-align: center; }
-    .stats-card .stats-icon { width: 32px; height: 32px; font-size: 0.8rem; }
-    .recent-table thead th, .recent-table tbody td { padding: 0.4rem 0.5rem; font-size: 0.7rem; }
-    .badge-status { font-size: 0.55rem; padding: 0.1rem 0.4rem; }
-    .container-fluid { padding: 0.5rem !important; }
-}
-
-/* ============================================================
-   DARK MODE SUPPORT
-============================================================ */
-[data-theme="dark"] .chart-card {
-    background: #1a1730;
-    border-color: #2d2a4a;
-}
-[data-theme="dark"] .chart-card .card-header-custom {
-    border-color: #2d2a4a;
-}
-[data-theme="dark"] .chart-card .card-header-custom h5 {
-    color: #e2e0f0;
-}
-[data-theme="dark"] .recent-table thead {
-    background: #2d2a4a;
-}
-[data-theme="dark"] .recent-table thead th {
-    color: #7F77DD;
-}
-[data-theme="dark"] .recent-table tbody td {
-    border-color: #2d2a4a;
-    color: #e2e0f0;
-}
-[data-theme="dark"] .recent-table tbody tr:hover {
-    background: #2d2a4a;
-}
-[data-theme="dark"] .quick-action {
-    background: #2d2a4a;
-    border-color: #3d3a5a;
-    color: #e2e0f0;
-}
-[data-theme="dark"] .perf-item {
-    background: #2d2a4a;
-    border-color: #3d3a5a;
-}
-[data-theme="dark"] .perf-item .perf-value {
-    color: #e2e0f0;
-}
-[data-theme="dark"] .perf-item .perf-label {
-    color: #7F77DD;
+    .stats-card-inner {
+        padding: 10px 12px 6px 12px;
+        gap: 8px;
+    }
+    .stats-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+    .stats-value {
+        font-size: 16px;
+    }
+    .stats-label {
+        font-size: 10px;
+    }
+    .stats-footer {
+        padding: 4px 12px 8px 12px;
+        font-size: 10px;
+    }
+    .stats-change {
+        font-size: 10px;
+        padding: 0px 8px;
+    }
 }
 </style>
-
-{{-- ============================================================
-     WELCOME SECTION
-============================================================ --}}
-<div class="welcome-card animate-fade-up mb-3">
-    <div class="row align-items-center g-2">
-        <div class="col-md-8 welcome-text">
-            <h4>👋 Welcome back, <span id="adminName">{{ Auth::user()->name ?? 'Admin' }}</span>!</h4>
-            <p>Here's what's happening with your store today.</p>
-        </div>
-        <div class="col-md-4 welcome-time">
-            <div><i class="fas fa-calendar-alt"></i><span id="currentDate"></span></div>
-            <div><i class="fas fa-clock"></i><span id="currentTime"></span></div>
-        </div>
-    </div>
-</div>
-
-{{-- ============================================================
-     STATS CARDS - COMPACT
-============================================================ --}}
-<div class="row g-3 mb-3">
-    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.05s">
-        <div class="stats-card stats-card-purple" onclick="window.location='{{ route('admin.categories.index') }}'">
-            <div class="card-inner">
-                <div class="stats-icon"><i class="fas fa-layer-group"></i></div>
-                <div class="stats-content">
-                    <div class="stats-label">Categories</div>
-                    <div class="stats-value" id="totalCategories">{{ \App\Models\Category::count() }}</div>
-                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 12%</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.10s">
-        <div class="stats-card stats-card-green" onclick="window.location='{{ route('admin.products.index') }}'">
-            <div class="card-inner">
-                <div class="stats-icon"><i class="fas fa-boxes"></i></div>
-                <div class="stats-content">
-                    <div class="stats-label">Products</div>
-                    <div class="stats-value" id="totalProducts">{{ \App\Models\Product::count() }}</div>
-                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 8%</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.15s">
-        <div class="stats-card stats-card-orange" onclick="window.location='{{ route('admin.orders.index') }}'">
-            <div class="card-inner">
-                <div class="stats-icon"><i class="fas fa-shopping-cart"></i></div>
-                <div class="stats-content">
-                    <div class="stats-label">Orders</div>
-                    <div class="stats-value" id="totalOrders">{{ \App\Models\Order::count() }}</div>
-                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 23%</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.20s">
-        <div class="stats-card stats-card-red" onclick="window.location='{{ route('admin.users.index') }}'">
-            <div class="card-inner">
-                <div class="stats-icon"><i class="fas fa-users"></i></div>
-                <div class="stats-content">
-                    <div class="stats-label">Users</div>
-                    <div class="stats-value" id="totalUsers">{{ \App\Models\User::count() }}</div>
-                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 5%</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.25s">
-        <div class="stats-card stats-card-blue" onclick="window.location='{{ route('admin.reports.sales') }}'">
-            <div class="card-inner">
-                <div class="stats-icon"><i class="fas fa-dollar-sign"></i></div>
-                <div class="stats-content">
-                    <div class="stats-label">Revenue</div>
-                    <div class="stats-value">${{ number_format(\App\Models\Order::sum('total') ?? 0, 0) }}</div>
-                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 18%</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.30s">
-        <div class="stats-card stats-card-pink" onclick="window.location='{{ route('admin.reviews.index') }}'">
-            <div class="card-inner">
-                <div class="stats-icon"><i class="fas fa-star"></i></div>
-                <div class="stats-content">
-                    <div class="stats-label">Reviews</div>
-                    <div class="stats-value">{{ \App\Models\Review::count() }}</div>
-                    <div class="stats-change"><i class="fas fa-arrow-up"></i> 15%</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- ============================================================
-     CHARTS SECTION
-============================================================ --}}
-<div class="row g-3 mb-3">
-    <div class="col-lg-8 animate-fade-up">
-        <div class="chart-card">
-            <div class="card-header-custom">
-                <h5><i class="fas fa-chart-line"></i> Sales Overview</h5>
-                <span class="badge bg-success bg-opacity-10 text-success animate-pulse">+12.5%</span>
-            </div>
-            <div class="card-body-custom">
-                <canvas id="salesChart" height="220"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4 animate-fade-up">
-        <div class="chart-card">
-            <div class="card-header-custom">
-                <h5><i class="fas fa-chart-pie"></i> Category Distribution</h5>
-            </div>
-            <div class="card-body-custom">
-                <canvas id="categoryChart" height="220"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- ============================================================
-     RECENT ORDERS & QUICK ACTIONS
-============================================================ --}}
-<div class="row g-3">
-    <div class="col-lg-8 animate-fade-up">
-        <div class="chart-card">
-            <div class="card-header-custom">
-                <h5><i class="fas fa-clock"></i> Recent Orders</h5>
-                <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                    View All <i class="fas fa-arrow-right ms-1"></i>
-                </a>
-            </div>
-            <div class="card-body-custom p-0">
-                <div class="table-responsive">
-                    <table class="table recent-table mb-0">
-                        <thead>
-                            <tr>
-                                <th>Order</th>
-                                <th>Customer</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th class="text-end">Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php $recentOrders = \App\Models\Order::with('user')->latest()->take(5)->get(); @endphp
-                            @forelse($recentOrders as $order)
-                            <tr onclick="window.location='{{ route('admin.orders.show', $order) }}'">
-                                <td><a href="{{ route('admin.orders.show', $order) }}" class="order-number">#{{ $order->order_number ?? $order->id }}</a></td>
-                                <td>{{ $order->user->name ?? 'Guest' }}</td>
-                                <td class="fw-semibold text-success">${{ number_format($order->total ?? 0, 2) }}</td>
-                                <td>
-                                    @php
-                                        $statusClass = match($order->status ?? 'pending') {
-                                            'delivered', 'completed' => 'badge-delivered',
-                                            'paid' => 'badge-paid',
-                                            'pending' => 'badge-pending',
-                                            'shipped' => 'badge-shipped',
-                                            'cancelled' => 'badge-cancelled',
-                                            'processing' => 'badge-processing',
-                                            'refunded' => 'badge-refunded',
-                                            default => 'badge-pending',
-                                        };
-                                    @endphp
-                                    <span class="badge-status {{ $statusClass }}">{{ ucfirst($order->status ?? 'Pending') }}</span>
-                                </td>
-                                <td class="text-end text-muted"><small>{{ $order->created_at?->diffForHumans() ?? 'N/A' }}</small></td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-4">
-                                    <i class="fas fa-inbox fa-2x d-block mb-2"></i>No orders found
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4 animate-fade-up">
-        <div class="chart-card">
-            <div class="card-header-custom">
-                <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
-            </div>
-            <div class="card-body-custom d-grid gap-2">
-                <a href="{{ route('admin.products.create') }}" class="quick-action qa-purple">
-                    <div class="qa-icon"><i class="fas fa-plus"></i></div>
-                    <div class="qa-content">
-                        <strong>Add Product</strong>
-                        <small>Add new product to store</small>
-                    </div>
-                </a>
-                <a href="{{ route('admin.categories.create') }}" class="quick-action qa-green">
-                    <div class="qa-icon"><i class="fas fa-tag"></i></div>
-                    <div class="qa-content">
-                        <strong>New Category</strong>
-                        <small>Organize products</small>
-                    </div>
-                </a>
-                <a href="{{ route('admin.orders.index') }}" class="quick-action qa-orange">
-                    <div class="qa-icon"><i class="fas fa-truck"></i></div>
-                    <div class="qa-content">
-                        <strong>Process Orders</strong>
-                        <small>Manage pending orders</small>
-                    </div>
-                </a>
-                <a href="{{ route('admin.users.index') }}" class="quick-action qa-blue">
-                    <div class="qa-icon"><i class="fas fa-users"></i></div>
-                    <div class="qa-content">
-                        <strong>Manage Users</strong>
-                        <small>View all customers</small>
-                    </div>
-                </a>
-                <a href="{{ route('admin.reports.sales') }}" class="quick-action qa-red">
-                    <div class="qa-icon"><i class="fas fa-chart-bar"></i></div>
-                    <div class="qa-content">
-                        <strong>Sales Report</strong>
-                        <small>View analytics</small>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- ============================================================
-     PERFORMANCE SUMMARY
-============================================================ --}}
-<div class="row g-3 mt-1 animate-fade-up">
-    <div class="col-12">
-        <div class="chart-card">
-            <div class="card-header-custom">
-                <h5><i class="fas fa-chart-bar"></i> Store Performance</h5>
-                <span class="text-muted small">Last 30 days</span>
-            </div>
-            <div class="card-body-custom">
-                <div class="row g-2">
-                    <div class="col-3 col-md-3">
-                        <div class="perf-item">
-                            <div class="perf-icon text-success"><i class="fas fa-dollar-sign"></i></div>
-                            <div class="perf-value">${{ number_format(\App\Models\Order::sum('total') ?? 0, 0) }}</div>
-                            <div class="perf-label">Revenue</div>
-                        </div>
-                    </div>
-                    <div class="col-3 col-md-3">
-                        <div class="perf-item">
-                            <div class="perf-icon text-warning"><i class="fas fa-clock"></i></div>
-                            <div class="perf-value">{{ \App\Models\Order::where('status','pending')->count() }}</div>
-                            <div class="perf-label">Pending</div>
-                        </div>
-                    </div>
-                    <div class="col-3 col-md-3">
-                        <div class="perf-item">
-                            <div class="perf-icon text-info"><i class="fas fa-star"></i></div>
-                            <div class="perf-value">{{ \App\Models\Review::where('is_approved', 0)->count() }}</div>
-                            <div class="perf-label">Pending Reviews</div>
-                        </div>
-                    </div>
-                    <div class="col-3 col-md-3">
-                        <div class="perf-item">
-                            <div class="perf-icon text-danger"><i class="fas fa-exclamation-triangle"></i></div>
-                            <div class="perf-value">{{ \App\Models\Product::where('stock', '<', 10)->count() }}</div>
-                            <div class="perf-label">Low Stock</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-</div>
-
-{{-- ============================================================
-     SCRIPTS
-============================================================ --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// ============================================================
-// 1. DATE & TIME
-// ============================================================
-function updateDateTime() {
-    const now = new Date();
-    document.getElementById('currentDate').textContent =
-        now.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
-    document.getElementById('currentTime').textContent =
-        now.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-}
-updateDateTime();
-setInterval(updateDateTime, 1000);
-
-// ============================================================
-// 2. SALES CHART
-// ============================================================
-const ctx = document.getElementById('salesChart').getContext('2d');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-        datasets: [{
-            label: 'Revenue ($)',
-            data: [12500,15200,16800,14200,18900,21400,23500,22800,25600,28900,31200,34800],
-            borderColor: '#8b5cf6',
-            backgroundColor: function(context) {
-                const chart = context.chart;
-                const {ctx, chartArea} = chart;
-                if (!chartArea) return 'rgba(139,92,246,0.08)';
-                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                gradient.addColorStop(0, 'rgba(139,92,246,0.25)');
-                gradient.addColorStop(1, 'rgba(139,92,246,0.02)');
-                return gradient;
-            },
-            borderWidth: 2.5,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#8b5cf6',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 1.5,
-            pointRadius: 4,
-            pointHoverRadius: 7,
-            pointHoverBackgroundColor: '#7c3aed'
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        interaction: {
-            intersect: false,
-            mode: 'index'
-        },
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: 'rgba(0,0,0,0.85)',
-                titleFont: { size: 12, weight: '600' },
-                bodyFont: { size: 13 },
-                padding: 12,
-                cornerRadius: 8,
-                callbacks: {
-                    label: function(ctx) {
-                        return '$' + ctx.raw.toLocaleString();
-                    }
-                }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: function(v) { return '$' + v.toLocaleString(); },
-                    font: { size: 10 }
-                },
-                grid: { color: 'rgba(0,0,0,0.04)' }
-            },
-            x: {
-                grid: { display: false },
-                ticks: { font: { size: 9 } }
-            }
-        }
-    }
-});
-
-// ============================================================
-// 3. CATEGORY CHART
-// ============================================================
-const categoryLabels = {!! json_encode(\App\Models\Category::limit(5)->pluck('name')) !!};
-const categoryData = {!! json_encode(\App\Models\Category::withCount('products')->limit(5)->get()->pluck('products_count')) !!};
-
-new Chart(document.getElementById('categoryChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-        labels: categoryLabels,
-        datasets: [{
-            data: categoryData.length > 0 ? categoryData : [1, 1, 1, 1, 1],
-            backgroundColor: ['#8b5cf6','#10b981','#f59e0b','#ef4444','#3b82f6'],
-            borderWidth: 0,
-            hoverOffset: 10
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    boxWidth: 12,
-                    font: { size: 10 },
-                    padding: 10,
-                    usePointStyle: true,
-                    pointStyle: 'circle'
-                }
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0,0,0,0.85)',
-                titleFont: { size: 12, weight: '600' },
-                bodyFont: { size: 13 },
-                padding: 12,
-                cornerRadius: 8,
-                callbacks: {
-                    label: function(ctx) {
-                        return ctx.label + ': ' + ctx.raw + ' products';
-                    }
-                }
-            }
-        },
-        cutout: '65%'
-    }
-});
-
-// ============================================================
-// 4. REAL-TIME STATS UPDATE
-// ============================================================
-function updateStats() {
-    fetch('{{ route("admin.dashboard.stats") }}')
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('totalCategories').textContent = data.categories || 0;
-            document.getElementById('totalProducts').textContent = data.products || 0;
-            document.getElementById('totalOrders').textContent = data.orders || 0;
-            document.getElementById('totalUsers').textContent = data.users || 0;
-        })
-        .catch(() => {});
-}
-
-// Update every 30 seconds
-setInterval(updateStats, 30000);
-
-// ============================================================
-// 5. CONSOLE GREETING
-// ============================================================
-console.log('%c📊 EktaMart Admin Dashboard v3.0', 'color: #8b5cf6; font-size: 16px; font-weight: bold;');
-console.log('%c🚀 Real-time stats • Modern UI • Fully Responsive', 'color: #6366f1; font-size: 12px;');
-console.log('%c💡 Tip: Click on any stat card to navigate', 'color: #10b981; font-size: 11px;');
-</script>
-@endsection
+@endpush

@@ -1,8 +1,5 @@
 {{-- resources/views/layouts/admin/navbar.blade.php --}}
 
-{{-- ============================================================
-     ✅ DIRECT FIX: Get data directly from database
-============================================================ --}}
 @php
     use App\Models\Notification;
     use App\Models\Order;
@@ -11,20 +8,19 @@
     use Illuminate\Support\Facades\Auth;
 
     try {
-        // Directly fetch notifications
         $latestNotifications = Notification::where('user_id', Auth::id())
             ->latest()
             ->take(5)
             ->get();
-        
+
         $unreadNotifications = Notification::where('user_id', Auth::id())
             ->where('is_read', false)
             ->count();
-        
+
         $pendingOrders = Order::where('status', 'pending')->count();
         $pendingReviews = Review::where('is_approved', false)->count();
         $lowStock = Product::where('stock', '<', 5)->where('stock', '>', 0)->count();
-        
+
         $totalUnread = $pendingOrders + $pendingReviews + $lowStock + $unreadNotifications;
     } catch (\Exception $e) {
         $latestNotifications = collect([]);
@@ -37,78 +33,75 @@
 @endphp
 
 <nav class="admin-navbar" id="adminNavbar">
-
-    {{-- Sidebar Toggle --}}
-    <button class="nb-toggle" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Toggle sidebar">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    {{-- Search --}}
-    <div class="nb-search">
-        <i class="fas fa-search"></i>
-        <input type="text" id="adminSearch" placeholder="Search orders, products, users..."
-               onkeyup="handleAdminSearch(this.value)">
-        <div class="nb-search-results" id="searchResults"></div>
+    {{-- Left Side --}}
+    <div class="navbar-left">
+        <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+        <button class="sidebar-toggle-btn mobile-toggle-btn" onclick="toggleMobileSidebar()" aria-label="Toggle mobile sidebar">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="navbar-breadcrumb">
+            <i class="fas fa-@yield('icon', 'th-large')"></i>
+            <span>@yield('page-title', 'Dashboard')</span>
+        </div>
     </div>
 
     {{-- Right Side --}}
-    <div class="nb-right">
+    <div class="navbar-right">
 
-        {{-- Pending Orders Quick Link --}}
-        <a href="{{ route('admin.orders.index') }}" class="nb-btn" title="Pending Orders">
-            <i class="fas fa-shopping-bag"></i>
-            @if($pendingOrders > 0)
-                <span class="nb-dot amber"></span>
-            @endif
-        </a>
+        {{-- Search --}}
+        <div class="navbar-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="navbarSearch" placeholder="Search anything..." aria-label="Search">
+            <div class="search-shortcut">⌘K</div>
+        </div>
 
-        {{-- ============================================================
-             NOTIFICATIONS DROPDOWN
-        ============================================================ --}}
-        <div class="nb-dropdown">
-            <button class="nb-btn" id="notifToggle" aria-label="Notifications">
+        {{-- Notifications --}}
+        <div class="navbar-dropdown">
+            <button class="nav-icon-btn" id="notifToggle" aria-label="Notifications">
                 <i class="fas fa-bell"></i>
                 @if($totalUnread > 0)
-                    <span class="nb-badge" id="notificationBadge">{{ $totalUnread > 9 ? '9+' : $totalUnread }}</span>
+                    <span class="nav-badge pulse" id="notificationBadge">
+                        {{ $totalUnread > 9 ? '9+' : $totalUnread }}
+                    </span>
                 @endif
             </button>
-            <div class="nb-dropdown-menu notif-menu" id="notifMenu">
-                <div class="notif-header">
-                    <span class="notif-title">
-                        <i class="fas fa-bell me-1"></i> Notifications
+            <div class="dropdown-menu dropdown-notifications" id="notifMenu">
+                <div class="dropdown-header">
+                    <div class="dropdown-title">
+                        <i class="fas fa-bell"></i> Notifications
                         @if($totalUnread > 0)
-                            <span class="badge bg-danger ms-1">{{ $totalUnread }}</span>
+                            <span class="badge">{{ $totalUnread }}</span>
                         @endif
-                    </span>
-                    <a href="{{ route('admin.notifications.index') }}" class="notif-see-all">See all</a>
+                    </div>
+                    <a href="{{ route('admin.notifications.index') }}" class="dropdown-link">View All</a>
                 </div>
 
-                {{-- ✅ Now $latestNotifications is always defined --}}
                 @if($latestNotifications->count() > 0)
-                    @foreach($latestNotifications as $notif)
-                    <a href="{{ $notif->link ?? '#' }}" class="notif-item {{ !$notif->is_read ? 'unread' : '' }}">
-                        <div class="notif-icon" style="background: {{ $notif->color ?? '#667eea' }}20; color: {{ $notif->color ?? '#667eea' }};">
-                            <i class="{{ $notif->icon_class ?? 'fas fa-bell' }}"></i>
-                        </div>
-                        <div>
-                            <div class="notif-text">{{ $notif->title }}</div>
-                            <div class="notif-time">{{ $notif->time_ago ?? $notif->created_at->diffForHumans() }}</div>
-                        </div>
-                        @if(!$notif->is_read)
-                            <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.5rem;">NEW</span>
-                        @endif
-                    </a>
-                    @endforeach
-                    
-                    @if($latestNotifications->count() >= 5)
-                        <div class="text-center mt-2">
-                            <a href="{{ route('admin.notifications.index') }}" class="btn btn-sm btn-outline-primary w-100">
-                                View All Notifications
+                    <div class="dropdown-body">
+                        @foreach($latestNotifications as $notif)
+                            <a href="{{ $notif->link ?? '#' }}" class="dropdown-item {{ !$notif->is_read ? 'unread' : '' }}">
+                                <div class="item-icon" style="background: {{ $notif->color ?? '#8B5CF6' }}20; color: {{ $notif->color ?? '#8B5CF6' }};">
+                                    <i class="{{ $notif->icon_class ?? 'fas fa-bell' }}"></i>
+                                </div>
+                                <div class="item-content">
+                                    <div class="item-title">{{ $notif->title }}</div>
+                                    <div class="item-time">{{ $notif->created_at->diffForHumans() }}</div>
+                                </div>
+                                @if(!$notif->is_read)
+                                    <span class="item-badge">New</span>
+                                @endif
                             </a>
-                        </div>
-                    @endif
+                        @endforeach
+                    </div>
+                    <div class="dropdown-footer">
+                        <a href="{{ route('admin.notifications.index') }}" class="btn btn-sm btn-primary w-100">
+                            View All Notifications
+                        </a>
+                    </div>
                 @else
-                    <div class="notif-empty">
+                    <div class="dropdown-empty">
                         <i class="fas fa-check-circle"></i>
                         <span>All caught up!</span>
                     </div>
@@ -116,42 +109,48 @@
             </div>
         </div>
 
-        <div class="nb-divider"></div>
+        {{-- Divider --}}
+        <span class="navbar-divider"></span>
 
         {{-- Profile Dropdown --}}
-        <div class="nb-dropdown">
-            <div class="nb-profile" id="profileToggle">
-                <div class="nb-avatar">
+        <div class="navbar-dropdown">
+            <button class="profile-toggle" id="profileToggle">
+                <div class="profile-avatar">
                     {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                 </div>
-                <div class="nb-profile-info">
-                    <div class="nb-profile-name">{{ Str::limit(Auth::user()->name, 14) }}</div>
-                    <div class="nb-profile-role">Administrator</div>
+                <div class="profile-info">
+                    <div class="profile-name">{{ Auth::user()->name }}</div>
+                    <div class="profile-role">Administrator</div>
                 </div>
-                <i class="fas fa-chevron-down nb-chevron"></i>
-            </div>
-            <div class="nb-dropdown-menu profile-menu" id="profileMenu">
-                <div class="drop-header">
-                    <div class="drop-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</div>
+                <i class="fas fa-chevron-down profile-arrow"></i>
+            </button>
+            <div class="dropdown-menu dropdown-profile" id="profileMenu">
+                <div class="dropdown-header">
+                    <div class="profile-avatar-lg">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                    </div>
                     <div>
-                        <div class="drop-name">{{ Auth::user()->name }}</div>
-                        <div class="drop-email">{{ Auth::user()->email }}</div>
+                        <div class="profile-name-lg">{{ Auth::user()->name }}</div>
+                        <div class="profile-email-lg">{{ Auth::user()->email }}</div>
                     </div>
                 </div>
-                <hr class="drop-divider">
-                <a href="{{ route('admin.profile.index') }}" class="drop-item">
+                <div class="dropdown-divider"></div>
+                <a href="{{ route('admin.profile.index') }}" class="dropdown-item-link">
                     <i class="fas fa-user-cog"></i> My Profile
                 </a>
-                <a href="{{ route('admin.settings.index') }}" class="drop-item">
+                <a href="{{ route('admin.settings.general') }}" class="dropdown-item-link">
                     <i class="fas fa-cog"></i> Settings
                 </a>
-                <a href="{{ route('home') }}" target="_blank" class="drop-item">
-                    <i class="fas fa-external-link-alt"></i> View Store
+                <a href="#" class="dropdown-item-link">
+                    <i class="fas fa-clipboard-list"></i> Activity Logs
                 </a>
-                <hr class="drop-divider">
+                <a href="#" class="dropdown-item-link">
+                    <i class="fas fa-lock"></i> Change Password
+                </a>
+                <div class="dropdown-divider"></div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="drop-item danger">
+                    <button type="submit" class="dropdown-item-link text-danger">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>
                 </form>
@@ -163,208 +162,328 @@
 
 <style>
 /* ============================================================
-   ADMIN NAVBAR - MAIN
+   NAVBAR
 ============================================================ */
 .admin-navbar {
-    height: 56px;
-    background: #fff;
-    border-bottom: 0.5px solid #e5e7eb;
-    display: flex;
-    align-items: center;
-    padding: 0 1.25rem;
-    gap: 12px;
+    height: var(--navbar-height);
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
     position: fixed;
     top: 0;
+    left: var(--sidebar-width);
     right: 0;
-    z-index: 100;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    
-    /* ✅ Sidebar এর সাথে align */
-    margin-left: 240px;
-    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    width: calc(100% - 240px);
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(10px);
 }
 
-/* ✅ Sidebar collapsed হলে Navbar adjust */
 .admin-navbar.sidebar-collapsed {
-    margin-left: 72px;
-    width: calc(100% - 72px);
+    left: var(--sidebar-collapsed);
 }
 
 /* ============================================================
-   NAVBAR COMPONENTS
+   NAVBAR LEFT
 ============================================================ */
-.nb-toggle {
-    width: 34px; height: 34px;
-    border: 0.5px solid #e5e7eb;
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; background: transparent;
-    color: #6b7280; font-size: 16px; flex-shrink: 0;
-    transition: all .15s;
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
-.nb-toggle:hover { background: #f9fafb; color: #374151; }
 
-.nb-search {
-    flex: 1; max-width: 340px;
-    display: flex; align-items: center; gap: 8px;
-    background: #f9fafb;
-    border: 0.5px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 0 10px; height: 34px;
+.sidebar-toggle-btn {
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.sidebar-toggle-btn:hover {
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+.mobile-toggle-btn {
+    display: none;
+}
+
+.navbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.navbar-breadcrumb i {
+    color: var(--primary);
+    font-size: 16px;
+}
+
+/* ============================================================
+   NAVBAR RIGHT
+============================================================ */
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ============================================================
+   SEARCH
+============================================================ */
+.navbar-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0 14px;
+    height: 38px;
+    min-width: 200px;
+    transition: var(--transition);
     position: relative;
 }
-.nb-search i { font-size: 13px; color: #9ca3af; }
-.nb-search input {
-    border: none; background: transparent; outline: none;
-    font-size: 13px; color: #374151; width: 100%;
+.navbar-search:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
-.nb-search input::placeholder { color: #9ca3af; }
-.nb-search-results {
-    position: absolute; top: calc(100% + 6px); left: 0; right: 0;
-    background: #fff; border: 0.5px solid #e5e7eb; border-radius: 8px;
-    max-height: 300px; overflow-y: auto; display: none;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08); z-index: 200;
+.navbar-search i {
+    color: var(--text-muted);
+    font-size: 14px;
 }
-.nb-search-results.show { display: block; }
-
-.nb-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-
-.nb-btn {
-    width: 34px; height: 34px;
-    border: 0.5px solid #e5e7eb; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; background: transparent;
-    color: #6b7280; font-size: 15px;
-    position: relative; flex-shrink: 0;
-    text-decoration: none; transition: all .15s;
+.navbar-search input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+    color: var(--text-primary);
+    width: 100%;
 }
-.nb-btn:hover { background: #f9fafb; color: #374151; }
-
-.nb-dot {
-    position: absolute; top: 7px; right: 7px;
-    width: 7px; height: 7px; border-radius: 50%;
-    border: 1.5px solid #fff;
+.navbar-search input::placeholder {
+    color: var(--text-muted);
 }
-.nb-dot.amber { background: #f59e0b; }
-.nb-dot.red { background: #ef4444; }
+.search-shortcut {
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--bg-body);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+    flex-shrink: 0;
+}
 
-.nb-badge {
-    position: absolute; top: -4px; right: -4px;
-    background: #dc2626;
+/* ============================================================
+   NAV ICON BUTTON
+============================================================ */
+.nav-icon-btn {
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 16px;
+    position: relative;
+    flex-shrink: 0;
+}
+.nav-icon-btn:hover {
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+.nav-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--danger);
     color: #fff;
     font-size: 9px;
-    font-weight: 600;
-    padding: 1px 4px;
-    border-radius: 20px;
-    min-width: 16px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 50%;
+    min-width: 18px;
     text-align: center;
-    border: 1.5px solid #fff;
-    animation: badgePulse 2s ease-in-out infinite;
+    border: 2px solid var(--bg-card);
 }
 
-@keyframes badgePulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+.navbar-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border-color);
+    flex-shrink: 0;
 }
 
-.nb-divider { width: 0.5px; height: 24px; background: #e5e7eb; margin: 0 4px; }
+/* ============================================================
+   PROFILE
+============================================================ */
+.profile-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px 4px 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.profile-toggle:hover {
+    background: var(--bg-body);
+}
+
+.profile-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.profile-info {
+    text-align: left;
+    line-height: 1.2;
+}
+.profile-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.profile-role {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.profile-arrow {
+    font-size: 11px;
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+}
+.profile-toggle.active .profile-arrow {
+    transform: rotate(180deg);
+}
 
 /* ============================================================
    DROPDOWN
 ============================================================ */
-.nb-dropdown { position: relative; }
-.nb-dropdown-menu {
-    position: absolute; top: calc(100% + 8px); right: 0;
-    background: #fff;
-    border: 0.5px solid #e5e7eb;
-    border-radius: 12px;
-    padding: .5rem;
-    min-width: 200px;
-    display: none;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-    z-index: 200;
+.navbar-dropdown {
+    position: relative;
 }
-.nb-dropdown-menu.show { display: block; }
 
-/* ============================================================
-   NOTIFICATIONS MENU
-============================================================ */
-.notif-menu {
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 8px 0;
     min-width: 320px;
     max-width: 400px;
     max-height: 480px;
     overflow-y: auto;
+    display: none;
+    box-shadow: var(--shadow-lg);
+    z-index: 1060;
+    animation: slideDown 0.2s ease;
+}
+.dropdown-menu.show {
+    display: block;
 }
 
-/* Custom scrollbar for notifications */
-.notif-menu::-webkit-scrollbar {
-    width: 4px;
+.dropdown-menu::-webkit-scrollbar {
+    width: 3px;
 }
-.notif-menu::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+.dropdown-menu::-webkit-scrollbar-track {
+    background: transparent;
 }
-.notif-menu::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.3);
     border-radius: 10px;
 }
 
-.notif-header {
+.dropdown-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px 10px;
-    border-bottom: 0.5px solid #e5e7eb;
-    margin-bottom: 4px;
+    padding: 6px 16px 10px 16px;
+    border-bottom: 1px solid var(--border-color);
 }
-.notif-title {
+.dropdown-title {
     font-size: 13px;
     font-weight: 600;
-    color: #111827;
+    color: var(--text-primary);
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
 }
-.notif-title .badge {
-    font-size: 0.55rem;
-    padding: 0.15rem 0.4rem;
+.dropdown-title .badge {
+    font-size: 9px;
+    background: var(--primary);
+    color: #fff;
+    padding: 1px 8px;
+    border-radius: 20px;
 }
-.notif-see-all {
-    font-size: 11px;
-    color: #534AB7;
+.dropdown-link {
+    font-size: 12px;
+    color: var(--primary);
     text-decoration: none;
     font-weight: 500;
 }
-.notif-see-all:hover {
+.dropdown-link:hover {
     text-decoration: underline;
 }
 
-.notif-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-}
-.notif-item:hover {
-    background: #f9fafb;
-}
-.notif-item.unread {
-    background: #f5f3ff;
-    border-left: 3px solid #8b5cf6;
-}
-.notif-item.unread:hover {
-    background: #ede9fe;
+.dropdown-body {
+    padding: 4px 0;
 }
 
-.notif-icon {
-    width: 32px;
-    height: 32px;
+.dropdown-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 16px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.dropdown-item:hover {
+    background: var(--bg-body);
+}
+.dropdown-item.unread {
+    background: rgba(139, 92, 246, 0.04);
+    border-left: 3px solid var(--primary);
+}
+
+.item-icon {
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -372,147 +491,122 @@
     font-size: 13px;
     flex-shrink: 0;
 }
-.notif-text {
-    font-size: 12px;
-    color: #374151;
-    line-height: 1.4;
+
+.item-content {
+    flex: 1;
+    min-width: 0;
+}
+.item-title {
+    font-size: 13px;
     font-weight: 500;
+    color: var(--text-primary);
 }
-.notif-item.unread .notif-text {
-    color: #1a1a2e;
-    font-weight: 600;
-}
-.notif-time {
-    font-size: 10px;
-    color: #9ca3af;
+.item-time {
+    font-size: 11px;
+    color: var(--text-muted);
     margin-top: 2px;
 }
-.notif-empty {
+.item-badge {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--primary);
+    background: rgba(139, 92, 246, 0.1);
+    padding: 2px 8px;
+    border-radius: 20px;
+    flex-shrink: 0;
+}
+
+.dropdown-footer {
+    padding: 8px 16px 4px 16px;
+    border-top: 1px solid var(--border-color);
+}
+.dropdown-footer .btn {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 0;
+    border-radius: 8px;
+}
+
+.dropdown-empty {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 1.5rem 1rem;
-    font-size: 13px;
-    color: #6b7280;
+    gap: 8px;
+    padding: 24px 16px;
+    color: var(--text-muted);
+    font-size: 14px;
 }
-.notif-empty i {
-    color: #10b981;
-    font-size: 1.2rem;
+.dropdown-empty i {
+    color: var(--success);
+    font-size: 18px;
 }
 
 /* ============================================================
    PROFILE DROPDOWN
 ============================================================ */
-.nb-profile {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 8px 4px 4px;
-    border: 0.5px solid #e5e7eb;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all .15s;
+.dropdown-profile {
+    min-width: 240px;
 }
-.nb-profile:hover {
-    background: #f9fafb;
-}
-.nb-avatar {
-    width: 28px;
-    height: 28px;
+
+.profile-avatar-lg {
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: #fff;
-    font-size: 11px;
-    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
     flex-shrink: 0;
 }
-.nb-profile-name {
-    font-size: 12px;
+
+.profile-name-lg {
+    font-size: 14px;
     font-weight: 600;
-    color: #111827;
-    line-height: 1.2;
+    color: var(--text-primary);
 }
-.nb-profile-role {
-    font-size: 10px;
-    color: #6b7280;
-}
-.nb-chevron {
-    font-size: 11px;
-    color: #9ca3af;
-    transition: transform 0.2s ease;
-}
-.nb-dropdown.show .nb-chevron {
-    transform: rotate(180deg);
+.profile-email-lg {
+    font-size: 12px;
+    color: var(--text-muted);
 }
 
-.drop-header {
+.dropdown-item-link {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 10px 10px;
-    border-bottom: 0.5px solid #e5e7eb;
-    margin-bottom: 4px;
-}
-.drop-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
-    color: #fff;
+    padding: 8px 16px;
+    color: var(--text-secondary);
+    text-decoration: none;
     font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    cursor: pointer;
 }
-.drop-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: #111827;
+.dropdown-item-link:hover {
+    background: var(--bg-body);
+    color: var(--text-primary);
 }
-.drop-email {
-    font-size: 11px;
-    color: #6b7280;
+.dropdown-item-link i {
+    width: 18px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+.dropdown-item-link.text-danger {
+    color: var(--danger);
+}
+.dropdown-item-link.text-danger i {
+    color: var(--danger);
 }
 
-.drop-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 10px;
-    border-radius: 8px;
-    font-size: 13px;
-    color: #374151;
-    text-decoration: none;
-    cursor: pointer;
-    background: none;
+.dropdown-divider {
     border: none;
-    width: 100%;
-    transition: background .15s;
-}
-.drop-item:hover {
-    background: #f9fafb;
-}
-.drop-item i {
-    font-size: 14px;
-    color: #6b7280;
-    width: 16px;
-}
-.drop-item.danger {
-    color: #dc2626;
-}
-.drop-item.danger i {
-    color: #dc2626;
-}
-.drop-divider {
-    border: none;
-    border-top: 0.5px solid #e5e7eb;
-    margin: .35rem 0;
+    border-top: 1px solid var(--border-color);
+    margin: 4px 0;
 }
 
 /* ============================================================
@@ -520,71 +614,89 @@
 ============================================================ */
 @media (max-width: 992px) {
     .admin-navbar {
-        margin-left: 0 !important;
-        width: 100% !important;
-        position: sticky;
+        left: 0 !important;
+        padding: 0 16px;
+    }
+    .admin-navbar.sidebar-collapsed {
+        left: 0 !important;
+    }
+    .sidebar-toggle-btn {
+        display: none;
+    }
+    .mobile-toggle-btn {
+        display: flex;
+    }
+    .navbar-search {
+        min-width: 120px;
+    }
+    .navbar-search .search-shortcut {
+        display: none;
+    }
+    .dropdown-menu {
+        min-width: 280px;
+        max-width: 320px;
+        right: -60px;
     }
 }
 
 @media (max-width: 768px) {
     .admin-navbar {
-        padding: 0 0.8rem;
-        gap: 8px;
-        height: 50px;
+        padding: 0 12px;
+        height: 56px;
     }
-    .nb-search {
-        max-width: 160px;
-        height: 30px;
+    .navbar-search {
+        min-width: 80px;
+        padding: 0 10px;
+        height: 34px;
     }
-    .nb-search input {
+    .navbar-search input {
         font-size: 12px;
     }
-    .nb-profile-info {
+    .profile-info {
         display: none;
     }
-    .nb-profile {
+    .profile-toggle {
         padding: 4px;
     }
-    .nb-avatar {
-        width: 28px;
-        height: 28px;
-        font-size: 10px;
+    .dropdown-menu {
+        min-width: 260px;
+        max-width: 290px;
+        right: -70px;
     }
-    .notif-menu {
-        min-width: 280px;
-        max-width: 320px;
+    .navbar-breadcrumb span {
+        font-size: 13px;
     }
 }
 
 @media (max-width: 576px) {
     .admin-navbar {
-        padding: 0 0.5rem;
-        gap: 4px;
+        padding: 0 8px;
+        height: 50px;
     }
-    .nb-search {
-        max-width: 100px;
-        padding: 0 6px;
+    .navbar-search {
+        min-width: 60px;
+        padding: 0 8px;
+        height: 30px;
     }
-    .nb-search input {
+    .navbar-search input {
         font-size: 11px;
+        width: 60px;
     }
-    .nb-toggle {
-        width: 30px;
-        height: 30px;
-        font-size: 14px;
+    .navbar-breadcrumb span {
+        font-size: 12px;
     }
-    .nb-btn {
-        width: 30px;
-        height: 30px;
+    .navbar-breadcrumb i {
         font-size: 13px;
     }
-    .nb-right {
-        gap: 4px;
+    .nav-icon-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
     }
-    .notif-menu {
-        min-width: 260px;
-        max-width: 290px;
-        right: -60px;
+    .dropdown-menu {
+        min-width: 240px;
+        max-width: 260px;
+        right: -80px;
     }
 }
 
@@ -592,82 +704,85 @@
    DARK MODE
 ============================================================ */
 [data-theme="dark"] .admin-navbar {
-    background: #1a1730;
-    border-bottom-color: rgba(255,255,255,0.07);
+    background: rgba(26, 23, 48, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
 }
-[data-theme="dark"] .nb-toggle,
-[data-theme="dark"] .nb-btn,
-[data-theme="dark"] .nb-profile {
-    border-color: rgba(255,255,255,0.1);
+[data-theme="dark"] .sidebar-toggle-btn,
+[data-theme="dark"] .nav-icon-btn,
+[data-theme="dark"] .profile-toggle {
+    border-color: rgba(255, 255, 255, 0.08);
     color: #9896b0;
 }
-[data-theme="dark"] .nb-toggle:hover,
-[data-theme="dark"] .nb-btn:hover,
-[data-theme="dark"] .nb-profile:hover {
-    background: rgba(255,255,255,0.05);
+[data-theme="dark"] .sidebar-toggle-btn:hover,
+[data-theme="dark"] .nav-icon-btn:hover,
+[data-theme="dark"] .profile-toggle:hover {
+    background: rgba(255, 255, 255, 0.04);
     color: #e2e0f0;
 }
-[data-theme="dark"] .nb-search {
-    background: rgba(255,255,255,0.05);
-    border-color: rgba(255,255,255,0.1);
+[data-theme="dark"] .navbar-search {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
 }
-[data-theme="dark"] .nb-search input {
+[data-theme="dark"] .navbar-search input {
     color: #e2e0f0;
 }
-[data-theme="dark"] .nb-profile-name {
+[data-theme="dark"] .navbar-search input::placeholder {
+    color: #64748b;
+}
+[data-theme="dark"] .search-shortcut {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #64748b;
+}
+[data-theme="dark"] .profile-name {
     color: #e2e0f0;
 }
-[data-theme="dark"] .nb-dropdown-menu {
-    background: #1a1730;
-    border-color: rgba(255,255,255,0.1);
+[data-theme="dark"] .navbar-breadcrumb {
+    color: #e2e0f0;
 }
-[data-theme="dark"] .drop-item {
+[data-theme="dark"] .dropdown-item-link {
     color: #9896b0;
 }
-[data-theme="dark"] .drop-item:hover {
-    background: rgba(255,255,255,0.05);
+[data-theme="dark"] .dropdown-item-link:hover {
+    background: rgba(255, 255, 255, 0.04);
     color: #e2e0f0;
 }
-[data-theme="dark"] .drop-name {
+[data-theme="dark"] .dropdown-item.unread {
+    background: rgba(139, 92, 246, 0.08);
+}
+[data-theme="dark"] .dropdown-menu {
+    background: #1A1A3E;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .dropdown-header {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .dropdown-divider {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .dropdown-footer {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+[data-theme="dark"] .item-title {
     color: #e2e0f0;
 }
-[data-theme="dark"] .notif-item:hover {
-    background: rgba(255,255,255,0.03);
-}
-[data-theme="dark"] .notif-item.unread {
-    background: rgba(139,92,246,0.08);
-}
-[data-theme="dark"] .notif-item.unread:hover {
-    background: rgba(139,92,246,0.12);
-}
-[data-theme="dark"] .notif-text {
-    color: #9896b0;
-}
-[data-theme="dark"] .notif-item.unread .notif-text {
+[data-theme="dark"] .profile-name-lg {
     color: #e2e0f0;
-}
-[data-theme="dark"] .notif-title {
-    color: #e2e0f0;
-}
-[data-theme="dark"] .nb-divider {
-    background: rgba(255,255,255,0.07);
-}
-[data-theme="dark"] .notif-header {
-    border-bottom-color: rgba(255,255,255,0.07);
-}
-[data-theme="dark"] .drop-header {
-    border-bottom-color: rgba(255,255,255,0.07);
 }
 </style>
 
 <script>
 // ============================================================
-// 1. DROPDOWN TOGGLE
+// DROPDOWN TOGGLES
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
+    // Notifications Dropdown
     const notifToggle = document.getElementById('notifToggle');
-    const profileToggle = document.getElementById('profileToggle');
     const notifMenu = document.getElementById('notifMenu');
+    const profileToggle = document.getElementById('profileToggle');
     const profileMenu = document.getElementById('profileMenu');
 
     if (notifToggle && notifMenu) {
@@ -675,6 +790,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             notifMenu.classList.toggle('show');
             if (profileMenu) profileMenu.classList.remove('show');
+            this.classList.toggle('active');
         });
     }
 
@@ -683,74 +799,46 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             profileMenu.classList.toggle('show');
             if (notifMenu) notifMenu.classList.remove('show');
+            this.classList.toggle('active');
         });
     }
 
     // Close dropdowns on outside click
-    document.addEventListener('click', function() {
-        if (notifMenu) notifMenu.classList.remove('show');
-        if (profileMenu) profileMenu.classList.remove('show');
+    document.addEventListener('click', function(e) {
+        if (notifMenu && !notifMenu.contains(e.target) && e.target !== notifToggle) {
+            notifMenu.classList.remove('show');
+            if (notifToggle) notifToggle.classList.remove('active');
+        }
+        if (profileMenu && !profileMenu.contains(e.target) && e.target !== profileToggle) {
+            profileMenu.classList.remove('show');
+            if (profileToggle) profileToggle.classList.remove('active');
+        }
     });
 
-    // Close dropdowns on escape key
+    // Close on Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             if (notifMenu) notifMenu.classList.remove('show');
+            if (notifToggle) notifToggle.classList.remove('active');
             if (profileMenu) profileMenu.classList.remove('show');
+            if (profileToggle) profileToggle.classList.remove('active');
+        }
+    });
+
+    // Keyboard shortcut for search (Cmd+K / Ctrl+K)
+    document.addEventListener('keydown', function(e) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            const searchInput = document.querySelector('#navbarSearch');
+            if (searchInput) {
+                searchInput.focus();
+            }
         }
     });
 });
 
 // ============================================================
-// 2. SIDEBAR TOGGLE
-// ============================================================
-function toggleSidebar() {
-    const sidebar = document.getElementById('adminSidebar');
-    const navbar = document.getElementById('adminNavbar');
-    const mainContent = document.getElementById('mainContent');
-    
-    if (!sidebar) return;
-    
-    const isCollapsed = sidebar.classList.toggle('collapsed');
-    
-    if (navbar) {
-        if (isCollapsed) {
-            navbar.classList.add('sidebar-collapsed');
-        } else {
-            navbar.classList.remove('sidebar-collapsed');
-        }
-    }
-    
-    if (mainContent) {
-        if (isCollapsed) {
-            mainContent.classList.add('expanded');
-        } else {
-            mainContent.classList.remove('expanded');
-        }
-    }
-    
-    localStorage.setItem('sidebarCollapsed', isCollapsed);
-    window.dispatchEvent(new CustomEvent('sidebarToggled', { 
-        detail: { collapsed: isCollapsed } 
-    }));
-}
-
-// Load saved state on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('adminSidebar');
-    const navbar = document.getElementById('adminNavbar');
-    const mainContent = document.getElementById('mainContent');
-    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    
-    if (sidebar && isCollapsed) {
-        sidebar.classList.add('collapsed');
-        if (navbar) navbar.classList.add('sidebar-collapsed');
-        if (mainContent) mainContent.classList.add('expanded');
-    }
-});
-
-// ============================================================
-// 3. NOTIFICATION COUNT UPDATE (AJAX)
+// NOTIFICATION COUNT UPDATE
 // ============================================================
 function updateNotificationCount() {
     fetch('{{ route("admin.notifications.unread") }}')
@@ -769,52 +857,30 @@ function updateNotificationCount() {
         .catch(error => console.error('Error updating notification count:', error));
 }
 
-// Update notification count every 30 seconds
+// Update every 30 seconds
 setInterval(updateNotificationCount, 30000);
 
 // ============================================================
-// 4. ADMIN SEARCH
+// SEARCH FOCUS
 // ============================================================
-let searchTimeout;
-function handleAdminSearch(query) {
-    clearTimeout(searchTimeout);
-    const resultsEl = document.getElementById('searchResults');
-    if (query.length < 2) { 
-        resultsEl.classList.remove('show'); 
-        return; 
-    }
-    searchTimeout = setTimeout(() => {
-        fetch(`/ajax/products/search?q=${encodeURIComponent(query)}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.length === 0) {
-                    resultsEl.innerHTML = `<div style="padding:12px;font-size:13px;color:#6b7280;text-align:center">No results found</div>`;
-                } else {
-                    resultsEl.innerHTML = data.map(p => `
-                        <a href="/admin/products/${p.id}/edit"
-                           style="display:flex;align-items:center;gap:8px;padding:8px 12px;text-decoration:none;font-size:13px;color:#374151;border-bottom:0.5px solid #f3f4f6">
-                            <i class="fas fa-box" style="color:#9ca3af;font-size:12px"></i>
-                            ${p.name}
-                            <span style="margin-left:auto;font-size:11px;color:#9ca3af">$${p.price}</span>
-                        </a>
-                    `).join('');
-                }
-                resultsEl.classList.add('show');
-            })
-            .catch(() => resultsEl.classList.remove('show'));
-    }, 400);
-}
-
-// Close search on outside click
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.nb-search')) {
-        document.getElementById('searchResults')?.classList.remove('show');
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('navbarSearch');
+    if (searchInput) {
+        searchInput.addEventListener('focus', function() {
+            this.parentElement.style.borderColor = '#8B5CF6';
+            this.parentElement.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
+        });
+        searchInput.addEventListener('blur', function() {
+            this.parentElement.style.borderColor = '';
+            this.parentElement.style.boxShadow = '';
+        });
     }
 });
 
 // ============================================================
-// 5. CONSOLE GREETING
+// CONSOLE GREETING
 // ============================================================
-console.log('%c🔧 EktaMart Admin Navbar Loaded', 'color: #8b5cf6; font-size: 13px; font-weight: bold;');
-console.log('%c🔔 Total Unread: {{ $totalUnread ?? 0 }}', 'color: #f59e0b; font-size: 12px;');
+console.log('%c🔧 Admin Navbar Loaded', 'color: #8B5CF6; font-size: 13px; font-weight: bold;');
+console.log('%c🔔 Total Unread: {{ $totalUnread ?? 0 }}', 'color: #F59E0B; font-size: 12px;');
+console.log('%c⌨️  Press Cmd+K or Ctrl+K to focus search', 'color: #10B981; font-size: 11px;');
 </script>

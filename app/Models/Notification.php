@@ -15,38 +15,28 @@ class Notification extends Model
         'type',
         'title',
         'message',
-        'data',
         'link',
         'icon',
+        'color',
         'is_read',
         'read_at',
+        'data',
     ];
 
     protected $casts = [
-        'data' => 'array',
         'is_read' => 'boolean',
         'read_at' => 'datetime',
+        'data' => 'array',
     ];
 
-    const TYPE_ORDER = 'order';
-    const TYPE_PAYMENT = 'payment';
-    const TYPE_PROMOTION = 'promotion';
-    const TYPE_SYSTEM = 'system';
-    const TYPE_RETURN = 'return';
-    const TYPE_SUPPORT = 'support';
+    // ==================== RELATIONSHIPS ====================
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function markAsRead(): void
-    {
-        $this->update([
-            'is_read' => true,
-            'read_at' => now(),
-        ]);
-    }
+    // ==================== SCOPES ====================
 
     public function scopeUnread($query)
     {
@@ -58,13 +48,98 @@ class Notification extends Model
         return $query->where('is_read', true);
     }
 
-    public function scopeOfType($query, $type)
+    public function scopeForUser($query, $userId)
     {
-        return $query->where('type', $type);
+        return $query->where('user_id', $userId);
     }
+
+    // ==================== ✅ ACCESSORS (যোগ করুন) ====================
 
     public function getTimeAgoAttribute(): string
     {
         return $this->created_at->diffForHumans();
+    }
+
+    public function getFormattedDateAttribute(): string
+    {
+        return $this->created_at->format('M d, Y h:i A');
+    }
+
+    public function getStatusBadgeAttribute(): string
+    {
+        if ($this->is_read) {
+            return '<span class="badge bg-secondary">Read</span>';
+        }
+        return '<span class="badge bg-danger">Unread</span>';
+    }
+
+    public function getIconClassAttribute(): string
+    {
+        $icons = [
+            'order' => 'fas fa-shopping-bag',
+            'payment' => 'fas fa-credit-card',
+            'review' => 'fas fa-star',
+            'product' => 'fas fa-box',
+            'user' => 'fas fa-user',
+            'vendor' => 'fas fa-store',
+            'system' => 'fas fa-cog',
+            'warning' => 'fas fa-exclamation-triangle',
+            'success' => 'fas fa-check-circle',
+            'info' => 'fas fa-info-circle',
+        ];
+
+        return $icons[$this->type] ?? 'fas fa-bell';
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    public function markAsRead(): void
+    {
+        if (!$this->is_read) {
+            $this->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+        }
+    }
+
+    public function markAsUnread(): void
+    {
+        if ($this->is_read) {
+            $this->update([
+                'is_read' => false,
+                'read_at' => null,
+            ]);
+        }
+    }
+
+    // ==================== FACTORY METHODS ====================
+
+    public static function createNotification($userId, $type, $title, $message, $link = null, $data = [])
+    {
+        $colors = [
+            'order' => '#667eea',
+            'payment' => '#10b981',
+            'review' => '#f59e0b',
+            'product' => '#3b82f6',
+            'user' => '#8b5cf6',
+            'vendor' => '#ec4899',
+            'system' => '#6b7280',
+            'warning' => '#ef4444',
+            'success' => '#10b981',
+            'info' => '#3b82f6',
+        ];
+
+        return self::create([
+            'user_id' => $userId,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'link' => $link,
+            'icon' => null,
+            'color' => $colors[$type] ?? '#6b7280',
+            'is_read' => false,
+            'data' => $data,
+        ]);
     }
 }

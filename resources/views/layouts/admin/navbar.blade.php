@@ -1,5 +1,41 @@
 {{-- resources/views/layouts/admin/navbar.blade.php --}}
 
+{{-- ============================================================
+     ✅ DIRECT FIX: Get data directly from database
+============================================================ --}}
+@php
+    use App\Models\Notification;
+    use App\Models\Order;
+    use App\Models\Review;
+    use App\Models\Product;
+    use Illuminate\Support\Facades\Auth;
+
+    try {
+        // Directly fetch notifications
+        $latestNotifications = Notification::where('user_id', Auth::id())
+            ->latest()
+            ->take(5)
+            ->get();
+        
+        $unreadNotifications = Notification::where('user_id', Auth::id())
+            ->where('is_read', false)
+            ->count();
+        
+        $pendingOrders = Order::where('status', 'pending')->count();
+        $pendingReviews = Review::where('is_approved', false)->count();
+        $lowStock = Product::where('stock', '<', 5)->where('stock', '>', 0)->count();
+        
+        $totalUnread = $pendingOrders + $pendingReviews + $lowStock + $unreadNotifications;
+    } catch (\Exception $e) {
+        $latestNotifications = collect([]);
+        $unreadNotifications = 0;
+        $pendingOrders = 0;
+        $pendingReviews = 0;
+        $lowStock = 0;
+        $totalUnread = 0;
+    }
+@endphp
+
 <nav class="admin-navbar" id="adminNavbar">
 
     {{-- Sidebar Toggle --}}
@@ -19,7 +55,6 @@
     <div class="nb-right">
 
         {{-- Pending Orders Quick Link --}}
-        @php $pendingOrders = \App\Models\Order::where('status','pending')->count(); @endphp
         <a href="{{ route('admin.orders.index') }}" class="nb-btn" title="Pending Orders">
             <i class="fas fa-shopping-bag"></i>
             @if($pendingOrders > 0)
@@ -27,66 +62,56 @@
             @endif
         </a>
 
-        {{-- Notifications --}}
-        @php $pendingReviews = \App\Models\Review::where('is_approved', false)->count(); @endphp
+        {{-- ============================================================
+             NOTIFICATIONS DROPDOWN
+        ============================================================ --}}
         <div class="nb-dropdown">
             <button class="nb-btn" id="notifToggle" aria-label="Notifications">
                 <i class="fas fa-bell"></i>
-                @php $totalNotif = $pendingOrders + $pendingReviews; @endphp
-                @if($totalNotif > 0)
-                    <span class="nb-badge">{{ $totalNotif > 9 ? '9+' : $totalNotif }}</span>
+                @if($totalUnread > 0)
+                    <span class="nb-badge" id="notificationBadge">{{ $totalUnread > 9 ? '9+' : $totalUnread }}</span>
                 @endif
             </button>
             <div class="nb-dropdown-menu notif-menu" id="notifMenu">
                 <div class="notif-header">
-                    <span class="notif-title">Notifications</span>
+                    <span class="notif-title">
+                        <i class="fas fa-bell me-1"></i> Notifications
+                        @if($totalUnread > 0)
+                            <span class="badge bg-danger ms-1">{{ $totalUnread }}</span>
+                        @endif
+                    </span>
                     <a href="{{ route('admin.notifications.index') }}" class="notif-see-all">See all</a>
                 </div>
 
-                @if($pendingOrders > 0)
-                <a href="{{ route('admin.orders.index') }}" class="notif-item unread">
-                    <div class="notif-icon" style="background:#FAEEDA;color:#633806">
-                        <i class="fas fa-shopping-bag"></i>
+                {{-- ✅ Now $latestNotifications is always defined --}}
+                @if($latestNotifications->count() > 0)
+                    @foreach($latestNotifications as $notif)
+                    <a href="{{ $notif->link ?? '#' }}" class="notif-item {{ !$notif->is_read ? 'unread' : '' }}">
+                        <div class="notif-icon" style="background: {{ $notif->color ?? '#667eea' }}20; color: {{ $notif->color ?? '#667eea' }};">
+                            <i class="{{ $notif->icon_class ?? 'fas fa-bell' }}"></i>
+                        </div>
+                        <div>
+                            <div class="notif-text">{{ $notif->title }}</div>
+                            <div class="notif-time">{{ $notif->time_ago ?? $notif->created_at->diffForHumans() }}</div>
+                        </div>
+                        @if(!$notif->is_read)
+                            <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.5rem;">NEW</span>
+                        @endif
+                    </a>
+                    @endforeach
+                    
+                    @if($latestNotifications->count() >= 5)
+                        <div class="text-center mt-2">
+                            <a href="{{ route('admin.notifications.index') }}" class="btn btn-sm btn-outline-primary w-100">
+                                View All Notifications
+                            </a>
+                        </div>
+                    @endif
+                @else
+                    <div class="notif-empty">
+                        <i class="fas fa-check-circle"></i>
+                        <span>All caught up!</span>
                     </div>
-                    <div>
-                        <div class="notif-text">{{ $pendingOrders }} new order{{ $pendingOrders > 1 ? 's' : '' }} pending</div>
-                        <div class="notif-time">Needs your attention</div>
-                    </div>
-                </a>
-                @endif
-
-                @if($pendingReviews > 0)
-                <a href="{{ route('admin.reviews.pending') }}" class="notif-item unread">
-                    <div class="notif-icon" style="background:#FCEBEB;color:#501313">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div>
-                        <div class="notif-text">{{ $pendingReviews }} review{{ $pendingReviews > 1 ? 's' : '' }} pending approval</div>
-                        <div class="notif-time">Needs moderation</div>
-                    </div>
-                </a>
-                @endif
-
-                @php
-                    $lowStock = \App\Models\Product::where('stock', '<', 5)->where('stock', '>', 0)->count();
-                @endphp
-                @if($lowStock > 0)
-                <a href="{{ route('admin.reports.low-stock') }}" class="notif-item">
-                    <div class="notif-icon" style="background:#EAF3DE;color:#27500A">
-                        <i class="fas fa-box"></i>
-                    </div>
-                    <div>
-                        <div class="notif-text">{{ $lowStock }} product{{ $lowStock > 1 ? 's' : '' }} low on stock</div>
-                        <div class="notif-time">Restock needed</div>
-                    </div>
-                </a>
-                @endif
-
-                @if($pendingOrders == 0 && $pendingReviews == 0 && $lowStock == 0)
-                <div class="notif-empty">
-                    <i class="fas fa-check-circle"></i>
-                    <span>All caught up!</span>
-                </div>
                 @endif
             </div>
         </div>
@@ -114,7 +139,7 @@
                     </div>
                 </div>
                 <hr class="drop-divider">
-                <a href="{{ route('admin.settings.index') }}" class="drop-item">
+                <a href="{{ route('admin.profile.index') }}" class="drop-item">
                     <i class="fas fa-user-cog"></i> My Profile
                 </a>
                 <a href="{{ route('admin.settings.index') }}" class="drop-item">
@@ -226,11 +251,21 @@
 
 .nb-badge {
     position: absolute; top: -4px; right: -4px;
-    background: #dc2626; color: #fff;
-    font-size: 9px; font-weight: 600;
-    padding: 1px 4px; border-radius: 20px;
-    min-width: 16px; text-align: center;
+    background: #dc2626;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 20px;
+    min-width: 16px;
+    text-align: center;
     border: 1.5px solid #fff;
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 .nb-divider { width: 0.5px; height: 24px; background: #e5e7eb; margin: 0 4px; }
@@ -241,89 +276,244 @@
 .nb-dropdown { position: relative; }
 .nb-dropdown-menu {
     position: absolute; top: calc(100% + 8px); right: 0;
-    background: #fff; border: 0.5px solid #e5e7eb;
-    border-radius: 12px; padding: .5rem;
-    min-width: 200px; display: none;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.1); z-index: 200;
+    background: #fff;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 12px;
+    padding: .5rem;
+    min-width: 200px;
+    display: none;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    z-index: 200;
 }
 .nb-dropdown-menu.show { display: block; }
 
-.notif-menu { min-width: 290px; }
-.notif-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 6px 10px 8px;
-    border-bottom: 0.5px solid #e5e7eb; margin-bottom: 4px;
+/* ============================================================
+   NOTIFICATIONS MENU
+============================================================ */
+.notif-menu {
+    min-width: 320px;
+    max-width: 400px;
+    max-height: 480px;
+    overflow-y: auto;
 }
-.notif-title { font-size: 13px; font-weight: 600; color: #111827; }
-.notif-see-all { font-size: 11px; color: #534AB7; text-decoration: none; }
+
+/* Custom scrollbar for notifications */
+.notif-menu::-webkit-scrollbar {
+    width: 4px;
+}
+.notif-menu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+.notif-menu::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border-radius: 10px;
+}
+
+.notif-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px 10px;
+    border-bottom: 0.5px solid #e5e7eb;
+    margin-bottom: 4px;
+}
+.notif-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.notif-title .badge {
+    font-size: 0.55rem;
+    padding: 0.15rem 0.4rem;
+}
+.notif-see-all {
+    font-size: 11px;
+    color: #534AB7;
+    text-decoration: none;
+    font-weight: 500;
+}
+.notif-see-all:hover {
+    text-decoration: underline;
+}
 
 .notif-item {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 8px 10px; border-radius: 8px;
-    text-decoration: none; cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
 }
-.notif-item:hover { background: #f9fafb; }
-.notif-item.unread { background: #fafafe; }
-.notif-icon {
-    width: 32px; height: 32px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; flex-shrink: 0;
+.notif-item:hover {
+    background: #f9fafb;
 }
-.notif-text { font-size: 12px; color: #374151; line-height: 1.4; }
-.notif-time { font-size: 10px; color: #9ca3af; margin-top: 2px; }
-.notif-empty {
-    display: flex; align-items: center; justify-content: center;
-    gap: 6px; padding: 1rem;
-    font-size: 13px; color: #6b7280;
+.notif-item.unread {
+    background: #f5f3ff;
+    border-left: 3px solid #8b5cf6;
 }
-.notif-empty i { color: #10b981; }
+.notif-item.unread:hover {
+    background: #ede9fe;
+}
 
-.nb-profile {
-    display: flex; align-items: center; gap: 8px;
-    padding: 4px 8px 4px 4px;
-    border: 0.5px solid #e5e7eb; border-radius: 8px;
-    cursor: pointer; transition: all .15s;
-}
-.nb-profile:hover { background: #f9fafb; }
-.nb-avatar {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: #EEEDFE; color: #3C3489;
-    font-size: 11px; font-weight: 600;
-    display: flex; align-items: center; justify-content: center;
+.notif-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
     flex-shrink: 0;
 }
-.nb-profile-name { font-size: 12px; font-weight: 600; color: #111827; line-height: 1.2; }
-.nb-profile-role { font-size: 10px; color: #6b7280; }
-.nb-chevron { font-size: 11px; color: #9ca3af; }
+.notif-text {
+    font-size: 12px;
+    color: #374151;
+    line-height: 1.4;
+    font-weight: 500;
+}
+.notif-item.unread .notif-text {
+    color: #1a1a2e;
+    font-weight: 600;
+}
+.notif-time {
+    font-size: 10px;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+.notif-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 1.5rem 1rem;
+    font-size: 13px;
+    color: #6b7280;
+}
+.notif-empty i {
+    color: #10b981;
+    font-size: 1.2rem;
+}
+
+/* ============================================================
+   PROFILE DROPDOWN
+============================================================ */
+.nb-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px 4px 4px;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
+}
+.nb-profile:hover {
+    background: #f9fafb;
+}
+.nb-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.nb-profile-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #111827;
+    line-height: 1.2;
+}
+.nb-profile-role {
+    font-size: 10px;
+    color: #6b7280;
+}
+.nb-chevron {
+    font-size: 11px;
+    color: #9ca3af;
+    transition: transform 0.2s ease;
+}
+.nb-dropdown.show .nb-chevron {
+    transform: rotate(180deg);
+}
 
 .drop-header {
-    display: flex; align-items: center; gap: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     padding: 8px 10px 10px;
-    border-bottom: 0.5px solid #e5e7eb; margin-bottom: 4px;
+    border-bottom: 0.5px solid #e5e7eb;
+    margin-bottom: 4px;
 }
 .drop-avatar {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: #EEEDFE; color: #3C3489;
-    font-size: 13px; font-weight: 600;
-    display: flex; align-items: center; justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
-.drop-name { font-size: 13px; font-weight: 600; color: #111827; }
-.drop-email { font-size: 11px; color: #6b7280; }
+.drop-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+}
+.drop-email {
+    font-size: 11px;
+    color: #6b7280;
+}
 
 .drop-item {
-    display: flex; align-items: center; gap: 8px;
-    padding: 7px 10px; border-radius: 8px;
-    font-size: 13px; color: #374151;
-    text-decoration: none; cursor: pointer;
-    background: none; border: none; width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #374151;
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 100%;
     transition: background .15s;
 }
-.drop-item:hover { background: #f9fafb; }
-.drop-item i { font-size: 14px; color: #6b7280; width: 16px; }
-.drop-item.danger { color: #dc2626; }
-.drop-item.danger i { color: #dc2626; }
-.drop-divider { border: none; border-top: 0.5px solid #e5e7eb; margin: .35rem 0; }
+.drop-item:hover {
+    background: #f9fafb;
+}
+.drop-item i {
+    font-size: 14px;
+    color: #6b7280;
+    width: 16px;
+}
+.drop-item.danger {
+    color: #dc2626;
+}
+.drop-item.danger i {
+    color: #dc2626;
+}
+.drop-divider {
+    border: none;
+    border-top: 0.5px solid #e5e7eb;
+    margin: .35rem 0;
+}
 
 /* ============================================================
    RESPONSIVE
@@ -361,7 +551,8 @@
         font-size: 10px;
     }
     .notif-menu {
-        min-width: 260px;
+        min-width: 280px;
+        max-width: 320px;
     }
 }
 
@@ -371,7 +562,7 @@
         gap: 4px;
     }
     .nb-search {
-        max-width: 120px;
+        max-width: 100px;
         padding: 0 6px;
     }
     .nb-search input {
@@ -389,6 +580,11 @@
     }
     .nb-right {
         gap: 4px;
+    }
+    .notif-menu {
+        min-width: 260px;
+        max-width: 290px;
+        right: -60px;
     }
 }
 
@@ -435,39 +631,78 @@
 [data-theme="dark"] .drop-name {
     color: #e2e0f0;
 }
-[data-theme="dark"] .notif-item:hover,
-[data-theme="dark"] .notif-item.unread {
+[data-theme="dark"] .notif-item:hover {
     background: rgba(255,255,255,0.03);
+}
+[data-theme="dark"] .notif-item.unread {
+    background: rgba(139,92,246,0.08);
+}
+[data-theme="dark"] .notif-item.unread:hover {
+    background: rgba(139,92,246,0.12);
 }
 [data-theme="dark"] .notif-text {
     color: #9896b0;
 }
+[data-theme="dark"] .notif-item.unread .notif-text {
+    color: #e2e0f0;
+}
+[data-theme="dark"] .notif-title {
+    color: #e2e0f0;
+}
 [data-theme="dark"] .nb-divider {
     background: rgba(255,255,255,0.07);
+}
+[data-theme="dark"] .notif-header {
+    border-bottom-color: rgba(255,255,255,0.07);
+}
+[data-theme="dark"] .drop-header {
+    border-bottom-color: rgba(255,255,255,0.07);
 }
 </style>
 
 <script>
-// Dropdown toggle
-document.getElementById('notifToggle')?.addEventListener('click', function(e) {
-    e.stopPropagation();
-    document.getElementById('notifMenu').classList.toggle('show');
-    document.getElementById('profileMenu').classList.remove('show');
-});
+// ============================================================
+// 1. DROPDOWN TOGGLE
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    const notifToggle = document.getElementById('notifToggle');
+    const profileToggle = document.getElementById('profileToggle');
+    const notifMenu = document.getElementById('notifMenu');
+    const profileMenu = document.getElementById('profileMenu');
 
-document.getElementById('profileToggle')?.addEventListener('click', function(e) {
-    e.stopPropagation();
-    document.getElementById('profileMenu').classList.toggle('show');
-    document.getElementById('notifMenu').classList.remove('show');
-});
+    if (notifToggle && notifMenu) {
+        notifToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notifMenu.classList.toggle('show');
+            if (profileMenu) profileMenu.classList.remove('show');
+        });
+    }
 
-document.addEventListener('click', function() {
-    document.getElementById('notifMenu')?.classList.remove('show');
-    document.getElementById('profileMenu')?.classList.remove('show');
+    if (profileToggle && profileMenu) {
+        profileToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            profileMenu.classList.toggle('show');
+            if (notifMenu) notifMenu.classList.remove('show');
+        });
+    }
+
+    // Close dropdowns on outside click
+    document.addEventListener('click', function() {
+        if (notifMenu) notifMenu.classList.remove('show');
+        if (profileMenu) profileMenu.classList.remove('show');
+    });
+
+    // Close dropdowns on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (notifMenu) notifMenu.classList.remove('show');
+            if (profileMenu) profileMenu.classList.remove('show');
+        }
+    });
 });
 
 // ============================================================
-// SIDEBAR TOGGLE - FIXED
+// 2. SIDEBAR TOGGLE
 // ============================================================
 function toggleSidebar() {
     const sidebar = document.getElementById('adminSidebar');
@@ -478,7 +713,6 @@ function toggleSidebar() {
     
     const isCollapsed = sidebar.classList.toggle('collapsed');
     
-    // ✅ Navbar adjust - add/remove class
     if (navbar) {
         if (isCollapsed) {
             navbar.classList.add('sidebar-collapsed');
@@ -487,7 +721,6 @@ function toggleSidebar() {
         }
     }
     
-    // ✅ Main content adjust
     if (mainContent) {
         if (isCollapsed) {
             mainContent.classList.add('expanded');
@@ -502,7 +735,7 @@ function toggleSidebar() {
     }));
 }
 
-// ✅ Load saved state on page load
+// Load saved state on page load
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('adminSidebar');
     const navbar = document.getElementById('adminNavbar');
@@ -516,12 +749,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Admin search
+// ============================================================
+// 3. NOTIFICATION COUNT UPDATE (AJAX)
+// ============================================================
+function updateNotificationCount() {
+    fetch('{{ route("admin.notifications.unread") }}')
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                if (data.count > 0) {
+                    badge.textContent = data.count > 9 ? '9+' : data.count;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => console.error('Error updating notification count:', error));
+}
+
+// Update notification count every 30 seconds
+setInterval(updateNotificationCount, 30000);
+
+// ============================================================
+// 4. ADMIN SEARCH
+// ============================================================
 let searchTimeout;
 function handleAdminSearch(query) {
     clearTimeout(searchTimeout);
     const resultsEl = document.getElementById('searchResults');
-    if (query.length < 2) { resultsEl.classList.remove('show'); return; }
+    if (query.length < 2) { 
+        resultsEl.classList.remove('show'); 
+        return; 
+    }
     searchTimeout = setTimeout(() => {
         fetch(`/ajax/products/search?q=${encodeURIComponent(query)}`)
             .then(r => r.json())
@@ -551,5 +812,9 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// ============================================================
+// 5. CONSOLE GREETING
+// ============================================================
 console.log('%c🔧 EktaMart Admin Navbar Loaded', 'color: #8b5cf6; font-size: 13px; font-weight: bold;');
+console.log('%c🔔 Total Unread: {{ $totalUnread ?? 0 }}', 'color: #f59e0b; font-size: 12px;');
 </script>

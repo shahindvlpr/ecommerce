@@ -223,12 +223,12 @@ Route::middleware(['auth'])->group(function () {
         
         // Reviews
         Route::get('/reviews', [CustomerReviewController::class, 'index'])->name('reviews');
-    Route::post('/reviews', [CustomerReviewController::class, 'store'])->name('reviews.store');
-    Route::put('/reviews/{review}', [CustomerReviewController::class, 'update'])->name('reviews.update');
-    Route::delete('/reviews/{review}', [CustomerReviewController::class, 'destroy'])->name('reviews.destroy');
-    Route::get('/reviews/product/{productId}', [CustomerReviewController::class, 'getProductReviews'])->name('reviews.product');
-    Route::post('/reviews/{review}/helpful', [CustomerReviewController::class, 'helpful'])->name('reviews.helpful');
-    Route::post('/reviews/{review}/report', [CustomerReviewController::class, 'report'])->name('reviews.report');
+        Route::post('/reviews', [CustomerReviewController::class, 'store'])->name('reviews.store');
+        Route::put('/reviews/{review}', [CustomerReviewController::class, 'update'])->name('reviews.update');
+        Route::delete('/reviews/{review}', [CustomerReviewController::class, 'destroy'])->name('reviews.destroy');
+        Route::get('/reviews/product/{productId}', [CustomerReviewController::class, 'getProductReviews'])->name('reviews.product');
+        Route::post('/reviews/{review}/helpful', [CustomerReviewController::class, 'helpful'])->name('reviews.helpful');
+        Route::post('/reviews/{review}/report', [CustomerReviewController::class, 'report'])->name('reviews.report');
 
         
         // Addresses
@@ -241,20 +241,17 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/addresses/{address}/default', [AddressController::class, 'setDefault'])->name('addresses.default');
 
         // Chat Routes
-    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-    Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
-    Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
-    Route::get('/chat/unread', [ChatController::class, 'getUnreadCount'])->name('chat.unread');
-    Route::post('/chat/read-all', [ChatController::class, 'markAllAsRead'])->name('chat.read-all');
-    
-    
-    Route::delete('/chat/{id}', [ChatController::class, 'destroy'])->name('chat.destroy');
-    Route::put('/chat/{id}', [ChatController::class, 'update'])->name('chat.update');
-    Route::delete('/chat/clear-all', [ChatController::class, 'clearAll'])->name('chat.clear');
-    
-    Route::get('/chat/history', [ChatController::class, 'getHistory'])->name('chat.history');
-    Route::get('/chat/latest', [ChatController::class, 'getLatest'])->name('chat.latest');
-    Route::post('/chat/upload', [ChatController::class, 'uploadAttachment'])->name('chat.upload');
+        Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+        Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
+        Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
+        Route::get('/chat/unread', [ChatController::class, 'getUnreadCount'])->name('chat.unread');
+        Route::post('/chat/read-all', [ChatController::class, 'markAllAsRead'])->name('chat.read-all');
+        Route::delete('/chat/{id}', [ChatController::class, 'destroy'])->name('chat.destroy');
+        Route::put('/chat/{id}', [ChatController::class, 'update'])->name('chat.update');
+        Route::delete('/chat/clear-all', [ChatController::class, 'clearAll'])->name('chat.clear');
+        Route::get('/chat/history', [ChatController::class, 'getHistory'])->name('chat.history');
+        Route::get('/chat/latest', [ChatController::class, 'getLatest'])->name('chat.latest');
+        Route::post('/chat/upload', [ChatController::class, 'uploadAttachment'])->name('chat.upload');
     });
 
     /*
@@ -461,18 +458,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/clear-cache', [SettingController::class, 'clearCache'])->name('clear-cache');
         });
         
-        /*
-        |----------------------------------------------------------------------
-        | Notifications
-        |----------------------------------------------------------------------
-        */
+        // ❌ এখান থেকে Notification রাউট সরিয়ে দিন (কারণ admin.php-তে আছে)
 
-        Route::prefix('notifications')->name('notifications.')->group(function () {
-            Route::get('/', [DashboardController::class, 'notifications'])->name('index');
-            Route::post('/{id}/read', [DashboardController::class, 'markAsRead'])->name('read');
-            Route::post('/read-all', [DashboardController::class, 'markAllAsRead'])->name('read-all');
-        });
-        
         /*
         |----------------------------------------------------------------------
         | Backup & Maintenance
@@ -570,8 +557,6 @@ Route::prefix('payment/sslcommerz')->name('sslcommerz.')->group(function () {
 
 Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [HomeController::class, 'robots'])->name('robots');
-
-
 
 /*
 |--------------------------------------------------------------------------

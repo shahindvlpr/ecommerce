@@ -10,6 +10,8 @@
 :root {
     --card-radius: 1rem;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-hover: 0 12px 40px rgba(0,0,0,0.10);
 }
 
 /* ============================================================
@@ -23,12 +25,17 @@
     from { opacity: 0; transform: translateX(20px); }
     to { opacity: 1; transform: translateX(0); }
 }
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
 @keyframes shimmer {
     0% { background-position: -1000px 0; }
     100% { background-position: 1000px 0; }
 }
 .animate-fade-up { animation: fadeInUp 0.5s ease-out forwards; }
 .animate-slide-right { animation: slideInRight 0.4s ease-out forwards; }
+.animate-pulse { animation: pulse 2s infinite; }
 
 /* ============================================================
    STATS CARDS - COMPACT & MODERN
@@ -44,9 +51,10 @@
     min-height: 100px;
 }
 .stats-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: var(--shadow-hover);
 }
+.stats-card:active { transform: scale(0.98); }
 .stats-card::before {
     content: '';
     position: absolute;
@@ -55,7 +63,7 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-    transition: left 0.5s ease;
+    transition: left 0.6s ease;
 }
 .stats-card:hover::before { left: 100%; }
 
@@ -79,36 +87,37 @@
     flex-shrink: 0;
     background: rgba(255,255,255,0.2);
     color: white;
+    transition: var(--transition);
+}
+.stats-card:hover .stats-icon {
+    transform: scale(1.1) rotate(-5deg);
 }
 
-.stats-card .stats-content {
-    flex: 1;
-    min-width: 0;
-}
-
+.stats-card .stats-content { flex: 1; min-width: 0; }
 .stats-card .stats-content .stats-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     opacity: 0.75;
     font-weight: 600;
     margin-bottom: 0.1rem;
 }
-
 .stats-card .stats-content .stats-value {
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: 0.05rem;
 }
-
 .stats-card .stats-content .stats-change {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     display: inline-flex;
     align-items: center;
     gap: 0.2rem;
     opacity: 0.85;
     font-weight: 500;
+    padding: 0.1rem 0.5rem;
+    border-radius: 1rem;
+    background: rgba(255,255,255,0.15);
 }
 
 /* Stats Card Colors */
@@ -119,6 +128,7 @@
 .stats-card-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
 .stats-card-teal { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; }
 .stats-card-pink { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); color: white; }
+.stats-card-indigo { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; }
 
 /* ============================================================
    WELCOME CARD
@@ -131,6 +141,7 @@
     overflow: hidden;
     position: relative;
     padding: 1.25rem 1.5rem;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
 }
 .welcome-card::after {
     content: '';
@@ -158,6 +169,7 @@
     opacity: 0.8;
 }
 .welcome-card .welcome-time i { margin-right: 0.3rem; }
+.welcome-card .welcome-time div { line-height: 1.6; }
 
 /* ============================================================
    CHART CARDS
@@ -168,11 +180,13 @@
     background: white;
     transition: var(--transition);
     height: 100%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid #f1f5f9;
 }
 .chart-card:hover {
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    box-shadow: var(--shadow-hover);
     transform: translateY(-2px);
+    border-color: transparent;
 }
 .chart-card .card-header-custom {
     padding: 0.8rem 1.2rem;
@@ -215,18 +229,28 @@
     font-size: 0.8rem;
     border-bottom: 1px solid #f1f5f9;
 }
-.recent-table tbody tr { transition: var(--transition); }
+.recent-table tbody tr {
+    transition: var(--transition);
+    cursor: pointer;
+}
 .recent-table tbody tr:hover { background: #f8fafc; }
 .recent-table tbody tr:last-child td { border-bottom: none; }
+.recent-table .order-number {
+    font-weight: 600;
+    color: #1e293b;
+    text-decoration: none;
+}
+.recent-table .order-number:hover { color: #8b5cf6; }
 
 /* ============================================================
    BADGES
 ============================================================ */
 .badge-status {
-    padding: 0.2rem 0.6rem;
+    padding: 0.2rem 0.7rem;
     border-radius: 2rem;
     font-size: 0.65rem;
     font-weight: 600;
+    display: inline-block;
 }
 .badge-paid { background: #dcfce7; color: #166534; }
 .badge-pending { background: #fed7aa; color: #9a3412; }
@@ -234,6 +258,8 @@
 .badge-cancelled { background: #fee2e2; color: #991b1b; }
 .badge-shipped { background: #e0e7ff; color: #3730a3; }
 .badge-processing { background: #fef3c7; color: #92400e; }
+.badge-refunded { background: #fce4ec; color: #c62828; }
+.badge-completed { background: #e8f5e9; color: #2e7d32; }
 
 /* ============================================================
    QUICK ACTIONS
@@ -251,7 +277,7 @@
     color: #1e293b;
 }
 .quick-action:hover {
-    transform: translateX(4px);
+    transform: translateX(6px);
     color: white;
     border-color: transparent;
 }
@@ -267,7 +293,6 @@
 }
 .quick-action .qa-content strong { font-size: 0.8rem; display: block; }
 .quick-action .qa-content small { font-size: 0.65rem; opacity: 0.7; }
-
 .quick-action:hover .qa-content small { color: rgba(255,255,255,0.8) !important; }
 
 .qa-purple:hover { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
@@ -285,6 +310,10 @@
 .qa-blue:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); }
 .qa-blue .qa-icon { background: rgba(59,130,246,0.15); color: #3b82f6; }
 .qa-blue:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
+
+.qa-red:hover { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.qa-red .qa-icon { background: rgba(239,68,68,0.15); color: #ef4444; }
+.qa-red:hover .qa-icon { background: rgba(255,255,255,0.2); color: white; }
 
 /* ============================================================
    PERFORMANCE SUMMARY
@@ -304,6 +333,20 @@
 .perf-item .perf-icon { font-size: 1.2rem; margin-bottom: 0.2rem; }
 .perf-item .perf-label { font-size: 0.65rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
 .perf-item .perf-value { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
+
+/* ============================================================
+   ACTIVITY INDICATOR
+============================================================ */
+.activity-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 0.3rem;
+}
+.activity-dot.online { background: #10b981; }
+.activity-dot.offline { background: #ef4444; }
+.activity-dot.away { background: #f59e0b; }
 
 /* ============================================================
    RESPONSIVE
@@ -326,6 +369,49 @@
     .stats-card .stats-icon { width: 32px; height: 32px; font-size: 0.8rem; }
     .recent-table thead th, .recent-table tbody td { padding: 0.4rem 0.5rem; font-size: 0.7rem; }
     .badge-status { font-size: 0.55rem; padding: 0.1rem 0.4rem; }
+    .container-fluid { padding: 0.5rem !important; }
+}
+
+/* ============================================================
+   DARK MODE SUPPORT
+============================================================ */
+[data-theme="dark"] .chart-card {
+    background: #1a1730;
+    border-color: #2d2a4a;
+}
+[data-theme="dark"] .chart-card .card-header-custom {
+    border-color: #2d2a4a;
+}
+[data-theme="dark"] .chart-card .card-header-custom h5 {
+    color: #e2e0f0;
+}
+[data-theme="dark"] .recent-table thead {
+    background: #2d2a4a;
+}
+[data-theme="dark"] .recent-table thead th {
+    color: #7F77DD;
+}
+[data-theme="dark"] .recent-table tbody td {
+    border-color: #2d2a4a;
+    color: #e2e0f0;
+}
+[data-theme="dark"] .recent-table tbody tr:hover {
+    background: #2d2a4a;
+}
+[data-theme="dark"] .quick-action {
+    background: #2d2a4a;
+    border-color: #3d3a5a;
+    color: #e2e0f0;
+}
+[data-theme="dark"] .perf-item {
+    background: #2d2a4a;
+    border-color: #3d3a5a;
+}
+[data-theme="dark"] .perf-item .perf-value {
+    color: #e2e0f0;
+}
+[data-theme="dark"] .perf-item .perf-label {
+    color: #7F77DD;
 }
 </style>
 
@@ -350,7 +436,7 @@
 ============================================================ --}}
 <div class="row g-3 mb-3">
     <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.05s">
-        <div class="stats-card stats-card-purple">
+        <div class="stats-card stats-card-purple" onclick="window.location='{{ route('admin.categories.index') }}'">
             <div class="card-inner">
                 <div class="stats-icon"><i class="fas fa-layer-group"></i></div>
                 <div class="stats-content">
@@ -363,7 +449,7 @@
     </div>
 
     <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.10s">
-        <div class="stats-card stats-card-green">
+        <div class="stats-card stats-card-green" onclick="window.location='{{ route('admin.products.index') }}'">
             <div class="card-inner">
                 <div class="stats-icon"><i class="fas fa-boxes"></i></div>
                 <div class="stats-content">
@@ -376,7 +462,7 @@
     </div>
 
     <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.15s">
-        <div class="stats-card stats-card-orange">
+        <div class="stats-card stats-card-orange" onclick="window.location='{{ route('admin.orders.index') }}'">
             <div class="card-inner">
                 <div class="stats-icon"><i class="fas fa-shopping-cart"></i></div>
                 <div class="stats-content">
@@ -389,7 +475,7 @@
     </div>
 
     <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.20s">
-        <div class="stats-card stats-card-red">
+        <div class="stats-card stats-card-red" onclick="window.location='{{ route('admin.users.index') }}'">
             <div class="card-inner">
                 <div class="stats-icon"><i class="fas fa-users"></i></div>
                 <div class="stats-content">
@@ -402,7 +488,7 @@
     </div>
 
     <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.25s">
-        <div class="stats-card stats-card-blue">
+        <div class="stats-card stats-card-blue" onclick="window.location='{{ route('admin.reports.sales') }}'">
             <div class="card-inner">
                 <div class="stats-icon"><i class="fas fa-dollar-sign"></i></div>
                 <div class="stats-content">
@@ -415,7 +501,7 @@
     </div>
 
     <div class="col-6 col-md-4 col-xl-2 animate-slide-right" style="animation-delay:0.30s">
-        <div class="stats-card stats-card-pink">
+        <div class="stats-card stats-card-pink" onclick="window.location='{{ route('admin.reviews.index') }}'">
             <div class="card-inner">
                 <div class="stats-icon"><i class="fas fa-star"></i></div>
                 <div class="stats-content">
@@ -436,7 +522,7 @@
         <div class="chart-card">
             <div class="card-header-custom">
                 <h5><i class="fas fa-chart-line"></i> Sales Overview</h5>
-                <span class="badge bg-success bg-opacity-10 text-success">+12.5%</span>
+                <span class="badge bg-success bg-opacity-10 text-success animate-pulse">+12.5%</span>
             </div>
             <div class="card-body-custom">
                 <canvas id="salesChart" height="220"></canvas>
@@ -483,19 +569,20 @@
                         <tbody>
                             @php $recentOrders = \App\Models\Order::with('user')->latest()->take(5)->get(); @endphp
                             @forelse($recentOrders as $order)
-                            <tr>
-                                <td><span class="fw-semibold">#{{ $order->order_number ?? $order->id }}</span></td>
+                            <tr onclick="window.location='{{ route('admin.orders.show', $order) }}'">
+                                <td><a href="{{ route('admin.orders.show', $order) }}" class="order-number">#{{ $order->order_number ?? $order->id }}</a></td>
                                 <td>{{ $order->user->name ?? 'Guest' }}</td>
                                 <td class="fw-semibold text-success">${{ number_format($order->total ?? 0, 2) }}</td>
                                 <td>
                                     @php
                                         $statusClass = match($order->status ?? 'pending') {
-                                            'delivered' => 'badge-delivered',
+                                            'delivered', 'completed' => 'badge-delivered',
                                             'paid' => 'badge-paid',
                                             'pending' => 'badge-pending',
                                             'shipped' => 'badge-shipped',
                                             'cancelled' => 'badge-cancelled',
                                             'processing' => 'badge-processing',
+                                            'refunded' => 'badge-refunded',
                                             default => 'badge-pending',
                                         };
                                     @endphp
@@ -551,6 +638,13 @@
                         <small>View all customers</small>
                     </div>
                 </a>
+                <a href="{{ route('admin.reports.sales') }}" class="quick-action qa-red">
+                    <div class="qa-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="qa-content">
+                        <strong>Sales Report</strong>
+                        <small>View analytics</small>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
@@ -564,6 +658,7 @@
         <div class="chart-card">
             <div class="card-header-custom">
                 <h5><i class="fas fa-chart-bar"></i> Store Performance</h5>
+                <span class="text-muted small">Last 30 days</span>
             </div>
             <div class="card-body-custom">
                 <div class="row g-2">
@@ -585,14 +680,14 @@
                         <div class="perf-item">
                             <div class="perf-icon text-info"><i class="fas fa-star"></i></div>
                             <div class="perf-value">{{ \App\Models\Review::where('is_approved', 0)->count() }}</div>
-                            <div class="perf-label">Reviews</div>
+                            <div class="perf-label">Pending Reviews</div>
                         </div>
                     </div>
                     <div class="col-3 col-md-3">
                         <div class="perf-item">
-                            <div class="perf-icon text-primary"><i class="fas fa-box"></i></div>
-                            <div class="perf-value">{{ \App\Models\Product::count() }}</div>
-                            <div class="perf-label">Products</div>
+                            <div class="perf-icon text-danger"><i class="fas fa-exclamation-triangle"></i></div>
+                            <div class="perf-value">{{ \App\Models\Product::where('stock', '<', 10)->count() }}</div>
+                            <div class="perf-label">Low Stock</div>
                         </div>
                     </div>
                 </div>
@@ -624,7 +719,8 @@ setInterval(updateDateTime, 1000);
 // ============================================================
 // 2. SALES CHART
 // ============================================================
-new Chart(document.getElementById('salesChart').getContext('2d'), {
+const ctx = document.getElementById('salesChart').getContext('2d');
+new Chart(ctx, {
     type: 'line',
     data: {
         labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
@@ -632,7 +728,15 @@ new Chart(document.getElementById('salesChart').getContext('2d'), {
             label: 'Revenue ($)',
             data: [12500,15200,16800,14200,18900,21400,23500,22800,25600,28900,31200,34800],
             borderColor: '#8b5cf6',
-            backgroundColor: 'rgba(139,92,246,0.08)',
+            backgroundColor: function(context) {
+                const chart = context.chart;
+                const {ctx, chartArea} = chart;
+                if (!chartArea) return 'rgba(139,92,246,0.08)';
+                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                gradient.addColorStop(0, 'rgba(139,92,246,0.25)');
+                gradient.addColorStop(1, 'rgba(139,92,246,0.02)');
+                return gradient;
+            },
             borderWidth: 2.5,
             fill: true,
             tension: 0.4,
@@ -640,24 +744,39 @@ new Chart(document.getElementById('salesChart').getContext('2d'), {
             pointBorderColor: '#fff',
             pointBorderWidth: 1.5,
             pointRadius: 4,
-            pointHoverRadius: 6
+            pointHoverRadius: 7,
+            pointHoverBackgroundColor: '#7c3aed'
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: true,
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
         plugins: {
             legend: { display: false },
             tooltip: {
+                backgroundColor: 'rgba(0,0,0,0.85)',
+                titleFont: { size: 12, weight: '600' },
+                bodyFont: { size: 13 },
+                padding: 12,
+                cornerRadius: 8,
                 callbacks: {
-                    label: ctx => '$' + ctx.raw.toLocaleString()
+                    label: function(ctx) {
+                        return '$' + ctx.raw.toLocaleString();
+                    }
                 }
             }
         },
         scales: {
             y: {
                 beginAtZero: true,
-                ticks: { callback: v => '$' + v.toLocaleString(), font: { size: 10 } },
+                ticks: {
+                    callback: function(v) { return '$' + v.toLocaleString(); },
+                    font: { size: 10 }
+                },
                 grid: { color: 'rgba(0,0,0,0.04)' }
             },
             x: {
@@ -679,10 +798,10 @@ new Chart(document.getElementById('categoryChart').getContext('2d'), {
     data: {
         labels: categoryLabels,
         datasets: [{
-            data: categoryData,
+            data: categoryData.length > 0 ? categoryData : [1, 1, 1, 1, 1],
             backgroundColor: ['#8b5cf6','#10b981','#f59e0b','#ef4444','#3b82f6'],
             borderWidth: 0,
-            hoverOffset: 8
+            hoverOffset: 10
         }]
     },
     options: {
@@ -691,11 +810,24 @@ new Chart(document.getElementById('categoryChart').getContext('2d'), {
         plugins: {
             legend: {
                 position: 'bottom',
-                labels: { boxWidth: 12, font: { size: 10 }, padding: 8 }
+                labels: {
+                    boxWidth: 12,
+                    font: { size: 10 },
+                    padding: 10,
+                    usePointStyle: true,
+                    pointStyle: 'circle'
+                }
             },
             tooltip: {
+                backgroundColor: 'rgba(0,0,0,0.85)',
+                titleFont: { size: 12, weight: '600' },
+                bodyFont: { size: 13 },
+                padding: 12,
+                cornerRadius: 8,
                 callbacks: {
-                    label: ctx => ctx.label + ': ' + ctx.raw + ' products'
+                    label: function(ctx) {
+                        return ctx.label + ': ' + ctx.raw + ' products';
+                    }
                 }
             }
         },
@@ -706,9 +838,9 @@ new Chart(document.getElementById('categoryChart').getContext('2d'), {
 // ============================================================
 // 4. REAL-TIME STATS UPDATE
 // ============================================================
-setInterval(function() {
+function updateStats() {
     fetch('{{ route("admin.dashboard.stats") }}')
-        .then(r => r.json())
+        .then(response => response.json())
         .then(data => {
             document.getElementById('totalCategories').textContent = data.categories || 0;
             document.getElementById('totalProducts').textContent = data.products || 0;
@@ -716,12 +848,16 @@ setInterval(function() {
             document.getElementById('totalUsers').textContent = data.users || 0;
         })
         .catch(() => {});
-}, 30000);
+}
+
+// Update every 30 seconds
+setInterval(updateStats, 30000);
 
 // ============================================================
 // 5. CONSOLE GREETING
 // ============================================================
-console.log('%c📊 EktaMart Admin Dashboard v2.0', 'color: #8b5cf6; font-size: 14px; font-weight: bold;');
-console.log('%c🚀 Real-time stats • Modern UI • Responsive', 'color: #6366f1; font-size: 12px;');
+console.log('%c📊 EktaMart Admin Dashboard v3.0', 'color: #8b5cf6; font-size: 16px; font-weight: bold;');
+console.log('%c🚀 Real-time stats • Modern UI • Fully Responsive', 'color: #6366f1; font-size: 12px;');
+console.log('%c💡 Tip: Click on any stat card to navigate', 'color: #10b981; font-size: 11px;');
 </script>
 @endsection

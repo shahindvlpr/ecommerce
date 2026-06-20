@@ -1,3 +1,4 @@
+
 {{-- resources/views/layouts/admin/sidebar.blade.php --}}
 
 <div class="admin-sidebar" id="adminSidebar">
@@ -127,22 +128,26 @@
             <i class="fas fa-users"></i> User Report
         </a>
 
-        {{-- System --}}
-        <div class="sb-section">System</div>
+       {{-- System --}}
+<div class="sb-section">System</div>
 <a href="{{ route('admin.settings.general') }}"
    class="sb-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
     <i class="fas fa-cog"></i> Settings
 </a>
-        <a href="{{ route('admin.backup.index') }}"
-           class="sb-item {{ request()->routeIs('admin.backup.*') ? 'active' : '' }}">
-            <i class="fas fa-database"></i> Backup
-        </a>
-        <a href="{{ route('admin.notifications.index') }}"
-           class="sb-item {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">
-            <i class="fas fa-bell"></i> Notifications
-        </a>
-
-    </div>
+<a href="{{ route('admin.backup.index') }}"
+   class="sb-item {{ request()->routeIs('admin.backup.*') ? 'active' : '' }}">
+    <i class="fas fa-database"></i> Backup
+</a>
+<a href="{{ route('admin.notifications.index') }}"
+   class="sb-item {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">
+    <i class="fas fa-bell"></i> Notifications
+    @php $unreadNotifications = \App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->count(); @endphp
+    @if($unreadNotifications > 0)
+        <span class="sb-badge red" id="notificationBadge">{{ $unreadNotifications > 9 ? '9+' : $unreadNotifications }}</span>
+    @else
+        <span class="sb-badge red" id="notificationBadge" style="display:none;">0</span>
+    @endif
+</a>
 
     {{-- Footer --}}
     <div class="sb-footer">

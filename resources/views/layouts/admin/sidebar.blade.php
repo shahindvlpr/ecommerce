@@ -124,19 +124,12 @@
         </a>
 
         <div class="nav-section">Settings</div>
-        <a href="{{ route('admin.settings.general') }}"
+        <a href="{{ route('admin.settings.index') }}"
            class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
             <i class="fas fa-cog"></i>
             <span>General Settings</span>
         </a>
-        <a href="#" class="nav-link">
-            <i class="fas fa-credit-card"></i>
-            <span>Payment Settings</span>
-        </a>
-        <a href="#" class="nav-link">
-            <i class="fas fa-envelope"></i>
-            <span>Email Settings</span>
-        </a>
+        
 
         {{-- Logout --}}
         <div class="nav-footer">

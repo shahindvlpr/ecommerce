@@ -56,6 +56,19 @@ class SettingController extends Controller
         $settings = $this->getSettings();
         return view('admin.settings.email', compact('settings'));
     }
+    public function testEmail(Request $request)
+{
+    try {
+        $email = $request->email;
+        \Mail::raw('This is a test email from your store.', function($message) use ($email) {
+            $message->to($email)
+                    ->subject('Test Email from EktaMart');
+        });
+        return response()->json(['success' => true, 'message' => 'Test email sent successfully!']);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
 
     /**
      * Display SEO settings page.

@@ -195,6 +195,7 @@ Route::middleware(['auth', 'admin.access'])
         Route::post('/seo', [SettingController::class, 'updateSeo'])->name('update.seo');
         Route::post('/social', [SettingController::class, 'updateSocial'])->name('update.social');
         Route::post('/clear-cache', [SettingController::class, 'clearCache'])->name('clear-cache');
+        Route::post('/settings/test-email', [SettingController::class, 'testEmail'])->name('settings.test-email');
     });
 
     // ============================================================

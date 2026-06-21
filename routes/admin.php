@@ -139,6 +139,10 @@ Route::middleware(['auth', 'admin.access'])
     // ============================================================
     Route::resource('coupons', CouponController::class);
     Route::post('/coupons/{coupon}/toggle-status', [CouponController::class, 'toggleStatus'])->name('coupons.toggle-status');
+    Route::get('/coupons/export', [CouponController::class, 'export'])->name('coupons.export');
+    Route::post('/coupons/apply', [CouponController::class, 'apply'])->name('coupons.apply');
+    Route::post('/coupons/{coupon}/duplicate', [CouponController::class, 'duplicate'])->name('coupons.duplicate');
+    
 
     // ============================================================
     // BANNERS

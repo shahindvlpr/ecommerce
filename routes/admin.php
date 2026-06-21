@@ -149,6 +149,7 @@ Route::middleware(['auth', 'admin.access'])
     // ============================================================
     Route::resource('banners', BannerController::class);
     Route::post('/banners/{banner}/toggle-status', [BannerController::class, 'toggleStatus'])->name('banners.toggle-status');
+    Route::post('/banners/{banner}/duplicate', [BannerController::class, 'duplicate'])->name('banners.duplicate');
 
     // ============================================================
     // REVIEWS

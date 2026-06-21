@@ -66,13 +66,11 @@
             <i class="fas fa-shopping-bag"></i>
             <span>Orders</span>
         </a>
-        <a href="#" class="nav-link">
-            <i class="fas fa-undo-alt"></i>
-            <span>Returns</span>
+        <a href="{{ route('admin.returns.index') }}" class="nav-link">
+            <i class="fas fa-undo-alt"></i> <span>Returns</span>
         </a>
-        <a href="#" class="nav-link">
-            <i class="fas fa-file-invoice"></i>
-            <span>Invoices</span>
+        <a href="{{ route('admin.invoices.index') }}" class="nav-link">
+            <i class="fas fa-file-invoice"></i> <span>Invoices</span>
         </a>
 
         <div class="nav-section">Customers</div>

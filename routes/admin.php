@@ -7,15 +7,17 @@ use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\NotificationController;  
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ReturnController;
 use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\NotificationController;  
 use App\Http\Controllers\Vendor\VendorDashboardController;
 use App\Http\Controllers\Vendor\VendorOrderController;
 use App\Http\Controllers\Vendor\VendorProductController;
@@ -213,6 +215,31 @@ Route::middleware(['auth', 'admin.access'])
         Route::delete('/delete/{file}', [SettingController::class, 'deleteBackup'])->name('delete');
     });
 
+// Returns
+Route::prefix('returns')->name('returns.')->group(function () {
+    Route::get('/', [ReturnController::class, 'index'])->name('index');
+    Route::get('/pending', [ReturnController::class, 'pending'])->name('pending');
+    Route::get('/approved', [ReturnController::class, 'approved'])->name('approved');
+    Route::get('/completed', [ReturnController::class, 'completed'])->name('completed');
+    Route::get('/{id}', [ReturnController::class, 'show'])->name('show');
+    Route::put('/{id}/status', [ReturnController::class, 'updateStatus'])->name('update-status');
+    Route::delete('/{id}', [ReturnController::class, 'destroy'])->name('destroy');
+});
+
+// Invoices
+Route::prefix('invoices')->name('invoices.')->group(function () {
+    Route::get('/', [InvoiceController::class, 'index'])->name('index');
+    Route::get('/unpaid', [InvoiceController::class, 'unpaid'])->name('unpaid');
+    Route::get('/paid', [InvoiceController::class, 'paid'])->name('paid');
+    Route::get('/overdue', [InvoiceController::class, 'overdue'])->name('overdue');
+    Route::get('/create/{orderId?}', [InvoiceController::class, 'create'])->name('create');
+    Route::post('/', [InvoiceController::class, 'store'])->name('store');
+    Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
+    Route::put('/{id}', [InvoiceController::class, 'update'])->name('update');
+    Route::delete('/{id}', [InvoiceController::class, 'destroy'])->name('destroy');
+    Route::get('/generate/{orderId}', [InvoiceController::class, 'generateFromOrder'])->name('generate');
+
+
 }); // END: admin group
 
 // ============================================================
@@ -248,3 +275,7 @@ Route::middleware(['auth', 'vendor.access'])
     Route::put('/profile', [VendorDashboardController::class, 'updateProfile'])->name('profile.update');
 });
 
+    
+
+
+});

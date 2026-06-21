@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Models\Order;
 use App\Models\Review;
 use App\Models\Product;
+use App\Models\ActivityLog; 
 use Illuminate\Support\Facades\Auth;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,31 +32,49 @@ class AppServiceProvider extends ServiceProvider
         View::composer('layouts.admin.navbar', function ($view) {
             try {
                 if (Auth::check()) {
-                    $latestNotifications = Notification::where('user_id', Auth::id())
+                    $userId = Auth::id();
+                    
+                    // Notifications
+                    $latestNotifications = Notification::where('user_id', $userId)
                         ->latest()
                         ->take(5)
                         ->get();
                     
-                    $unreadNotifications = Notification::where('user_id', Auth::id())
+                    $unreadNotifications = Notification::where('user_id', $userId)
                         ->where('is_read', false)
                         ->count();
                     
+                    // Activity Logs
+                    $latestActivities = ActivityLog::where('user_id', $userId)
+                        ->latest()
+                        ->take(5)
+                        ->get();
+                    
+                    $unreadActivities = ActivityLog::where('user_id', $userId)
+                        ->where('is_read', false)
+                        ->count();
+                    
+                    // Orders, Reviews, Products
                     $pendingOrders = Order::where('status', 'pending')->count();
                     $pendingReviews = Review::where('is_approved', false)->count();
                     $lowStock = Product::where('stock', '<', 5)->where('stock', '>', 0)->count();
                 } else {
                     $latestNotifications = collect([]);
                     $unreadNotifications = 0;
+                    $latestActivities = collect([]);
+                    $unreadActivities = 0;
                     $pendingOrders = 0;
                     $pendingReviews = 0;
                     $lowStock = 0;
                 }
                 
-                $totalUnread = $pendingOrders + $pendingReviews + $lowStock + $unreadNotifications;
+                $totalUnread = $pendingOrders + $pendingReviews + $lowStock + $unreadNotifications + $unreadActivities;
                 
                 $view->with(compact(
                     'latestNotifications',
                     'unreadNotifications',
+                    'latestActivities',      // 👈 Activity Log যোগ করুন
+                    'unreadActivities',      // 👈 Unread Activity Count
                     'pendingOrders',
                     'pendingReviews',
                     'lowStock',
@@ -67,6 +86,8 @@ class AppServiceProvider extends ServiceProvider
                 $view->with([
                     'latestNotifications' => collect([]),
                     'unreadNotifications' => 0,
+                    'latestActivities' => collect([]),
+                    'unreadActivities' => 0,
                     'pendingOrders' => 0,
                     'pendingReviews' => 0,
                     'lowStock' => 0,

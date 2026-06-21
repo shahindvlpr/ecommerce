@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\BannerController;
@@ -142,7 +143,6 @@ Route::middleware(['auth', 'admin.access'])
     Route::get('/coupons/export', [CouponController::class, 'export'])->name('coupons.export');
     Route::post('/coupons/apply', [CouponController::class, 'apply'])->name('coupons.apply');
     Route::post('/coupons/{coupon}/duplicate', [CouponController::class, 'duplicate'])->name('coupons.duplicate');
-    
 
     // ============================================================
     // BANNERS
@@ -202,14 +202,44 @@ Route::middleware(['auth', 'admin.access'])
     // NOTIFICATIONS
     // ============================================================
     Route::prefix('notifications')->name('notifications.')->group(function () {
-    Route::get('/', [NotificationController::class, 'index'])->name('index');
-    Route::get('/unread', [NotificationController::class, 'getUnreadCount'])->name('unread');
-    Route::get('/latest', [NotificationController::class, 'getLatest'])->name('latest');
-    Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
-    Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
-    Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
-    Route::delete('/destroy-all', [NotificationController::class, 'destroyAll'])->name('destroy-all');
-});
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/unread', [NotificationController::class, 'getUnreadCount'])->name('unread');
+        Route::get('/latest', [NotificationController::class, 'getLatest'])->name('latest');
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
+        Route::delete('/{id}', [NotificationController::class, 'destroy'])->name('destroy');
+        Route::delete('/destroy-all', [NotificationController::class, 'destroyAll'])->name('destroy-all');
+    });
+
+    // ============================================================
+    // RETURNS
+    // ============================================================
+    Route::prefix('returns')->name('returns.')->group(function () {
+        Route::get('/', [ReturnController::class, 'index'])->name('index');
+        Route::get('/pending', [ReturnController::class, 'pending'])->name('pending');
+        Route::get('/approved', [ReturnController::class, 'approved'])->name('approved');
+        Route::get('/completed', [ReturnController::class, 'completed'])->name('completed');
+        Route::get('/{id}', [ReturnController::class, 'show'])->name('show');
+        Route::put('/{id}/status', [ReturnController::class, 'updateStatus'])->name('update-status');
+        Route::delete('/{id}', [ReturnController::class, 'destroy'])->name('destroy');
+    });
+
+    // ============================================================
+    // INVOICES
+    // ============================================================
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', [InvoiceController::class, 'index'])->name('index');
+        Route::get('/unpaid', [InvoiceController::class, 'unpaid'])->name('unpaid');
+        Route::get('/paid', [InvoiceController::class, 'paid'])->name('paid');
+        Route::get('/overdue', [InvoiceController::class, 'overdue'])->name('overdue');
+        Route::get('/create/{orderId?}', [InvoiceController::class, 'create'])->name('create');
+        Route::post('/', [InvoiceController::class, 'store'])->name('store');
+        Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
+        Route::put('/{id}', [InvoiceController::class, 'update'])->name('update');
+        Route::delete('/{id}', [InvoiceController::class, 'destroy'])->name('destroy');
+        // ✅ ইতিমধ্যে OrderController-এ generateInvoice আছে, তাই এটি কমেন্ট করুন
+        // Route::get('/generate/{orderId}', [InvoiceController::class, 'generateFromOrder'])->name('generate');
+    });
 
     // ============================================================
     // BACKUP
@@ -221,32 +251,21 @@ Route::middleware(['auth', 'admin.access'])
         Route::delete('/delete/{file}', [SettingController::class, 'deleteBackup'])->name('delete');
     });
 
-// Returns
-Route::prefix('returns')->name('returns.')->group(function () {
-    Route::get('/', [ReturnController::class, 'index'])->name('index');
-    Route::get('/pending', [ReturnController::class, 'pending'])->name('pending');
-    Route::get('/approved', [ReturnController::class, 'approved'])->name('approved');
-    Route::get('/completed', [ReturnController::class, 'completed'])->name('completed');
-    Route::get('/{id}', [ReturnController::class, 'show'])->name('show');
-    Route::put('/{id}/status', [ReturnController::class, 'updateStatus'])->name('update-status');
-    Route::delete('/{id}', [ReturnController::class, 'destroy'])->name('destroy');
+// ============================================================
+// ACTIVITY LOG
+// ============================================================
+Route::prefix('activity')->name('activity.')->group(function () {
+    Route::get('/', [ActivityLogController::class, 'index'])->name('index');
+    Route::get('/recent', [ActivityLogController::class, 'recent'])->name('recent');
+    Route::get('/export', [ActivityLogController::class, 'export'])->name('export');
+    Route::get('/show/{id}', [ActivityLogController::class, 'show'])->name('show'); 
+    Route::post('/mark-all-read', [ActivityLogController::class, 'markAllAsRead'])->name('mark-all-read');
+    Route::post('/{id}/mark-read', [ActivityLogController::class, 'markAsRead'])->name('mark-read'); 
+    Route::delete('/clear', [ActivityLogController::class, 'clearAll'])->name('clear');
+    Route::delete('/{id}', [ActivityLogController::class, 'destroy'])->name('destroy'); 
 });
 
-// Invoices
-Route::prefix('invoices')->name('invoices.')->group(function () {
-    Route::get('/', [InvoiceController::class, 'index'])->name('index');
-    Route::get('/unpaid', [InvoiceController::class, 'unpaid'])->name('unpaid');
-    Route::get('/paid', [InvoiceController::class, 'paid'])->name('paid');
-    Route::get('/overdue', [InvoiceController::class, 'overdue'])->name('overdue');
-    Route::get('/create/{orderId?}', [InvoiceController::class, 'create'])->name('create');
-    Route::post('/', [InvoiceController::class, 'store'])->name('store');
-    Route::get('/{id}', [InvoiceController::class, 'show'])->name('show');
-    Route::put('/{id}', [InvoiceController::class, 'update'])->name('update');
-    Route::delete('/{id}', [InvoiceController::class, 'destroy'])->name('destroy');
-    Route::get('/generate/{orderId}', [InvoiceController::class, 'generateFromOrder'])->name('generate');
-
-
-}); // END: admin group
+}); // ✅ END: admin group
 
 // ============================================================
 // VENDOR ROUTES (Role: Vendor) - আলাদা গ্রুপ
@@ -279,9 +298,5 @@ Route::middleware(['auth', 'vendor.access'])
     // Profile
     Route::get('/profile', [VendorDashboardController::class, 'profile'])->name('profile');
     Route::put('/profile', [VendorDashboardController::class, 'updateProfile'])->name('profile.update');
-});
 
-    
-
-
-});
+}); // ✅ END: vendor group

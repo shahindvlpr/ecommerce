@@ -141,9 +141,12 @@
                 <a href="{{ route('admin.settings.general') }}" class="dropdown-item-link">
                     <i class="fas fa-cog"></i> Settings
                 </a>
-                <a href="#" class="dropdown-item-link">
-                    <i class="fas fa-clipboard-list"></i> Activity Logs
-                </a>
+
+
+    <a href="{{ route('admin.activity.index') }}" class="dropdown-item-link">
+        <i class="fas fa-clipboard-list"></i> Activity Logs
+    </a>
+
                 <a href="#" class="dropdown-item-link">
                     <i class="fas fa-lock"></i> Change Password
                 </a>

@@ -1,53 +1,42 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Auth\SocialiteController;
-
-// Frontend Controllers
-use App\Http\Controllers\Frontend\HomeController;
-use App\Http\Controllers\Frontend\ShopController;
-use App\Http\Controllers\Frontend\CartController;
-use App\Http\Controllers\Frontend\WishlistController;
-use App\Http\Controllers\Frontend\CheckoutController;
-use App\Http\Controllers\Frontend\ProductController as FrontendProductController;
-
-// Admin Controllers
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\BrandController;
-use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Admin\OrderController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\CouponController;
-use App\Http\Controllers\Admin\BannerController;
-use App\Http\Controllers\Admin\ReviewController;
-use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\AttributeValueController;
-
-// Vendor Controllers
-use App\Http\Controllers\Vendor\VendorDashboardController;
-use App\Http\Controllers\Vendor\VendorProductController;
-use App\Http\Controllers\Vendor\VendorOrderController;
-
-// Customer Controllers
+use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\Customer\AddressController;
+use App\Http\Controllers\Customer\ChatController;
 use App\Http\Controllers\Customer\CustomerDashboardController;
 use App\Http\Controllers\Customer\CustomerOrderController;
 use App\Http\Controllers\Customer\CustomerReviewController;
-use App\Http\Controllers\Customer\AddressController;
-use App\Http\Controllers\Customer\ChatController;
-
-// Payment Controllers
+use App\Http\Controllers\Frontend\CartController;
+use App\Http\Controllers\Frontend\CheckoutController;
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\ProductController as FrontendProductController;
+use App\Http\Controllers\Frontend\ShopController;
+use App\Http\Controllers\Frontend\WishlistController;
 use App\Http\Controllers\Payment\BkashController;
 use App\Http\Controllers\Payment\NagadController;
 use App\Http\Controllers\Payment\SslCommerzController;
-
-// Webhook Controllers
-use App\Http\Controllers\Webhook\StripeWebhookController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Vendor\VendorDashboardController;
+use App\Http\Controllers\Vendor\VendorOrderController;
+use App\Http\Controllers\Vendor\VendorProductController;
 use App\Http\Controllers\Webhook\PaypalWebhookController;
 use App\Http\Controllers\Webhook\SslCommerzWebhookController;
+use App\Http\Controllers\Webhook\StripeWebhookController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -457,8 +446,19 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/social', [SettingController::class, 'updateSocial'])->name('social');
             Route::post('/clear-cache', [SettingController::class, 'clearCache'])->name('clear-cache');
         });
-        
-        // ❌ এখান থেকে Notification রাউট সরিয়ে দিন (কারণ admin.php-তে আছে)
+
+        /*
+        |----------------------------------------------------------------------
+        | ✅ ACTIVITY LOG (ঠিক করা হয়েছে)
+        |----------------------------------------------------------------------
+        */
+
+        Route::prefix('activity')->name('activity.')->group(function () {
+            Route::get('/', [ActivityLogController::class, 'index'])->name('index');
+            Route::get('/recent', [ActivityLogController::class, 'recent'])->name('recent');
+            Route::post('/mark-all-read', [ActivityLogController::class, 'markAllAsRead'])->name('mark-all-read');
+            Route::delete('/clear', [ActivityLogController::class, 'clearAll'])->name('clear');
+        });
 
         /*
         |----------------------------------------------------------------------
@@ -472,8 +472,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/download/{file}', [SettingController::class, 'downloadBackup'])->name('download');
             Route::delete('/delete/{file}', [SettingController::class, 'deleteBackup'])->name('delete');
         });
-    });
-});
+
+    }); // ✅ END: admin group
+
+}); // ✅ END: auth group
 
 /*
 |--------------------------------------------------------------------------
@@ -532,8 +534,8 @@ Route::prefix('ajax')->name('ajax.')->middleware(['auth'])->group(function () {
 // bKash Callback
 Route::get('/payment/bkash/callback', [BkashController::class, 'callback'])->name('bkash.callback');
 
-// Nagad Callback
-//Route::get('/payment/nagad/callback', [NagadController::class, 'callback'])->name('nagad.callback');
+// Nagad Callback (Commented)
+// Route::get('/payment/nagad/callback', [NagadController::class, 'callback'])->name('nagad.callback');
 
 /*
 |--------------------------------------------------------------------------

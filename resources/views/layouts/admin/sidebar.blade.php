@@ -117,8 +117,8 @@
             <i class="fas fa-chart-line"></i>
             <span>Sales Report</span>
         </a>
-        <a href="{{ route('admin.reports.products') }}"
-           class="nav-link {{ request()->routeIs('admin.reports.products') ? 'active' : '' }}">
+        <a href="{{ route('admin.products.index') }}"
+           class="nav-link {{ request()->routeIs('admin.products.index') ? 'active' : '' }}">
             <i class="fas fa-chart-pie"></i>
             <span>Product Report</span>
         </a>

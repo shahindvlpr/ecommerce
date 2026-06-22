@@ -5,28 +5,25 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\Response;
 
 class VendorAccess
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
         if (!Auth::check()) {
             return redirect()->route('login');
         }
 
         $user = Auth::user();
-        
-        // Allow if user is vendor or admin
-        if ($user->role === 'vendor' || $user->is_admin || $user->role === 'admin') {
-            return $next($request);
+
+        if ($user->role !== 'vendor') {
+            abort(403, 'Unauthorized - Vendor access required.');
         }
 
-        abort(403, 'You do not have vendor access.');
+        if ($user->role === 'vendor' && !$user->is_vendor_approved) {
+            abort(403, 'Your vendor account is pending approval. Please wait for admin approval.');
+        }
+
+        return $next($request);
     }
 }

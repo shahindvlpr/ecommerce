@@ -567,3 +567,4 @@ Route::get('/robots.txt', [HomeController::class, 'robots'])->name('robots');
 */
 
 require __DIR__ . '/admin.php';
+require __DIR__ . '/vendor.php';

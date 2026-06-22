@@ -57,6 +57,7 @@ class Kernel extends HttpKernel
         'vendor.access' => \App\Http\Middleware\VendorAccess::class,
         'customer.access' => \App\Http\Middleware\CustomerAccess::class,
         
+        
         // ============================================================
         // OTHER MIDDLEWARE
         // ============================================================

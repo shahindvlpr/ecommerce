@@ -5,88 +5,108 @@ namespace App\Http\Controllers\Vendor;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
-use App\Models\User;
+use App\Models\VendorEarning;
+use App\Models\VendorWithdraw;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class VendorDashboardController extends Controller
 {
-    /**
-     * Display vendor dashboard.
-     */
     public function index()
     {
-        $vendor = Auth::user();
-        
-        // Vendor এর প্রোডাক্টের পরিসংখ্যান
-        $totalProducts = Product::where('vendor_id', $vendor->id)->count();
-        $totalOrders = Order::whereHas('items.product', function ($query) use ($vendor) {
-            $query->where('vendor_id', $vendor->id);
-        })->count();
-        
-        $pendingOrders = Order::whereHas('items.product', function ($query) use ($vendor) {
-            $query->where('vendor_id', $vendor->id);
-        })->where('status', 'pending')->count();
-        
-        $totalRevenue = Order::whereHas('items.product', function ($query) use ($vendor) {
-            $query->where('vendor_id', $vendor->id);
-        })->where('status', 'delivered')->sum('total');
-        
-        $recentOrders = Order::whereHas('items.product', function ($query) use ($vendor) {
-            $query->where('vendor_id', $vendor->id);
-        })->latest()->take(5)->get();
-        
-        $lowStockProducts = Product::where('vendor_id', $vendor->id)
-            ->where('stock', '<', 10)
+        $vendorId = Auth::id();
+
+        // Stats
+        $stats = [
+            'total_products' => Product::where('vendor_id', $vendorId)->count(),
+            'total_orders' => Order::where('vendor_id', $vendorId)->count(),
+            'pending_orders' => Order::where('vendor_id', $vendorId)->where('status', 'pending')->count(),
+            'total_earnings' => VendorEarning::where('vendor_id', $vendorId)->where('status', 'paid')->sum('net_amount'),
+            'pending_earnings' => VendorEarning::where('vendor_id', $vendorId)->where('status', 'pending')->sum('net_amount'),
+            'low_stock' => Product::where('vendor_id', $vendorId)->where('stock', '<', 10)->count(),
+            'total_withdrawn' => VendorWithdraw::where('vendor_id', $vendorId)->where('status', 'completed')->sum('net_amount'),
+        ];
+
+        // Recent Orders
+        $recentOrders = Order::where('vendor_id', $vendorId)
+            ->with('user')
+            ->latest()
+            ->take(5)
             ->get();
-        
-        return view('vendor.dashboard', compact(
-            'vendor',
-            'totalProducts',
-            'totalOrders',
-            'pendingOrders',
-            'totalRevenue',
-            'recentOrders',
-            'lowStockProducts'
+
+        // Recent Products
+        $recentProducts = Product::where('vendor_id', $vendorId)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Recent Earnings
+        $recentEarnings = VendorEarning::where('vendor_id', $vendorId)
+            ->with('order')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Monthly Sales Chart Data
+        $monthlySales = Order::where('vendor_id', $vendorId)
+            ->where('status', 'delivered')
+            ->selectRaw('MONTH(created_at) as month, YEAR(created_at) as year, SUM(total) as total')
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'desc')
+            ->orderBy('month', 'desc')
+            ->limit(6)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'month' => date('M', mktime(0, 0, 0, $item->month, 1)),
+                    'total' => $item->total
+                ];
+            })
+            ->reverse()
+            ->values();
+
+        return view('vendor.dashboard.index', compact(
+            'stats', 'recentOrders', 'recentProducts', 
+            'recentEarnings', 'monthlySales'
         ));
     }
 
-    /**
-     * Display vendor profile.
-     */
-    public function profile()
+    public function stats()
     {
-        $vendor = Auth::user();
-        return view('vendor.profile', compact('vendor'));
-    }
+        $vendorId = Auth::id();
 
-    /**
-     * Update vendor profile.
-     */
-    public function updateProfile(Request $request)
-    {
-        $vendor = Auth::user();
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $vendor->id,
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:500',
-            'store_name' => 'nullable|string|max:255',
-            'store_description' => 'nullable|string|max:1000',
+        return response()->json([
+            'total_products' => Product::where('vendor_id', $vendorId)->count(),
+            'total_orders' => Order::where('vendor_id', $vendorId)->count(),
+            'total_earnings' => VendorEarning::where('vendor_id', $vendorId)->where('status', 'paid')->sum('net_amount'),
         ]);
-
-        $vendor->update($validated);
-
-        return redirect()->back()->with('success', 'Profile updated successfully!');
     }
 
-    /**
-     * Display vendor settings.
-     */
-    public function settings()
+    public function salesReport(Request $request)
     {
-        $vendor = Auth::user();
-        return view('vendor.settings', compact('vendor'));
+        $vendorId = Auth::id();
+
+        $query = Order::where('vendor_id', $vendorId)->where('status', 'delivered');
+
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->from);
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->to);
+        }
+
+        $sales = $query->selectRaw('DATE(created_at) as date, COUNT(*) as orders, SUM(total) as total')
+            ->groupBy('date')
+            ->orderBy('date', 'desc')
+            ->paginate(20);
+
+        return view('vendor.reports.sales', compact('sales'));
+    }
+
+    public function exportReport(Request $request)
+    {
+        // Export logic
+        return back()->with('success', 'Report exported successfully!');
     }
 }

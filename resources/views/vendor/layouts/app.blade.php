@@ -17,13 +17,10 @@
     <style>
         :root {
             --sidebar-width: 260px;
+            --sidebar-collapsed: 0px;
+            --header-height: 64px;
             --primary-color: #4f46e5;
             --primary-dark: #4338ca;
-            --secondary-color: #6b7280;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --info-color: #3b82f6;
         }
 
         * {
@@ -33,32 +30,42 @@
         body {
             background: #f1f5f9;
             overflow-x: hidden;
-        }
-
-        #wrapper {
-            display: flex;
-            min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
 
         /* ============================================================ */
         /* SIDEBAR */
         /* ============================================================ */
         #sidebar-wrapper {
-            width: var(--sidebar-width);
-            min-height: 100vh;
-            background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
-            transition: all 0.3s ease;
             position: fixed;
-            left: 0;
             top: 0;
-            bottom: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1050;
             overflow-y: auto;
+            overflow-x: hidden;
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ✅ Sidebar Collapsed State */
+        #sidebar-wrapper.collapsed {
+            width: 0;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
         }
 
         #sidebar-wrapper::-webkit-scrollbar {
             width: 4px;
+        }
+
+        #sidebar-wrapper::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
         }
 
         #sidebar-wrapper::-webkit-scrollbar-thumb {
@@ -66,8 +73,9 @@
             border-radius: 4px;
         }
 
+        /* Sidebar Brand */
         .sidebar-brand {
-            padding: 1.5rem 1rem;
+            padding: 1.25rem 1.25rem;
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
@@ -76,6 +84,7 @@
             color: white;
             font-weight: 800;
             margin: 0;
+            font-size: 20px;
             letter-spacing: -0.5px;
         }
 
@@ -84,14 +93,15 @@
         }
 
         .sidebar-brand small {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 10px;
             display: block;
-            margin-top: 4px;
-            letter-spacing: 1px;
+            margin-top: 2px;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
         }
 
+        /* Sidebar User */
         .sidebar-user {
             padding: 1rem 1.25rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -101,15 +111,15 @@
         }
 
         .sidebar-user .avatar {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             background: linear-gradient(135deg, #4f46e5, #818cf8);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 16px;
             flex-shrink: 0;
         }
@@ -139,41 +149,43 @@
             background: #10b981;
             color: white;
             font-size: 9px;
-            padding: 2px 8px;
+            padding: 2px 10px;
             border-radius: 20px;
+            font-weight: 500;
+            flex-shrink: 0;
         }
 
-        /* ============================================================ */
-        /* SIDEBAR NAVIGATION */
-        /* ============================================================ */
+        /* Sidebar Navigation */
         .sidebar-nav {
-            padding: 1rem 0;
+            padding: 0.75rem 0;
         }
 
         .sidebar-nav .nav-section {
-            padding: 0.5rem 1.25rem;
-            color: rgba(255, 255, 255, 0.3);
+            padding: 0.75rem 1.25rem 0.4rem;
+            color: rgba(255, 255, 255, 0.25);
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .sidebar-nav .nav-item {
-            margin: 2px 8px;
+            margin: 1px 8px;
         }
 
         .sidebar-nav .nav-link {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 0.65rem 1rem;
+            padding: 0.6rem 1rem;
             color: rgba(255, 255, 255, 0.6);
             border-radius: 10px;
             text-decoration: none;
             transition: all 0.2s ease;
             font-size: 14px;
             font-weight: 500;
+            position: relative;
+            white-space: nowrap;
         }
 
         .sidebar-nav .nav-link:hover {
@@ -192,6 +204,7 @@
             width: 20px;
             text-align: center;
             font-size: 16px;
+            flex-shrink: 0;
         }
 
         .sidebar-nav .nav-link .badge {
@@ -201,6 +214,7 @@
             font-size: 10px;
             padding: 2px 8px;
             border-radius: 20px;
+            font-weight: 600;
         }
 
         .sidebar-nav .nav-link .arrow {
@@ -219,9 +233,9 @@
         }
 
         .sidebar-nav .sub-menu .nav-link {
-            padding: 0.4rem 0.8rem;
+            padding: 0.35rem 0.8rem;
             font-size: 13px;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.45);
         }
 
         .sidebar-nav .sub-menu .nav-link:hover {
@@ -237,10 +251,14 @@
         /* PAGE CONTENT */
         /* ============================================================ */
         #page-content-wrapper {
-            flex: 1;
             margin-left: var(--sidebar-width);
             min-height: 100vh;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ✅ When Sidebar is Collapsed */
+        #page-content-wrapper.expanded {
+            margin-left: 0;
         }
 
         /* ============================================================ */
@@ -248,7 +266,7 @@
         /* ============================================================ */
         .vendor-navbar {
             background: white;
-            padding: 0.75rem 1.5rem;
+            padding: 0 1.5rem;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
             position: sticky;
             top: 0;
@@ -256,6 +274,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            height: var(--header-height);
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .vendor-navbar .navbar-left {
@@ -270,9 +290,12 @@
             font-size: 20px;
             color: #4b5563;
             cursor: pointer;
-            padding: 4px 8px;
+            padding: 6px 10px;
             border-radius: 8px;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .vendor-navbar .navbar-left .toggle-btn:hover {
@@ -283,6 +306,7 @@
             font-weight: 600;
             font-size: 18px;
             color: #1f2937;
+            margin: 0;
         }
 
         .vendor-navbar .navbar-right {
@@ -332,6 +356,7 @@
             transition: all 0.2s ease;
             text-decoration: none;
             color: #1f2937;
+            border: none;
         }
 
         .vendor-navbar .navbar-right .dropdown-user:hover {
@@ -349,22 +374,28 @@
             color: white;
             font-weight: 600;
             font-size: 12px;
+            flex-shrink: 0;
         }
 
         .vendor-navbar .navbar-right .dropdown-user .user-name {
             font-weight: 500;
             font-size: 13px;
+            display: block;
         }
 
-        /* ============================================================ */
-        /* DROPDOWN MENU */
-        /* ============================================================ */
+        .vendor-navbar .navbar-right .dropdown-user .user-arrow {
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        /* Dropdown Menu */
         .dropdown-menu-custom {
             border: none;
             border-radius: 12px;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
             padding: 0.5rem;
             min-width: 200px;
+            margin-top: 8px;
         }
 
         .dropdown-menu-custom .dropdown-item {
@@ -391,19 +422,32 @@
         }
 
         /* ============================================================ */
+        /* MAIN CONTENT */
+        /* ============================================================ */
+        .main-content {
+            padding: 1.5rem;
+        }
+
+        /* ============================================================ */
         /* RESPONSIVE */
         /* ============================================================ */
-        @media (max-width: 768px) {
+        @media (max-width: 992px) {
             #sidebar-wrapper {
                 transform: translateX(-100%);
+                width: var(--sidebar-width);
             }
 
             #sidebar-wrapper.show {
                 transform: translateX(0);
             }
 
+            #sidebar-wrapper.collapsed {
+                transform: translateX(-100%);
+                width: var(--sidebar-width);
+            }
+
             #page-content-wrapper {
-                margin-left: 0;
+                margin-left: 0 !important;
             }
 
             .sidebar-overlay {
@@ -420,6 +464,12 @@
             .sidebar-overlay.show {
                 display: block;
             }
+        }
+
+        @media (max-width: 576px) {
+            .vendor-navbar {
+                padding: 0.5rem 1rem;
+            }
 
             .vendor-navbar .navbar-left .page-title {
                 font-size: 15px;
@@ -428,21 +478,14 @@
             .vendor-navbar .navbar-right .dropdown-user .user-name {
                 display: none;
             }
-        }
 
-        @media (max-width: 576px) {
-            .vendor-navbar {
-                padding: 0.5rem 1rem;
-            }
-
-            .vendor-navbar .navbar-right .btn-icon {
-                width: 34px;
-                height: 34px;
+            .main-content {
+                padding: 1rem;
             }
         }
 
         /* ============================================================ */
-        /* TOAST NOTIFICATION */
+        /* TOAST */
         /* ============================================================ */
         .toast-container-custom {
             position: fixed;
@@ -496,7 +539,7 @@
             @include('vendor.layouts.navbar')
 
             {{-- Main Content --}}
-            <div class="p-3 p-md-4">
+            <div class="main-content">
                 @yield('content')
             </div>
         </div>
@@ -511,26 +554,69 @@
 
     <script>
         // ============================================================
-        // SIDEBAR TOGGLE
+        // ✅ SIDEBAR TOGGLE - CORRECTED
         // ============================================================
-        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('sidebar-wrapper');
+            const content = document.getElementById('page-content-wrapper');
             const overlay = document.getElementById('sidebarOverlay');
+            const toggleBtn = document.getElementById('sidebarToggle');
 
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('show');
-                overlay.classList.toggle('show');
-            } else {
-                sidebar.classList.toggle('collapsed');
-                document.getElementById('page-content-wrapper').style.marginLeft =
-                    sidebar.classList.contains('collapsed') ? '0' : 'var(--sidebar-width)';
+            // Check if sidebar was collapsed before (localStorage)
+            const isCollapsed = localStorage.getItem('vendor_sidebar_collapsed') === 'true';
+            if (isCollapsed && window.innerWidth > 992) {
+                sidebar.classList.add('collapsed');
+                content.classList.add('expanded');
             }
-        });
 
-        // Close sidebar on overlay click (mobile)
-        document.getElementById('sidebarOverlay')?.addEventListener('click', function() {
-            document.getElementById('sidebar-wrapper').classList.remove('show');
-            this.classList.remove('show');
+            toggleBtn?.addEventListener('click', function() {
+                const isMobile = window.innerWidth <= 992;
+
+                if (isMobile) {
+                    // Mobile: Toggle show/hide
+                    sidebar.classList.toggle('show');
+                    overlay.classList.toggle('show');
+                } else {
+                    // Desktop: Toggle collapse/expand
+                    sidebar.classList.toggle('collapsed');
+                    content.classList.toggle('expanded');
+
+                    // Save state to localStorage
+                    const collapsed = sidebar.classList.contains('collapsed');
+                    localStorage.setItem('vendor_sidebar_collapsed', collapsed);
+                }
+            });
+
+            // Close sidebar on overlay click (mobile)
+            overlay?.addEventListener('click', function() {
+                sidebar.classList.remove('show');
+                this.classList.remove('show');
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                const isMobile = window.innerWidth <= 992;
+
+                if (isMobile) {
+                    // On mobile, remove collapsed state and reset
+                    sidebar.classList.remove('collapsed');
+                    content.classList.remove('expanded');
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                } else {
+                    // On desktop, apply saved state
+                    const collapsed = localStorage.getItem('vendor_sidebar_collapsed') === 'true';
+                    if (collapsed) {
+                        sidebar.classList.add('collapsed');
+                        content.classList.add('expanded');
+                    } else {
+                        sidebar.classList.remove('collapsed');
+                        content.classList.remove('expanded');
+                    }
+                    // Hide overlay if visible
+                    overlay.classList.remove('show');
+                }
+            });
         });
 
         // ============================================================
@@ -540,7 +626,6 @@
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast-custom ${type}`;
-            toast.innerHTML = message;
 
             const icons = {
                 success: 'fa-check-circle',
@@ -564,7 +649,7 @@
         // ============================================================
         console.log('%c🏪 Vendor Panel Loaded', 'color: #4f46e5; font-size: 16px; font-weight: bold;');
         console.log(`%c👤 Welcome, {{ Auth::user()->name ?? 'Vendor' }}`, 'color: #6b7280; font-size: 12px;');
-        console.log('💡 Tip: Use the sidebar to navigate');
+        console.log('💡 Tip: Click the hamburger icon to toggle sidebar');
     </script>
 
     @stack('scripts')

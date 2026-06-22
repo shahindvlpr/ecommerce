@@ -28,14 +28,18 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // এই লাইনটি পরিবর্তন করুন
-        // পুরাতন: return redirect()->intended(route('dashboard', absolute: false));
+        // ============================================================
+        // ✅ Role Based Redirect
+        // ============================================================
+        $user = Auth::user();
         
-        // নতুন: সরাসরি হোমপেজে রিডাইরেক্ট করুন
-        return redirect('/');
-        
-        // অথবা যদি চান ড্যাশবোর্ডেই যাক, তাহলে:
-        // return redirect()->route('dashboard');
+        if ($user->role === 'admin' || $user->is_admin) {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->role === 'vendor') {
+            return redirect()->route('vendor.dashboard');
+        } else {
+            return redirect()->route('customer.dashboard');
+        }
     }
 
     /**

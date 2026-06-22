@@ -1,12 +1,12 @@
 <nav class="vendor-navbar">
     {{-- Left Side --}}
     <div class="navbar-left">
-        <button class="toggle-btn" id="sidebarToggle">
+        <button class="toggle-btn" id="sidebarToggle" title="Toggle Sidebar">
             <i class="fas fa-bars"></i>
         </button>
-        <span class="page-title">
+        <h5 class="page-title">
             @yield('page-title', 'Dashboard')
-        </span>
+        </h5>
     </div>
 
     {{-- Right Side --}}
@@ -19,13 +19,13 @@
 
         {{-- User Dropdown --}}
         <div class="dropdown">
-            <a href="#" class="dropdown-user" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="dropdown-user" data-bs-toggle="dropdown" aria-expanded="false">
                 <div class="avatar-sm">
                     {{ strtoupper(substr(Auth::user()->name ?? 'V', 0, 2)) }}
                 </div>
                 <span class="user-name">{{ Auth::user()->name ?? 'Vendor' }}</span>
-                <i class="fas fa-chevron-down" style="font-size: 10px; color: #6b7280; margin-left: 4px;"></i>
-            </a>
+                <i class="fas fa-chevron-down user-arrow"></i>
+            </button>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
                 <li>
                     <a class="dropdown-item" href="{{ route('vendor.profile') }}">

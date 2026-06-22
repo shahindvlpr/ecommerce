@@ -12,10 +12,10 @@
         </div>
         <div class="info">
             <span class="name">{{ Auth::user()->name ?? 'Vendor' }}</span>
-            <span class="role">Vendor</span>
+            <span class="role">{{ Auth::user()->role ?? 'Vendor' }}</span>
         </div>
         <span class="badge-status">
-            <i class="fas fa-circle" style="font-size: 6px; margin-right: 4px;"></i>
+            <i class="fas fa-circle me-1" style="font-size: 6px;"></i>
             {{ Auth::user()->is_vendor_approved ? 'Active' : 'Pending' }}
         </span>
     </div>
@@ -48,7 +48,7 @@
             </a>
         </div>
 
-        {{-- ORDERS --}}
+        {{-- SALES --}}
         <div class="nav-section">Sales</div>
 
         <div class="nav-item">
@@ -71,7 +71,7 @@
             </a>
         </div>
 
-        {{-- REPORTS --}}
+        {{-- ANALYTICS --}}
         <div class="nav-section">Analytics</div>
 
         <div class="nav-item">
@@ -81,7 +81,7 @@
             </a>
         </div>
 
-        {{-- PROFILE --}}
+        {{-- ACCOUNT --}}
         <div class="nav-section">Account</div>
 
         <div class="nav-item">

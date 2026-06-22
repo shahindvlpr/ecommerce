@@ -18,6 +18,7 @@ class OrderItem extends Model
         'price',
         'total',
         'attributes',
+        'vendor_id',
     ];
 
     protected $casts = [
@@ -40,4 +41,10 @@ class OrderItem extends Model
     {
         return $this->belongsTo(ProductVariation::class, 'product_variation_id');
     }
+
+    public function vendor()
+{
+    return $this->belongsTo(User::class, 'vendor_id');
+}
+
 }

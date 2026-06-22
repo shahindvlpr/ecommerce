@@ -9,6 +9,8 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Address;
+use App\Models\VendorEarning;
+use App\Models\Product;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
@@ -125,12 +127,12 @@ class CheckoutController extends Controller
         $fullAddress .= ', ' . $request->country;
 
         try {
-            // Create order
+            // ============================================================
+            // 1. CREATE ORDER
+            // ============================================================
             $order = Order::create([
                 'user_id' => $user->id,
                 'order_number' => $orderNumber,
-                
-                // Customer info
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
@@ -140,56 +142,91 @@ class CheckoutController extends Controller
                 'postal_code' => $request->postal_code,
                 'country' => $request->country,
                 'payment_method' => $request->payment_method,
-                
-                // Financials
                 'subtotal' => $subtotal,
                 'discount' => 0,
                 'tax' => $tax,
                 'shipping_cost' => $shipping,
                 'total' => $total,
-                
-                // Statuses
-                'status' => Order::STATUS_PENDING,
-                'payment_status' => Order::PAYMENT_PENDING,
-                'shipping_status' => Order::SHIPPING_PENDING,
-                
-                // Addresses
+                'status' => 'pending',
+                'payment_status' => 'pending',
+                'shipping_status' => 'pending',
                 'shipping_address' => $fullAddress,
                 'billing_address' => $fullAddress,
-                
-                // Additional
                 'notes' => $request->notes ?? null,
             ]);
 
-            // Create order items
+            // ============================================================
+            // 2. CREATE ORDER ITEMS WITH VENDOR ID
+            // ============================================================
+            $vendorIds = [];
+            
             foreach ($cart as $item) {
                 $price = $item->product->sale_price ?? $item->product->price;
+                $product = $item->product;
                 
+                // Get vendor_id from product
+                $vendorId = $product->vendor_id ?? null;
+                
+                if ($vendorId) {
+                    $vendorIds[] = $vendorId;
+                }
+
+                // Create Order Item with vendor_id
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
                     'product_variation_id' => $item->product_variation_id ?? null,
+                    'vendor_id' => $vendorId,
                     'quantity' => $item->quantity,
                     'price' => $price,
                     'total' => $price * $item->quantity,
                 ]);
 
+                // ============================================================
+                // 3. CREATE VENDOR EARNINGS
+                // ============================================================
+                if ($vendorId) {
+                    $commissionRate = 10; // 10% commission
+                    $commissionAmount = ($price * $item->quantity) * ($commissionRate / 100);
+                    $netAmount = ($price * $item->quantity) - $commissionAmount;
+
+                    VendorEarning::create([
+                        'vendor_id' => $vendorId,
+                        'order_id' => $order->id,
+                        'product_id' => $product->id,
+                        'amount' => $price * $item->quantity,
+                        'commission' => $commissionAmount,
+                        'net_amount' => $netAmount,
+                        'type' => 'sale',
+                        'status' => 'pending',
+                        'description' => "Sale of {$product->name} (Order #{$orderNumber})",
+                    ]);
+                }
+
                 // Update product stock
-                $product = $item->product;
                 if ($product) {
                     $product->stock -= $item->quantity;
                     $product->save();
                 }
             }
 
+            // ============================================================
+            // 4. UPDATE ORDER VENDOR_ID (if single vendor)
+            // ============================================================
+            $uniqueVendors = array_unique($vendorIds);
+            
+            if (count($uniqueVendors) == 1) {
+                $order->vendor_id = $uniqueVendors[0];
+                $order->save();
+            }
+
             // Clear cart
             Cart::where('user_id', $user->id)->delete();
 
             // ============================================================
-            // ✅ PAYMENT METHOD BASED REDIRECT
+            // 5. PAYMENT METHOD BASED REDIRECT
             // ============================================================
             if ($request->payment_method == 'cod') {
-                // Cash on Delivery - সরাসরি Success
                 return redirect()->route('checkout.success', $order->id)
                     ->with('success', 'Order placed successfully! You will pay on delivery.');
                     
@@ -244,15 +281,16 @@ class CheckoutController extends Controller
                 }
                 
             } elseif ($request->payment_method == 'sslcommerz') {
-                // ✅ SSLCommerz Payment Gateway - Updated
                 return redirect()->route('sslcommerz.pay', ['order' => $order->id]);
             }
 
-            // Fallback
             return redirect()->route('checkout.success', $order->id)
                 ->with('success', 'Order placed successfully!');
 
         } catch (\Exception $e) {
+            \Log::error('Checkout Error: ' . $e->getMessage());
+            \Log::error('Checkout Trace: ' . $e->getTraceAsString());
+            
             return redirect()->back()
                 ->with('error', 'Something went wrong! Please try again.')
                 ->withInput();
@@ -289,7 +327,6 @@ class CheckoutController extends Controller
      */
     public function applyCoupon(Request $request)
     {
-        // Coupon logic will be implemented here
         return response()->json([
             'success' => false, 
             'message' => 'Coupon feature coming soon!'
@@ -338,7 +375,6 @@ class CheckoutController extends Controller
      */
     public function getUpazilas($districtId)
     {
-        // This can be expanded with actual data
         return response()->json([]);
     }
 }

@@ -44,6 +44,7 @@ class Order extends Model
         'country',        
         'payment_method', 
         'payment_status',
+        'vendor_id',
     ];
 
     protected $casts = [
@@ -272,4 +273,9 @@ class Order extends Model
         ];
         return implode(', ', array_filter($parts));
     }
+
+public function vendor()
+{
+    return $this->belongsTo(User::class, 'vendor_id');
+}
 }
